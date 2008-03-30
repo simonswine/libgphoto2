@@ -19,6 +19,8 @@ Build-Depends: debhelper (>> 5.0.0),
                libdbus-1-dev
 Build-Conflicts: liblockdev1-dev
 Standards-Version: 3.7.2
+Vcs-Browser: http://git.debian.org/?p=pkg-phototools/libgphoto2.git
+Vcs-Git: git://git.debian.org/git/pkg-phototools/libgphoto2.git
 
 Package: libgphoto2-2-dev
 Section: libdevel
