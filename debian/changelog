@@ -9,6 +9,8 @@ libgphoto2 (2.4.0-9) unstable; urgency=high
        is referenced in a bunch of “.la” files (Closes: #467527). Setting
        urgency to “high” accordingly, since the bug is also in testing.
      - Add a Homepage field.
+     - Make lintian happy, delete the “-1” bits from the versioned B-D on
+       libhal-dev.
   * debian/copyright:
      - Point to LGPL-2 rather than just LGPL, which now points to
        LGPL-3 (the copyright says LGPL-2+, but let's be precise).
