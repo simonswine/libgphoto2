@@ -12,6 +12,10 @@ libgphoto2 (2.4.0-9) unstable; urgency=high
   * debian/copyright:
      - Point to LGPL-2 rather than just LGPL, which now points to
        LGPL-3 (the copyright says LGPL-2+, but let's be precise).
+  * debian/patches:
+     - Add 75_deprecated_hal_key.dpatch: Replace the deprecated HAL
+       property “info.bus” with “info.subsystem” in the HAL FDI generation
+       tool, thanks to Martin Pitt (Closes: #472656).
 
  -- Cyril Brulebois <cyril.brulebois@enst-bretagne.fr>  Sun, 30 Mar 2008 17:30:21 +0200
 
