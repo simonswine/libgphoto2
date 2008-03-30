@@ -1,3 +1,11 @@
+libgphoto2 (2.4.0-9) unstable; urgency=low
+
+  * Adopt the package within pkg-phototools:
+     - Set the Maintainer to the group.
+     - Add Frederic Peters and myself as Uploaders.
+
+ -- Cyril Brulebois <cyril.brulebois@enst-bretagne.fr>  Sun, 30 Mar 2008 17:30:21 +0200
+
 libgphoto2 (2.4.0-8) unstable; urgency=low
 
   * debian/patches/45_increase_canon_timeout.dpatch Increase timeout wait for

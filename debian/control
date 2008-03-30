@@ -1,7 +1,8 @@
 Source: libgphoto2
 Section: libs
 Priority: optional
-Maintainer: Frederic Peters <fpeters@debian.org>
+Maintainer: Debian PhotoTools Maintainers <pkg-phototools-devel@lists.alioth.debian.org>
+Uploaders: Frederic Peters <fpeters@debian.org>, Cyril Brulebois <cyril.brulebois@enst-bretagne.fr>
 Build-Depends: debhelper (>> 5.0.0),
                dpatch,
                type-handling,
