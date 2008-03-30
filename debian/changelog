@@ -6,6 +6,9 @@ libgphoto2 (2.4.0-9) unstable; urgency=low
      - Add Vcs-Browser and Vcs-Git fields accordingly.
   * debian/control:
      - Add a Homepage field.
+  * debian/copyright:
+     - Point to LGPL-2 rather than just LGPL, which now points to
+       LGPL-3 (the copyright says LGPL-2+, but let's be precise).
 
  -- Cyril Brulebois <cyril.brulebois@enst-bretagne.fr>  Sun, 30 Mar 2008 17:30:21 +0200
 
