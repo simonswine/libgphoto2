@@ -1,10 +1,13 @@
-libgphoto2 (2.4.0-9) unstable; urgency=low
+libgphoto2 (2.4.0-9) unstable; urgency=high
 
   * Adopt the package within pkg-phototools:
      - Set the Maintainer to the group.
      - Add Frederic Peters and myself as Uploaders.
      - Add Vcs-Browser and Vcs-Git fields accordingly.
   * debian/control:
+     - Add a Depends: on libltdl3-dev to libgphoto2-2-dev since libltdl.la
+       is referenced in a bunch of “.la” files (Closes: #467527). Setting
+       urgency to “high” accordingly, since the bug is also in testing.
      - Add a Homepage field.
   * debian/copyright:
      - Point to LGPL-2 rather than just LGPL, which now points to
