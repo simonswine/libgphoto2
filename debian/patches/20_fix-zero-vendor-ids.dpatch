@@ -1,0 +1,28 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 20_fix-zero-vendor-ids.dpatch by  <mpitt@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad libgphoto2-2.3.1~/packaging/generic/print-camera-list.c libgphoto2-2.3.1/packaging/generic/print-camera-list.c
+--- libgphoto2-2.3.1~/packaging/generic/print-camera-list.c	2006-12-24 16:16:19.000000000 +0100
++++ libgphoto2-2.3.1/packaging/generic/print-camera-list.c	2007-04-23 19:30:08.000000000 +0200
+@@ -333,7 +333,7 @@
+ 				 | GP_USB_HOTPLUG_MATCH_PRODUCT_ID);
+ 			usb_vendor = a->usb_vendor;
+ 			usb_product = a->usb_product;
+-		} else if ((a->usb_class) && (a->usb_class != 666)) {
++		} else if (a->usb_class) {
+ 			class = a->usb_class;
+ 			subclass = a->usb_subclass;
+ 			proto = a->usb_protocol;
+@@ -446,7 +446,7 @@
+ 				 | GP_USB_HOTPLUG_MATCH_PRODUCT_ID);
+ 			usb_vendor = a->usb_vendor;
+ 			usb_product = a->usb_product;
+-		} else if ((a->usb_class) && (a->usb_class != 666)) {
++		} else if (a->usb_class) {
+ 			class = a->usb_class;
+ 			subclass = a->usb_subclass;
+ 			proto = a->usb_protocol;

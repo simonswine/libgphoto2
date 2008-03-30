@@ -1,0 +1,44 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 50_getenv_home_overflow.dpatch by  <fpeters@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: don't copy more characters from $HOME than possible in buffer
+## DP: (applied upstream as revision #10453)
+
+@DPATCH@
+diff -urNad libgphoto2-2.3.1~/libgphoto2/gphoto2-setting.c libgphoto2-2.3.1/libgphoto2/gphoto2-setting.c
+--- libgphoto2-2.3.1~/libgphoto2/gphoto2-setting.c	2007/07/20 13:45:00	10452
++++ libgphoto2-2.3.1/libgphoto2/gphoto2-setting.c	2007/07/20 17:01:57	10453
+@@ -172,19 +172,19 @@
+ 	/* Make sure the directories are created */
+ 	GP_DEBUG ("Creating $HOME/.gphoto");
+ #ifdef WIN32
+-	GetWindowsDirectory (buf, 1024);
++	GetWindowsDirectory (buf, sizeof(buf));
+ 	strcat (buf, "\\gphoto");
+ #else
+-	sprintf (buf, "%s/.gphoto", getenv ("HOME"));
++	snprintf (buf, sizeof(buf), "%s/.gphoto", getenv ("HOME"));
+ #endif
+ 	(void)gp_system_mkdir (buf);
+ 
+ 	glob_setting_count = 0;
+ #ifdef WIN32
+-	GetWindowsDirectory(buf, 1024);
++	GetWindowsDirectory(buf, sizeof(buf));
+ 	strcat(buf, "\\gphoto\\settings");
+ #else
+-	sprintf(buf, "%s/.gphoto/settings", getenv("HOME"));
++	snprintf(buf, sizeof(buf), "%s/.gphoto/settings", getenv("HOME"));
+ #endif
+ 
+ 	if (verify_settings(buf) != GP_OK)
+@@ -226,7 +226,7 @@
+ 	char buf[1024];
+ 	int x=0;
+ 
+-	sprintf (buf, "%s/.gphoto/settings", getenv ("HOME"));
++	snprintf (buf, 1024, "%s/.gphoto/settings", getenv ("HOME"));
+ 
+ 	gp_log (GP_LOG_DEBUG, "gphoto2-setting",
+ 		"Saving %i setting(s) to file \"%s\"",

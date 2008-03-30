@@ -1,0 +1,46 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 30_additional_camera_support.dpatch by  <fpeters@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Explicit support for new camera models
+
+@DPATCH@
+diff -urNad libgphoto2-2.4.0~/camlibs/ptp2/library.c libgphoto2-2.4.0/camlibs/ptp2/library.c
+--- libgphoto2-2.4.0~/camlibs/ptp2/library.c	2007-07-27 02:35:37.000000000 +0200
++++ libgphoto2-2.4.0/camlibs/ptp2/library.c	2007-10-11 13:04:28.765981118 +0200
+@@ -432,6 +432,7 @@
+ 	{"Sony:DSC-U20 (PTP mode)",   0x054c, 0x004e, 0},
+ 	{"Sony:DSC-V1 (PTP mode)",    0x054c, 0x004e, 0},
+ 	{"Sony:DSC-W1 (PTP mode)",    0x054c, 0x004e, 0},
++	{"Sony:DSC-W5 (PTP mode)",    0x054c, 0x004e, 0},
+ 	{"Sony:DSC-W12 (PTP mode)",   0x054c, 0x004e, 0},
+ 	{"Sony:DSC-W35 (PTP mode)",   0x054c, 0x004e, 0},
+ 	{"Sony:MVC-CD300 (PTP mode)", 0x054c, 0x004e, 0},
+@@ -485,6 +486,8 @@
+ 	/* Lowe, John Michael <jomlowe@iupui.edu> */
+ 	{"Nikon:Coolpix S2 (PTP mode)",   0x04b0, 0x014e, 0},
+ 	{"Nikon:Coolpix S6 (PTP mode)",   0x04b0, 0x014e, 0},
++	/* Ole Aamot <ole@gnome.org> */
++	{"Nikon:Coolpix P5000 (PTP mode)",0x04b0, 0x015b, PTP_CAP},
+ 	{"Nikon:Coolpix SQ (PTP mode)",   0x04b0, 0x0202, 0},
+ 	/* lars marowski bree, 16.8.2004 */
+ 	{"Nikon:Coolpix 4200 (PTP mode)", 0x04b0, 0x0204, 0},
+@@ -694,6 +697,8 @@
+ 	{"Canon:PowerShot A550 (PTP mode)",     0x04a9, 0x3150, PTPBUG_DELETE_SENDS_EVENT},
+ 	/* https://launchpad.net/bugs/64146 */
+ 	{"Canon:PowerShot A450 (PTP mode)",     0x04a9, 0x3155, PTPBUG_DELETE_SENDS_EVENT},
++	/* Harald Dunkel <harald.dunkel@t-online.de> */
++	{"Canon:PowerShot G9 (PTP mode)",	0x04a9, 0x315a, PTPBUG_DELETE_SENDS_EVENT},
+ 
+ 
+ 
+@@ -718,6 +723,9 @@
+ 	/* launchpad 67532 */
+ 	{"Fuji:FinePix F31fd",			0x04cb, 0x01c1, 0},
+ 	{"Fuji:FinePix F40fd", 0x04cb, 0x01c5, 0},
++	/* http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=421179 */
++	{"Fuji:FinePix A800",			0x04cb, 0x01d2, 0},
++
+ 
+ 	{"Ricoh:Caplio GX (PTP mode)",          0x05ca, 0x0325, 0},
+ 	{"Ricoh:Caplio R3 (PTP mode)",          0x05ca, 0x032f, 0},

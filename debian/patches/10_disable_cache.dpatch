@@ -1,0 +1,21 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 10_disable_cache.dpatch by  <fpeters@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Do not cache downloaded files in memory to plug a giant memory hole
+## DP: (see Debian bug #372166)
+
+@DPATCH@
+diff -urNad libgphoto2-2.3.0~/libgphoto2/gphoto2-filesys.c libgphoto2-2.3.0/libgphoto2/gphoto2-filesys.c
+--- libgphoto2-2.3.0~/libgphoto2/gphoto2-filesys.c	2006-11-25 15:47:20.000000000 +0100
++++ libgphoto2-2.3.0/libgphoto2/gphoto2-filesys.c	2007-01-13 15:04:47.733634516 +0100
+@@ -1576,9 +1576,6 @@
+ 	CR (gp_file_set_type (file, type));
+ 	CR (gp_file_set_name (file, filename));
+ 
+-	/* Cache this file */
+-	CR (gp_filesystem_set_file_noop (fs, folder, file, context));
+-
+ 	/*
+ 	 * Often, thumbnails are of a different mime type than the normal
+ 	 * picture. In this case, we should rename the file.
