@@ -21,6 +21,7 @@ Build-Conflicts: liblockdev1-dev
 Standards-Version: 3.7.2
 Vcs-Browser: http://git.debian.org/?p=pkg-phototools/libgphoto2.git
 Vcs-Git: git://git.debian.org/git/pkg-phototools/libgphoto2.git
+Homepage: http://www.gphoto.org/proj/libgphoto2/
 
 Package: libgphoto2-2-dev
 Section: libdevel

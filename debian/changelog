@@ -4,6 +4,8 @@ libgphoto2 (2.4.0-9) unstable; urgency=low
      - Set the Maintainer to the group.
      - Add Frederic Peters and myself as Uploaders.
      - Add Vcs-Browser and Vcs-Git fields accordingly.
+  * debian/control:
+     - Add a Homepage field.
 
  -- Cyril Brulebois <cyril.brulebois@enst-bretagne.fr>  Sun, 30 Mar 2008 17:30:21 +0200
 
