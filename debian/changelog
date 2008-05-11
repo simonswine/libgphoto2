@@ -25,6 +25,8 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
        there. There's no use shipping an empty directory (especially since
        the maintainer scripts are taking care of removing files previously
        created in that directory).
+  * debian/libgphoto2-2-dev.files:
+     - Drop “*.la” files.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 
