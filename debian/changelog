@@ -18,6 +18,8 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
      - Drop 65_udev_usb_subsystem.dpatch, merged upstream (using another
        approach).
      - Drop 75_deprecated_hal_key.dpatch, merged upstream.
+     - Drop disabled patches (from the list and from that directory) since
+       one can get them back from the VCS.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 
