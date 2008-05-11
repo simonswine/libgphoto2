@@ -3,5 +3,8 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
   * Poke upstream to get copyright and license statements clarified.
   * Ask whether 9e8a0e9a1e is correct:
       “No longer ship an empty /usr/share/hal/fdi/information/10freedesktop directory.”
+  * Check the impact of 52da07b9a2 on reverse dependencies:
+      “Drop “*.la” files from the -dev package.”
+  * Adjust the Depends: according to the content of the “*.pc” files.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:44:38 +0200
