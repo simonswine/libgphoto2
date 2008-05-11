@@ -11,6 +11,10 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
      - Update my mail address.
   * debian/patches:
      - Drop 30_additional_camera_support.dpatch, merged upstream.
+     - Update 45_increase_canon_timeout.dpatch, upstream bumped the
+       timeout from 75 to 150 (Debian had 750), but 750 looks doing a
+       better job according to user comments on the tracker. Keeping that
+       value.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 
