@@ -1,3 +1,14 @@
+libgphoto2 (2.4.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/copyright:
+     - Use an almost decent copyright format, as discussed on
+       <http://wiki.debian.org/Proposals/CopyrightFormat>.
+     - Properly specify copyright holders and licenses, grouping them by
+       components when possible.
+
+ -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
+
 libgphoto2 (2.4.0-9) unstable; urgency=high
 
   * Adopt the package within pkg-phototools:
