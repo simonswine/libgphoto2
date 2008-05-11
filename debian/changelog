@@ -20,6 +20,11 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
      - Drop 75_deprecated_hal_key.dpatch, merged upstream.
      - Drop disabled patches (from the list and from that directory) since
        one can get them back from the VCS.
+  * debian/libgphoto2-2.dirs:
+     - Drop “/usr/share/hal/fdi/information/10freedesktop” from
+       there. There's no use shipping an empty directory (especially since
+       the maintainer scripts are taking care of removing files previously
+       created in that directory).
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 
