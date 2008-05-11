@@ -9,6 +9,8 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
   * debian/control:
      - Remove a trailing space in all long descriptions.
      - Update my mail address.
+  * debian/patches:
+     - Drop 30_additional_camera_support.dpatch, merged upstream.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 

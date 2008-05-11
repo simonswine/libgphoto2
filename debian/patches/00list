@@ -2,7 +2,6 @@
 11_hurd_no_path_max_bsdsource
 #15_use_bash_in_ptp_camera_check
 #20_fix-zero-vendor-ids
-30_additional_camera_support
 #40_disable_canon_fast_directory_retrieval_r10028
 45_increase_canon_timeout.dpatch
 #50_getenv_home_overflow
