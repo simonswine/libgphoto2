@@ -6,6 +6,9 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
        <http://wiki.debian.org/Proposals/CopyrightFormat>.
      - Properly specify copyright holders and licenses, grouping them by
        components when possible.
+  * debian/control:
+     - Remove a trailing space in all long descriptions.
+     - Update my mail address.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 
