@@ -15,5 +15,6 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
   * Check the impact of e496e063f3 on reverse dependencies, and
     forward that upstream:
       “Drop the recursive symlink (“/usr/include/gphoto2/gphoto2 -> .”).”
+  * Check the target relationships towards patch-related timestamps.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:44:38 +0200
