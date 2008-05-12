@@ -93,6 +93,9 @@ install: build
 		mv debian/tmp/usr/lib/udev/check-mtp-device \
 			debian/libgphoto2-port0/lib/udev/check-mtp-device
 
+	# remove *.la files before trying to remove debian/tmp
+	find debian/tmp -name '*.la' -type f -delete
+
 	-find debian/tmp -type d | sort -r | xargs rmdir 2>&1 > /dev/null
 	# debian/tmp should be empty here : if not fail:
 	test ! -d debian/tmp

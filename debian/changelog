@@ -27,6 +27,7 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
        created in that directory).
   * debian/libgphoto2-2-dev.files:
      - Drop “*.la” files.
+     - Remove them in debian/rules before trying to remove debian/tmp.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 
