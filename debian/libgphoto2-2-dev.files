@@ -9,6 +9,5 @@ usr/lib/pkgconfig/libgphoto2.pc
 usr/lib/pkgconfig/libgphoto2_port.pc
 usr/lib/libgphoto2/*/*.a
 usr/include/gphoto2/*.h
-usr/include/gphoto2/gphoto2
 usr/bin/gphoto2-port-config
 usr/bin/gphoto2-config

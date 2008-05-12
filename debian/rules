@@ -80,6 +80,9 @@ install: build
 	# Ok the GPL is already on the target system
 	rm debian/tmp/usr/share/doc/libgphoto2/COPYING
 
+	# remove the recursive symlink
+	rm debian/tmp/usr/include/gphoto2/gphoto2
+
 	dh_movefiles
 
 	mv debian/libgphoto2-$(major)/usr/share/doc/libgphoto2 \
