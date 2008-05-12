@@ -45,11 +45,7 @@ build-stamp: configure-stamp
 	$(MAKE)
 	touch build-stamp
 
-patch: patch-stamp
-patch-stamp:
-	dpatch apply-all
-
-clean: unpatch-stamp
+clean: unpatch
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
@@ -60,11 +56,6 @@ clean: unpatch-stamp
 	rm -f po/stamp-po po/*.gmo
 
 	dh_clean
-
-unpatch: unpatch-stamp
-unpatch-stamp:
-	dpatch deapply-all
-	rm -rf patch-stamp debian/patched
 
 install: build
 	dh_testdir

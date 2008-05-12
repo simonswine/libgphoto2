@@ -30,6 +30,11 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
      - Remove them in debian/rules before trying to remove debian/tmp.
      - Drop the recursive symlink (“/usr/include/gphoto2/gphoto2 -> .”).
      - Remove it in debian/rules before running dh_movefiles.
+  * debian/rules:
+     - Remove “patch” and “unpatch” targets since dpatch.make is included
+       already.
+     - Move the single dependency on “unpatch-stamp” to “unpatch” since
+       there's no stamp for “unpatch”.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
 
