@@ -12,6 +12,8 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
      - /usr/bin/gphoto2-port-config (source: libgphoto2_port/gphoto2-port-config.in)
   * Are those scripts really needed anyway? A call to pkg-config would
     do the job.
-
+  * Check the impact of e496e063f3 on reverse dependencies, and
+    forward that upstream:
+      “Drop the recursive symlink (“/usr/include/gphoto2/gphoto2 -> .”).”
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:44:38 +0200
