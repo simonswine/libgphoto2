@@ -48,6 +48,7 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
         - Remove libltdl3-dev, no longer needed since “*.la” files are no
           longer shipped under /usr/lib.
      - Remove a trailing space in all long descriptions.
+     - Bump Standards-Version from 3.7.3 to 3.8.0 (no change needed).
      - Update my mail address.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
