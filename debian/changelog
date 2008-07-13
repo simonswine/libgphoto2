@@ -49,6 +49,7 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
           longer shipped under /usr/lib.
      - Remove a trailing space in all long descriptions.
      - Bump Standards-Version from 3.7.3 to 3.8.0 (no change needed).
+     - Add back graphviz to generate all documentation items.
      - Update my mail address.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
