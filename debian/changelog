@@ -1,6 +1,6 @@
 libgphoto2 (2.4.1-1) unstable; urgency=low
 
-  * New upstream release:
+  * New upstream release (Closes: #480127):
      - Not bumping shlibs, no new symbol.
      - To achieve this, use two dh_makeshlibs calls (one for
        libgphoto2-port0 and one for libgphoto2-$(major), and provide with
