@@ -36,7 +36,7 @@ ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 endif
 
 configure: configure-stamp
-configure-stamp: patch
+configure-stamp: patch-stamp
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr --sysconfdir=/etc --mandir=\$${prefix}/share/man --with-drivers=all --enable-static $(CONFIGURE_OPTIONS)
 	touch configure-stamp

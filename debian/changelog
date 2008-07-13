@@ -39,6 +39,8 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
        already.
      - Move the single dependency on “unpatch-stamp” to “unpatch” since
        there's no stamp for “unpatch”.
+     - Move the dependency on “patch” to “patch-stamp”, so as to avoid
+       unneeded ./configure re-runs.
   * debian/control:
      - Clean the Depends of the -dev package:
         - Use libc-dev instead of libc6-dev (there are at least libc0.1,
