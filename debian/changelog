@@ -52,7 +52,7 @@ libgphoto2 (2.4.1-1) unstable; urgency=low
      - Add back graphviz to generate all documentation items.
      - Update my mail address.
 
- -- Cyril Brulebois <kibi@debian.org>  Sun, 11 May 2008 16:37:35 +0200
+ -- Cyril Brulebois <kibi@debian.org>  Sun, 13 Jul 2008 19:34:36 +0200
 
 libgphoto2 (2.4.0-9) unstable; urgency=high
 
