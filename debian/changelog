@@ -1,6 +1,13 @@
 libgphoto2 (2.4.1-1) unstable; urgency=low
 
-  * New upstream release.
+  * New upstream release:
+     - Not bumping shlibs, no new symbol.
+     - To achieve this, use two dh_makeshlibs calls (one for
+       libgphoto2-port0 and one for libgphoto2-$(major), and provide with
+       the last upstream version sharing the same ABI. Using 2.4.0 here
+       although some former versions might have been specified. That
+       shouldn't make any difference from a testing migration point of
+       view.
   * debian/copyright:
      - Use an almost decent copyright format, as discussed on
        <http://wiki.debian.org/Proposals/CopyrightFormat>.

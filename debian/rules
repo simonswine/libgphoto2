@@ -5,6 +5,9 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+# This version at least shares the same ABI, used in the dh_makeshlibs calls.
+SHLIBS=2.4.0
+
 include /usr/share/dpatch/dpatch.make 
 
 DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
@@ -106,7 +109,11 @@ binary-arch: build install
 	dh_strip -a
 	dh_compress -a
 	dh_fixperms -a --exclude usbcam
-	dh_makeshlibs -a -V
+	# By comparing the symbols, a strict dependency on the latest upstream version
+	# can be avoided. $SHLIBS represents the latest version with the same ABI, and
+	# is set at the top of this file.
+	dh_makeshlibs -plibgphoto2-$(major) -V 'libgphoto2-$(major) (>= $(SHLIBS))'
+	dh_makeshlibs -plibgphoto2-port0    -V 'libgphoto2-port0    (>= $(SHLIBS))'
 	dh_installdeb
 	dh_shlibdeps -ldebian/libgphoto2-$(major)/usr/lib/:debian/libgphoto2-port0/usr/lib/
 	dh_gencontrol -plibgphoto2-$(major)-dev
