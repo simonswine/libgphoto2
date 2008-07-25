@@ -1,0 +1,58 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 20_backport_initial_startup_speedup.dpatch by Cyril Brulebois <kibi@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Marcus Meissner <marcus@jet.franken.de> (13/07/2008):
+## DP: > If you have any question/suggestion/other regarding the Debian
+## DP: > packaging, feel free to contact us at the following address:
+## DP: > <pkg-phototools-devel@lists.alioth.debian.org>.
+## DP:
+## DP: You should at least also take the initial startup speedup patch,
+## DP: rev 11066.
+## DP:
+## DP: Even on fast machines it saves over a second startup time.
+## DP:
+## DP: Ciao, Marcus
+
+@DPATCH@
+
+--- a/libgphoto2/gphoto2-abilities-list.c
++++ b/libgphoto2/gphoto2-abilities-list.c
+@@ -576,28 +576,20 @@
+ 	return (list->count);
+ }
+ 
++static int
++cmp_abilities (const void *a, const void *b) {
++	const CameraAbilities *ca = a;
++	const CameraAbilities *cb = b;
+ 
++	return strcasecmp (ca->model, cb->model);
++}
++
+ static int
+ gp_abilities_list_sort (CameraAbilitiesList *list)
+ {
+-	CameraAbilities t;
+-	int x, y;
+-
+ 	CHECK_NULL (list);
+ 
+-	for (x = 0; x < list->count - 1; x++)
+-		for (y = x + 1; y < list->count; y++)
+-			if (strcasecmp (list->abilities[x].model,
+-					list->abilities[y].model) > 0) {
+-				memcpy (&t, &list->abilities[x],
+-					sizeof (CameraAbilities));
+-				memcpy (&list->abilities[x],
+-					&list->abilities[y],
+-					sizeof (CameraAbilities));
+-				memcpy (&list->abilities[y], &t,
+-					sizeof (CameraAbilities));
+-			}
+-
++	qsort (list->abilities, list->count, sizeof(CameraAbilities), cmp_abilities);
+ 	return (GP_OK);
+ }
+ 
+

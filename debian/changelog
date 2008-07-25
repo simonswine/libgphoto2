@@ -1,3 +1,14 @@
+libgphoto2 (2.4.1-2) unstable; urgency=low
+
+  * Since 2.4.2 was released a bit before the freeze, not rushing its
+    upload for lenny. After having asked usptream, the r11066 revision
+    deserves to be backported, so as to improve the initial startup
+    time. Thanks to Marcus Meissner for having provided the tip, along
+    with the patch:
+     - Add 20_backport_initial_startup_speedup.dpatch
+
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 25 Jul 2008 22:58:59 +0200
+
 libgphoto2 (2.4.1-1) unstable; urgency=low
 
   * New upstream release (Closes: #480127):
