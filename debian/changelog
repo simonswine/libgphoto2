@@ -14,7 +14,7 @@ libgphoto2 (2.4.1-2) unstable; urgency=low
     feature. Many thanks to Jan Echternach for having spotted the problem
     as well as its solution (Closes: #491065).
 
- -- Cyril Brulebois <kibi@debian.org>  Fri, 25 Jul 2008 22:58:59 +0200
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 25 Jul 2008 23:49:37 +0200
 
 libgphoto2 (2.4.1-1) unstable; urgency=low
 
