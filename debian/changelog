@@ -6,6 +6,13 @@ libgphoto2 (2.4.1-2) unstable; urgency=low
     time. Thanks to Marcus Meissner for having provided the tip, along
     with the patch:
      - Add 20_backport_initial_startup_speedup.dpatch
+  * Version the Recommends on udev (which is conditionally specified
+    through the ${udev-hotplug} variable in debian/rules), since
+    libgphoto2 now uses the alternative syntax (that is: key!="a|b"),
+    which apparently was introduced in udev 0.109. Adding “(>= 0.113-1)”
+    since that's the first version in Debian which included this
+    feature. Many thanks to Jan Echternach for having spotted the problem
+    as well as its solution (Closes: #491065).
 
  -- Cyril Brulebois <kibi@debian.org>  Fri, 25 Jul 2008 22:58:59 +0200
 
