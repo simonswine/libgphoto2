@@ -1,3 +1,12 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 30_backport_dropping_panasonic_ids.dpatch by Cyril Brulebois <kibi@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Disable some buggy Panasonic IDs (04da:2372) to ensure those cameras can
+## DP: be used as mass-storage devices (Closes: #479135, #482848).
+
+@DPATCH@
+
 --- a/camlibs/ptp2/library.c
 +++ b/camlibs/ptp2/library.c
 @@ -561,15 +561,12 @@
