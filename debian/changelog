@@ -1,3 +1,11 @@
+libgphoto2 (2.4.1-3) unstable; urgency=low
+
+  * Backport patch from upstream to disable some buggy Panasonic IDs:
+    0x04da, 0x2372 (Closes: #479135):
+     - Add 30_backport_dropping_panasonic_ids.dpatch
+
+ -- Cyril Brulebois <kibi@debian.org>  Sat, 16 Aug 2008 07:20:50 +0200
+
 libgphoto2 (2.4.1-2) unstable; urgency=low
 
   * Since 2.4.2 was released a bit before the freeze, not rushing its
