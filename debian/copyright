@@ -27,8 +27,12 @@ Copyright: © 2003 Theodore Kilgore <kilgota@auburn.edu>
 License: LGPL-2+
 
 Files: camlibs/barbie/*
-Copyright: NONE
-License: NONE
+Copyright: © 2000 Scott Fritzinger <scottf@unr.edu>
+           © 2000 Andreas Meyer <ahm@spies.com>
+           © 2000 Pete Zaitcev <zaitcev@metabyte.com>
+           © 2000 Jeff Laing <jeffl@SPATIALinfo.com>
+           © 2007 Marcus Meissner <marcus@jet.franken.de>
+License: LGPL-2+
 
 Files: camlibs/canon/*
 Copyright: © 1999 Wolfgang G. Reissnegger
@@ -198,9 +202,12 @@ License: NONE
 
 Files: camlibs/ptp2/*
 Copyright: © 2001-2005 Mariusz Woloszyn <emsi@ipartners.pl>
-           © 2003-2007 Marcus Meissner <marcus@jet.franken.de>
+           © 2003-2008 Marcus Meissner <marcus@jet.franken.de>
            © 2005-2006 Hubert Figuiere <hfiguiere@teaser.fr>
-           © 2006 Linus Walleij <triad@df.lth.se>
+           © 2005-2007 Richard A. Low <richard@wentnet.com>
+           © 2005-2008 Linus Walleij <triad@df.lth.se>
+           © 2007 Ted Bullock
+           © 2007 Tero Saarni <tero.saarni@gmail.com>
 License: LGPL-2+
 
 Files: camlibs/ricoh/*
@@ -242,6 +249,7 @@ License: LGPL-2+
 
 Files: camlibs/sonix/*
 Copyright: © 2005 Theodore Kilgore <kilgota@auburn.edu>
+           © 2008 Amauri Magagna
 License: LGPL-2+
 
 Files: camlibs/sonydscf1/*
@@ -300,6 +308,11 @@ Copyright: © 2001 Lutz Müller <lutz@users.sourceforge.net>
            © 2005 Hans Ulrich Niedermann <gp@n-dimensional.de>
 License: LGPL-2+
 
+Files: camlibs/topfield/*
+Copyright: © 2004 Peter Urbanec <toppy@urbanec.net>
+           © 2008 Marcus Meissner
+License: GPL-2+
+
 Files: camlibs/toshiba/*
 Copyright: © 2003 David Hogue <david@jawa.gotdns.org>
 License: LGPL-2+
@@ -350,7 +363,7 @@ Copyright: TODO: Missing years.
            © 2000 Scott Fritzinger
            © 2001-2002 Lutz Müller <lutz@users.sf.net>
            © 2002 Hans Ulrich Niedermann <gp@n-dimensional.de>
-           © 2007 Theodore Kilgore <kilgota@auburn.edu>
+           © 2007-2008 Theodore Kilgore <kilgota@auburn.edu>
            © Nathan Stenzel
 License: LGPL-2+
 
@@ -408,7 +421,7 @@ Files: po/de.po
 Copyright: © 2000-2002 Scott Fritzinger <scottf@unr.edu> et al.
            © 2000 Lutz Müller <lutz@users.sf.net>
            © 2001-2002 Colin Marquardt <colin@marquardt-home.de>
-           © 2003-2007 Marcus Meissner <marcus@jet.franken.de>
+           © 2003-2008 Marcus Meissner <marcus@jet.franken.de>
 
 Files: po/es.po
 Copyright: © 2002-2003 Fabian Mandelbaum <fabman@mandrakesoft.com>
@@ -426,8 +439,8 @@ Files: po/hu.po
 Copyright: © 2003 Tamas Szanto <tszanto@mol.hu>
 
 Files: po/it.po
-Copyright: © 2000, 2005, 2006, 2007 Free Software Foundation, Inc.
-           © 2005, 2006, 2007 Marco Colombo <m.colombo@ed.ac.uk>
+Copyright: © 2000, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+           © 2005, 2006, 2007, 2008 Marco Colombo <m.colombo@ed.ac.uk>
            © 2000 Daniele Medri <madrid@linux.it>
 
 Files: po/ja.po
@@ -441,17 +454,16 @@ Copyright: © 2000 Free Software Foundation, Inc.
            © 2000 Kjartan Maraas <kmaraas@online.no>
 
 Files: po/nl.po
-Copyright: © 2006 Free Software Foundation, Inc.
-           © 2006 Kurt De Bree <kdebree@telenet.be>
+Copyright: © 2008 Kurt De Bree <kdebree@telenet.be>
+           © 2008 Benno Schulenberg <benno@vertaalt.nl>
 
 Files: po/pl.po
-Copyright: © 2006, 2007 Free Software Foundation, Inc.
-           © 2006, 2007 Jakub Bogusz <qboosh@pld-linux.org>
+Copyright: © 2006, 2007, 2008 Free Software Foundation, Inc.
+           © 2006-2008 Jakub Bogusz <qboosh@pld-linux.org>
 
 Files: po/ru.po
-Copyright: © 2000 Free Software Foundation, Inc.
-           © 2005 Vyacheslav Dikonov <sdiconov@mail.ru>
-           © 2005 Alexandre Prokoudine <alexandre.prokoudine@gmail.com>
+Copyright: © 2005 Valek Filippov <frob@df.ru>
+           © 2005 Вячеслав Диконов (Vyacheslav Dikonov) <slava@altlinux.ru>
 
 Files: po/sl.po
 Copyright: © 2000 Free Software Foundation, Inc.
@@ -469,8 +481,16 @@ Copyright: © 2000 Free Software Foundation, Inc.
            © 2005-2007 Maxim V. Dziumanenko <dziumanenko@gmail.com>
 
 Files: po/vi.po
-Copyright: © 2007 Free Software Foundation, Inc.
-           © 2007 Clytie Siddall <clytie@riverland.net.au>
+Copyright: © 2008 Free Software Foundation, Inc.
+           © 2007-2008 Clytie Siddall <clytie@riverland.net.au>
 
 Files: po/zh_CN.po
 Copyright: © 2002 Wang Li <charle@linux.net.cn>
+
+Files: libgphoto2_port/po/sk.po
+Copyright: © 2008 Free Software Foundation, Inc.
+           © 2008 Ivan Masár <helix84@centrum.sk>
+
+Files: libgphoto2_port/po/vi.po
+Copyright: © 2008 Free Software Foundation, Inc.
+           © 2008 Clytie Siddall <clytie@riverland.net.au>
