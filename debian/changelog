@@ -19,7 +19,7 @@ libgphoto2 (2.4.3-1) experimental; urgency=low
     bugreport if the bug is back:
      - debian/patches/45_increase_canon_timeout
 
- -- Cyril Brulebois <kibi@debian.org>  Sun, 30 Nov 2008 08:00:31 +0100
+ -- Cyril Brulebois <kibi@debian.org>  Sun, 30 Nov 2008 09:09:59 +0100
 
 libgphoto2 (2.4.1-3) unstable; urgency=low
 
