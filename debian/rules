@@ -6,7 +6,7 @@
 #export DH_VERBOSE=1
 
 # This version at least shares the same ABI, used in the dh_makeshlibs calls.
-SHLIBS=2.4.0
+SHLIBS=2.4.3
 
 include /usr/share/quilt/quilt.make
 
