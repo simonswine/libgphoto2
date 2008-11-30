@@ -3,6 +3,10 @@ libgphoto2 (2.4.3-1) experimental; urgency=low
   * New upstream release.
   * debian/copyright:
      - Update accordingly.
+  * Switch from dpatch to quilt (run away!):
+     - debian/control: Update Build-Depends.
+     - debian/patches: Strip “.dpatch” suffix, rename 00list to series.
+     - debian/rules: Update “include”, update dependency on patch stamp.
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 30 Nov 2008 08:00:31 +0100
 
