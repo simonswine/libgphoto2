@@ -10,6 +10,12 @@ libgphoto2 (2.4.3-1) experimental; urgency=low
   * Drop previously-backported patches:
      - debian/patches/20_backport_initial_startup_speedup
      - debian/patches/30_backport_dropping_panasonic_ids
+  * Disable the following patch. It was used to increase the
+    CANON_FAST_TIMEOUT parameter which appeared to be too low. Since
+    upstream increased it, let's no longer diverge from them. For the
+    records, the original bugreport was #453114, but please open a new
+    bugreport if the bug is back:
+     - debian/patches/45_increase_canon_timeout
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 30 Nov 2008 08:00:31 +0100
 
