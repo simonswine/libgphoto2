@@ -7,8 +7,9 @@ libgphoto2 (2.4.3-1) experimental; urgency=low
      - debian/control: Update Build-Depends.
      - debian/patches: Strip “.dpatch” suffix, rename 00list to series.
      - debian/rules: Update “include”, update dependency on patch stamp.
-  * Drop previously-backported patch:
+  * Drop previously-backported patches:
      - debian/patches/20_backport_initial_startup_speedup
+     - debian/patches/30_backport_dropping_panasonic_ids
 
  -- Cyril Brulebois <kibi@debian.org>  Sun, 30 Nov 2008 08:00:31 +0100
 
