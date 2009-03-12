@@ -131,6 +131,10 @@ Files: camlibs/jd11/*
 Copyright: © 1999-2001 Marcus Meissner <marcus@jet.franken.de>
 License: LGPL-2+
 
+Files: camlibs/jl2005c/*
+Copyright: © 2006-2008 Theodore Kilgore <kilgota@auburn.edu>
+License: LGPL-2+
+
 Files: camlibs/kodak/*
 Copyright: NONE or improper copyright statements.
 License: NONE or improper copyright statements.
@@ -202,10 +206,10 @@ License: NONE
 
 Files: camlibs/ptp2/*
 Copyright: © 2001-2005 Mariusz Woloszyn <emsi@ipartners.pl>
-           © 2003-2008 Marcus Meissner <marcus@jet.franken.de>
+           © 2003-2009 Marcus Meissner <marcus@jet.franken.de>
            © 2005-2006 Hubert Figuiere <hfiguiere@teaser.fr>
            © 2005-2007 Richard A. Low <richard@wentnet.com>
-           © 2005-2008 Linus Walleij <triad@df.lth.se>
+           © 2005-2009 Linus Walleij <triad@df.lth.se>
            © 2007 Ted Bullock
            © 2007 Tero Saarni <tero.saarni@gmail.com>
 License: LGPL-2+
