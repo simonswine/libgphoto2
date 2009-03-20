@@ -3,6 +3,8 @@ libgphoto2 (2.4.4-1) experimental; urgency=low
   * New upstream release.
   * debian/copyright:
      - Update accordingly.
+  * debian/rules:
+     - Do not bump shlibs accordingly (no new symbols).
 
  -- Cyril Brulebois <kibi@debian.org>  Thu, 12 Mar 2009 20:58:29 +0100
 
