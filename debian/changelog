@@ -1,4 +1,4 @@
-libgphoto2 (2.4.4-1) experimental; urgency=low
+libgphoto2 (2.4.4-1) unstable; urgency=low
 
   * New upstream release.
   * debian/copyright:
@@ -6,7 +6,7 @@ libgphoto2 (2.4.4-1) experimental; urgency=low
   * debian/rules:
      - Do not bump shlibs accordingly (no new symbols).
 
- -- Cyril Brulebois <kibi@debian.org>  Thu, 12 Mar 2009 20:58:29 +0100
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 20 Mar 2009 03:50:41 +0100
 
 libgphoto2 (2.4.3-1) experimental; urgency=low
 
