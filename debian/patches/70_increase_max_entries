@@ -1,13 +1,8 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## 70_increase_max_entries.dpatch by  <fpeters@debian.org>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
+70_increase_max_entries.dpatch by Frederic Peters <fpeters@debian.org>
 
-@DPATCH@
-diff -urNad libgphoto2-2.4.0~/libgphoto2/gphoto2-list.c libgphoto2-2.4.0/libgphoto2/gphoto2-list.c
---- libgphoto2-2.4.0~/libgphoto2/gphoto2-list.c	2007-07-27 02:35:31.000000000 +0200
-+++ libgphoto2-2.4.0/libgphoto2/gphoto2-list.c	2007-09-28 20:09:31.392540127 +0200
+Increase max entries from 1024 to 8192 (closes: #425515, #427476)
+--- a/libgphoto2/gphoto2-list.c
++++ b/libgphoto2/gphoto2-list.c
 @@ -72,7 +72,7 @@
  
  #ifdef CAMERALIST_STRUCT_COMPATIBILITY
