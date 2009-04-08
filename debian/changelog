@@ -1,6 +1,8 @@
 libgphoto2 (2.4.5-1) unstable; urgency=low
 
-  * New upstream release.
+  * New upstream release:
+     - Fix support for Nikon CoolPix S60 (Closes: #520752). Thanks to
+       Mathias Brodala for the report.
 
  -- Cyril Brulebois <kibi@debian.org>  Wed, 08 Apr 2009 23:31:43 +0200
 
