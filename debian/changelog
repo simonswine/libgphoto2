@@ -1,6 +1,8 @@
 libgphoto2 (2.4.5-1) unstable; urgency=low
 
   * New upstream release:
+     - Fix support for Canon EOS 5D Mark II (Closes: #520745). Thanks to
+       Wolfram Quester for the report.
      - Fix support for Nikon CoolPix S60 (Closes: #520752). Thanks to
        Mathias Brodala for the report.
 
