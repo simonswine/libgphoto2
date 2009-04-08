@@ -6,6 +6,8 @@ libgphoto2 (2.4.5-1) unstable; urgency=low
        Wolfram Quester for the report.
      - Fix support for Nikon CoolPix S60 (Closes: #520752). Thanks to
        Mathias Brodala for the report.
+  * Disable patch:
+     - 11_hurd_no_path_max_bsdsource: Disable for now, no longer applies.
 
  -- Cyril Brulebois <kibi@debian.org>  Wed, 08 Apr 2009 23:31:43 +0200
 
