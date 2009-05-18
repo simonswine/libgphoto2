@@ -34,14 +34,6 @@ case "$1" in
 	    if [ -f /etc/udev/libgphoto2_generic-ptp_support.rules ]; then
 	    	rm -f /etc/udev/libgphoto2_generic-ptp_support.rules
 	    fi
-
-	    if [ -x /etc/init.d/udev ]; then
-		if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
-		    invoke-rc.d udev reload || /bin/true
-		else
-		    /etc/init.d/udev reload || /bin/true
-		fi
-	    fi
 	fi
 	;;
 

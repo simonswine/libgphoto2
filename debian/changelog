@@ -6,6 +6,9 @@ libgphoto2 (2.4.6-1) unstable; urgency=low
      - Add a patch to fix a missing include (“struct in_addr” comes from
        <netinet/in.h> and needs to be explicitly included when on a
        non-Linux architecture): 80_kfreebsd
+  * No longer call “udev reload”, rules files are said to be reloaded
+    automatically (Closes: #523957):
+     - debian/libgphoto2-2.post{inst,rm}
 
  -- Cyril Brulebois <kibi@debian.org>  Mon, 18 May 2009 10:03:08 +0200
 
