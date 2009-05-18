@@ -83,12 +83,15 @@ install: build
 		debian/libgphoto2-$(major)/usr/share/doc/libgphoto2-$(major)
 	mv debian/libgphoto2-port0/usr/share/doc/libgphoto2_port \
 		debian/libgphoto2-port0/usr/share/doc/libgphoto2-port0
+
+ifeq ($(DEB_HOST_ARCH_OS),linux)
 	install -D packaging/generic/check-ptp-camera debian/libgphoto2-$(major)/lib/udev/check-ptp-camera
 	rm debian/tmp/usr/lib/udev/check-ptp-camera
 	-test -e debian/tmp/usr/lib/udev/check-mtp-device && \
 		mkdir -p debian/libgphoto2-port0/lib/udev && \
 		mv debian/tmp/usr/lib/udev/check-mtp-device \
 			debian/libgphoto2-port0/lib/udev/check-mtp-device
+endif
 
 	# remove *.la files before trying to remove debian/tmp
 	find debian/tmp/usr/lib -name '*.la' -maxdepth 1 -type f -delete
