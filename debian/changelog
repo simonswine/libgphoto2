@@ -1,3 +1,9 @@
+libgphoto2 (2.4.6-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Cyril Brulebois <kibi@debian.org>  Mon, 18 May 2009 10:03:08 +0200
+
 libgphoto2 (2.4.5-1) unstable; urgency=low
 
   * New upstream release:
