@@ -18,6 +18,9 @@ libgphoto2 (2.4.6.5-1) unstable; urgency=low
        its job properly.
      - Get rid of the attempt at detecting files that are installed
        nowhere, using the --list-failing dh_install option instead.
+  * Merge Ubuntu patches, by Martin Pitt (thanks!):
+     - Update Build-Depends: Move from libltdl3-dev to libltdl-dev
+       (Closes: #531974).
 
  -- Cyril Brulebois <kibi@debian.org>  Thu, 30 Jul 2009 14:00:01 +0200
 
