@@ -1,7 +1,7 @@
 usr/share/locale/*/LC_MESSAGES/libgphoto2-2.mo
-usr/share/doc/libgphoto2/*
+# Watch out: $(major) from debian/rules is seen here, target directory is libgphoto2-$(major):
+usr/share/doc/libgphoto2/* usr/share/doc/libgphoto2-2
 usr/share/libgphoto2/*/konica/*
 usr/lib/libgphoto2/*/*.so
 usr/lib/libgphoto2.so.*
-usr/lib/libgphoto2/*/libgphoto2_*.so
 usr/lib/libgphoto2/print-camera-list

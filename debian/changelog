@@ -5,6 +5,19 @@ libgphoto2 (2.4.6.5-1) unstable; urgency=low
   * Fix lintian warnings:
      - debian/libgphoto2-2.postrm: s{/bin/true}{true}.
      - debian/libgphoto2-2.README.Debian: fix typo.
+  * Move to dh:
+     - Bump debian/compat to 7.
+     - Bump debhelper version in B-D to >= 7.0.50 to use overrides.
+     - Use a minimal-like debian/rules and overrides to perform the
+       various needed tweaks, using the quilt sequence to have patches
+       applied/unapplied when appropriate.
+     - Switch from dh_movefiles to dh_install.
+     - Move moving docs from /u/s/d/libgphoto2{,_port} to the proper
+       locations to .install files.
+     - Remove all special-cases in the clean rules, the upstream one does
+       its job properly.
+     - Get rid of the attempt at detecting files that are installed
+       nowhere, using the --list-failing dh_install option instead.
 
  -- Cyril Brulebois <kibi@debian.org>  Thu, 30 Jul 2009 14:00:01 +0200
 
