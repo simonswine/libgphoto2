@@ -9,12 +9,12 @@ case "$1" in
 	rm -f /etc/hotplug/usb/$PACKAGE.usermap
 	rm -f /etc/udev/$PACKAGE.rules
 	rm -f /etc/udev/libgphoto2_generic-ptp_support.rules
-	rm -f /etc/udev/rules.d/025_$PACKAGE.rules || /bin/true
+	rm -f /etc/udev/rules.d/025_$PACKAGE.rules || true
 	rm -f /etc/udev/rules.d/020_libgphoto2_generic-ptp_support.rules
-	rm -f /usr/share/hal/fdi/information/20thirdparty/$PACKAGE.fdi || /bin/true
-	rm -f /usr/share/hal/fdi/information/10freedesktop/10-camera-$PACKAGE.fdi || /bin/true
-	rm -f /usr/share/hal/fdi/information/10freedesktop/10-camera-$PACKAGE-device.fdi || /bin/true
-	rm -f /usr/share/hal/fdi/preprobe/10osvendor/20-$PACKAGE.fdi || /bin/true
+	rm -f /usr/share/hal/fdi/information/20thirdparty/$PACKAGE.fdi || true
+	rm -f /usr/share/hal/fdi/information/10freedesktop/10-camera-$PACKAGE.fdi || true
+	rm -f /usr/share/hal/fdi/information/10freedesktop/10-camera-$PACKAGE-device.fdi || true
+	rm -f /usr/share/hal/fdi/preprobe/10osvendor/20-$PACKAGE.fdi || true
 	;;
 
     disappear|upgrade|failed-upgrade|abort-install|abort-upgrade)
