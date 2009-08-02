@@ -9,13 +9,6 @@ include /usr/share/quilt/quilt.make
 
 ### Architecture handling:
 DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
-ifeq ($(DEB_HOST_ARCH_OS),)
-  DEB_HOST_ARCH_OS := $(subst -gnu,,$(shell dpkg-architecture -qDEB_HOST_GNU_SYSTEM))
-  ifeq ($(DEB_HOST_ARCH_OS),gnu)
-      DEB_HOST_ARCH_OS := hurd
-  endif
-endif
-
 ifeq ($(DEB_HOST_ARCH_OS),hurd)
   CONFIGURE_OPTIONS += --without-libusb
 endif
