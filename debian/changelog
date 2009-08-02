@@ -21,6 +21,14 @@ libgphoto2 (2.4.6.5-1) unstable; urgency=low
   * Merge Ubuntu patches, by Martin Pitt (thanks!):
      - Update Build-Depends: Move from libltdl3-dev to libltdl-dev
        (Closes: #531974).
+     - Create modern udev rules at build-time instead of at install-time
+       thanks to a patch sent (and now merged) upstream. Drop a lot of
+       code from libgphoto2-2.postinst accordingly, while adding the
+       generation code to debian/rules. Following the move to dh, adapt
+       Martin's patch using an override_dh_installudev rule, but only on
+       Linux architectures for now, needed tweaks for other platforms
+       should follow in next revisions. Also bump the versioned dependency
+       on udev from 0.113-1 to 0.136 (Closes: #531978).
 
  -- Cyril Brulebois <kibi@debian.org>  Thu, 30 Jul 2009 14:00:01 +0200
 
