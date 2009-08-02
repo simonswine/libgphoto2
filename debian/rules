@@ -1,15 +1,13 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
-# This version at least shares the same ABI, used in the dh_makeshlibs calls.
+### This version at least shares the same ABI, used in the dh_makeshlibs calls:
 SHLIBS=2.4.3
+major=2
 
+### Get quilt targets:
 include /usr/share/quilt/quilt.make
 
+### Architecture handling:
 DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 ifeq ($(DEB_HOST_ARCH_OS),)
   DEB_HOST_ARCH_OS := $(subst -gnu,,$(shell dpkg-architecture -qDEB_HOST_GNU_SYSTEM))
@@ -22,10 +20,8 @@ ifeq ($(DEB_HOST_ARCH_OS),hurd)
   CONFIGURE_OPTIONS += --without-libusb
 endif
 
-major=2
-
+### CFLAGS handling:
 CFLAGS = -g
-
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
     CFLAGS += -O0
 else
