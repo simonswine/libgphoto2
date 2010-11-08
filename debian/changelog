@@ -8,8 +8,9 @@ libgphoto2 (2.4.6-2) UNRELEASED; urgency=low
       code from libgphoto2-2.postinst accordingly, while adding the
       generation code to debian/rules. Also bump the versioned dependency
       on udev from 0.113-1 to 0.136 (Closes: #531978).
+  * Added myself to Uploaders
 
- -- David Paleino <dapal@debian.org>  Mon, 08 Nov 2010 11:12:55 +0100
+ -- David Paleino <dapal@debian.org>  Mon, 08 Nov 2010 11:19:38 +0100
 
 libgphoto2 (2.4.6-1) unstable; urgency=low
 

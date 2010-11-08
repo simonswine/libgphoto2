@@ -3,6 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Debian PhotoTools Maintainers <pkg-phototools-devel@lists.alioth.debian.org>
 Uploaders: Frederic Peters <fpeters@debian.org>, Cyril Brulebois <kibi@debian.org>
+ , David Paleino <dapal@debian.org>
 Build-Depends: debhelper (>> 5.0.0),
                quilt,
                type-handling,
