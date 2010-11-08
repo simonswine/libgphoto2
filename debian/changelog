@@ -1,3 +1,14 @@
+libgphoto2 (2.4.6-2) UNRELEASED; urgency=low
+
+  * Merge Ubuntu patches, by Martin Pitt (thanks!):
+    - Create modern udev rules at build-time instead of at install-time
+      thanks to a patch sent (and now merged) upstream. Drop a lot of
+      code from libgphoto2-2.postinst accordingly, while adding the
+      generation code to debian/rules. Also bump the versioned dependency
+      on udev from 0.113-1 to 0.136 (Closes: #531978).
+
+ -- David Paleino <dapal@debian.org>  Mon, 08 Nov 2010 09:58:16 +0100
+
 libgphoto2 (2.4.6-1) unstable; urgency=low
 
   * New upstream release.
