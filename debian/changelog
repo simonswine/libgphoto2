@@ -4,8 +4,13 @@ libgphoto2 (2.4.6-3) UNRELEASED; urgency=low
     creation from debian/libgphoto2-2.postinst to debian/rules.
     This avoids problems with half-configured libraries during
     upgrade/installation (LP: #352271, Closes: #531979)
+  * Remove old conffiles. We can't use dpkg-maintscript-helper,
+    because they were created at install-time and thus not marked
+    as conffiles. (Closes: #461397, #511129)
+  * Move from /etc/udev/rules.d/ to /lib/udev/rules.d should now
+    be complete (Closes: #586668)
 
- -- David Paleino <dapal@debian.org>  Wed, 10 Nov 2010 08:55:59 +0100
+ -- David Paleino <dapal@debian.org>  Wed, 10 Nov 2010 09:26:59 +0100
 
 libgphoto2 (2.4.6-2) unstable; urgency=low
 
