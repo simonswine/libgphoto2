@@ -97,6 +97,11 @@ ifeq ($(DEB_HOST_ARCH_OS),linux)
 		mkdir -p debian/libgphoto2-port0/lib/udev && \
 		mv debian/tmp/usr/lib/udev/check-mtp-device \
 			debian/libgphoto2-port0/lib/udev/check-mtp-device
+
+	# create hal FDI
+	mkdir -p debian/libgphoto2-$(major)/usr/share/hal/fdi/preprobe/10osvendor/
+	CAMLIBS=`ls -d debian/libgphoto2-$(major)/usr/lib/libgphoto2/2*` ./packaging/generic/print-camera-list hal-fdi > \
+			debian/libgphoto2-$(major)/usr/share/hal/fdi/preprobe/10osvendor/20-libgphoto2.fdi
 endif
 
 	# remove *.la files before trying to remove debian/tmp

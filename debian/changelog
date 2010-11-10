@@ -1,3 +1,12 @@
+libgphoto2 (2.4.6-3) UNRELEASED; urgency=low
+
+  * Merge one more patch by Martin Pitt (thanks!): move HAL FDI
+    creation from debian/libgphoto2-2.postinst to debian/rules.
+    This avoids problems with half-configured libraries during
+    upgrade/installation (LP: #352271, Closes: #531979)
+
+ -- David Paleino <dapal@debian.org>  Wed, 10 Nov 2010 08:55:59 +0100
+
 libgphoto2 (2.4.6-2) unstable; urgency=low
 
   * Merge Ubuntu patches, by Martin Pitt (thanks!):

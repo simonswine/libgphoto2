@@ -7,11 +7,6 @@ PACKAGE="libgphoto2"
 
 case "$1" in
     configure)
-	# create FDI file
-	mkdir -p /usr/share/hal/fdi/preprobe/10osvendor/ || true
-	/usr/lib/$PACKAGE/print-camera-list hal-fdi > \
-		/usr/share/hal/fdi/preprobe/10osvendor/20-$PACKAGE.fdi
-	
 	# remove old fdi files
 	rm -f /usr/share/hal/fdi/information/10freedesktop/10-camera-$PACKAGE.fdi
 	rm -f /usr/share/hal/fdi/information/20thirdparty/$PACKAGE.fdi
