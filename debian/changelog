@@ -43,8 +43,9 @@ libgphoto2 (2.4.10.1-1) UNRELEASED; urgency=low
     wildcards, as defined in Policy. Thanks to Sebastian Andrzej Siewior
     (Closes: #587873)
   * Drop duplicate Section fields in binary stanzas
+  * Added ${misc:Depends} where needed
 
- -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 18:11:41 +0100
+ -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 18:12:30 +0100
 
 libgphoto2 (2.4.6-3) unstable; urgency=low
 
