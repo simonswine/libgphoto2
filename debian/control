@@ -39,7 +39,6 @@ Description: gphoto2 digital camera library (development files)
  This package contains the development files.
 
 Package: libgphoto2-port0
-Section: libs
 Architecture: any
 Provides: libgphoto2port
 Replaces: libgphoto2port
@@ -54,7 +53,6 @@ Description: gphoto2 digital camera port library
  This package contains the runtime code for port access.
 
 Package: libgphoto2-2
-Section: libs
 Architecture: any
 Conflicts: gphoto2 (<= 2.1.1)
 Depends: ${shlibs:Depends}, adduser
