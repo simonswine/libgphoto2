@@ -27,7 +27,7 @@ override_dh_auto_configure:
 	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr --sysconfdir=/etc --mandir=\$${prefix}/share/man --with-drivers=all --enable-static $(CONFIGURE_OPTIONS)
 
 override_dh_auto_install:
-	LIBRARY_PATH=$(CURDIR)/deibian/tmp/usr/lib $(MAKE) install prefix=$(CURDIR)/debian/tmp/usr
+	LIBRARY_PATH=$(CURDIR)/debian/tmp/usr/lib $(MAKE) install prefix=$(CURDIR)/debian/tmp/usr
 	# Remove upstream 0-byte files to make lintian happy. Print them first:
 	find debian/tmp -size 0 -print
 	find debian/tmp -size 0 -delete
