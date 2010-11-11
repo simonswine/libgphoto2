@@ -38,8 +38,9 @@ libgphoto2 (2.4.10.1-1) UNRELEASED; urgency=low
     - simplify override_dh_auto_configure
     - simplify override_dh_gencontrol
   * Added symbols files
+  * Drop 01_udev_rules_136, already in upstream sources
 
- -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 10:16:11 +0100
+ -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 11:32:03 +0100
 
 libgphoto2 (2.4.6-3) unstable; urgency=low
 
