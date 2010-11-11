@@ -45,8 +45,9 @@ libgphoto2 (2.4.10.1-1) UNRELEASED; urgency=low
   * Drop duplicate Section fields in binary stanzas
   * Added ${misc:Depends} where needed
   * Use Breaks instead of versioned Conflicts
+  * Added doc-base registration for API docs in libgphoto2-2-dev
 
- -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 18:13:35 +0100
+ -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 18:18:58 +0100
 
 libgphoto2 (2.4.6-3) unstable; urgency=low
 
