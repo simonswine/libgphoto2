@@ -1,5 +1,6 @@
-libgphoto2 (2.4.6.5-1) unstable; urgency=low
+libgphoto2 (2.4.10.1-1) unstable; urgency=low
 
+  [ Cyril Brulebois ]
   * New upstream release.
   * Drop 80_kfreebsd patch, merged upstream.
   * Fix lintian warnings:
@@ -30,7 +31,7 @@ libgphoto2 (2.4.6.5-1) unstable; urgency=low
        should follow in next revisions. Also bump the versioned dependency
        on udev from 0.113-1 to 0.136 (Closes: #531978).
 
- -- Cyril Brulebois <kibi@debian.org>  Thu, 30 Jul 2009 14:00:01 +0200
+ -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 09:20:47 +0100
 
 libgphoto2 (2.4.6-1) unstable; urgency=low
 
