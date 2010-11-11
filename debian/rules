@@ -24,7 +24,7 @@ endif
 
 ### Overrides:
 override_dh_auto_configure:
-	CFLAGS="$(CFLAGS)" ./configure --prefix=/usr --sysconfdir=/etc --mandir=\$${prefix}/share/man --with-drivers=all --enable-static $(CONFIGURE_OPTIONS)
+	CFLAGS="$(CFLAGS)" dh_auto_configure -- --with-drivers=all --enable-static $(CONFIGURE_OPTIONS)
 
 override_dh_auto_install:
 	LIBRARY_PATH=$(CURDIR)/debian/tmp/usr/lib $(MAKE) install prefix=$(CURDIR)/debian/tmp/usr
