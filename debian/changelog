@@ -19,19 +19,40 @@ libgphoto2 (2.4.10.1-1) unstable; urgency=low
        its job properly.
      - Get rid of the attempt at detecting files that are installed
        nowhere, using the --list-failing dh_install option instead.
-  * Merge Ubuntu patches, by Martin Pitt (thanks!):
-     - Update Build-Depends: Move from libltdl3-dev to libltdl-dev
-       (Closes: #531974).
-     - Create modern udev rules at build-time instead of at install-time
-       thanks to a patch sent (and now merged) upstream. Drop a lot of
-       code from libgphoto2-2.postinst accordingly, while adding the
-       generation code to debian/rules. Following the move to dh, adapt
-       Martin's patch using an override_dh_installudev rule, but only on
-       Linux architectures for now, needed tweaks for other platforms
-       should follow in next revisions. Also bump the versioned dependency
-       on udev from 0.113-1 to 0.136 (Closes: #531978).
+     - Following the move to dh, adapt Martin's udev patch using an
+       override_dh_installudev rule, but only on Linux architectures for
+       now, needed tweaks for other platforms should follow in next
+       revisions.
 
  -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 09:20:47 +0100
+
+libgphoto2 (2.4.6-3) unstable; urgency=low
+
+  * Merge one more patch by Martin Pitt (thanks!): move HAL FDI
+    creation from debian/libgphoto2-2.postinst to debian/rules.
+    This avoids problems with half-configured libraries during
+    upgrade/installation (LP: #352271, Closes: #531979)
+  * Remove old conffiles. We can't use dpkg-maintscript-helper,
+    because they were created at install-time and thus not marked
+    as conffiles. (Closes: #461397, #511129)
+  * Move from /etc/udev/rules.d/ to /lib/udev/rules.d should now
+    be complete (Closes: #586668)
+
+ -- David Paleino <dapal@debian.org>  Wed, 10 Nov 2010 10:26:49 +0100
+
+libgphoto2 (2.4.6-2) unstable; urgency=low
+
+  * Merge Ubuntu patches, by Martin Pitt (thanks!):
+    - Update Build-Depends: Move from libltdl3-dev to libltdl-dev
+      (Closes: #531974).
+    - Create modern udev rules at build-time instead of at install-time
+      thanks to a patch sent (and now merged) upstream. Drop a lot of
+      code from libgphoto2-2.postinst accordingly, while adding the
+      generation code to debian/rules. Also bump the versioned dependency
+      on udev from 0.113-1 to 0.136 (Closes: #531978).
+  * Added myself to Uploaders
+
+ -- David Paleino <dapal@debian.org>  Mon, 08 Nov 2010 11:19:51 +0100
 
 libgphoto2 (2.4.6-1) unstable; urgency=low
 
