@@ -36,8 +36,9 @@ libgphoto2 (2.4.10.1-1) UNRELEASED; urgency=low
   * debian/rules:
     - fix typo (s,deibian,debian,)
     - simplify override_dh_auto_configure
+    - simplify override_dh_gencontrol
 
- -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 09:45:58 +0100
+ -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 09:57:32 +0100
 
 libgphoto2 (2.4.6-3) unstable; urgency=low
 
