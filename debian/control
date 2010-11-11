@@ -6,7 +6,6 @@ Uploaders: Frederic Peters <fpeters@debian.org>, Cyril Brulebois <kibi@debian.or
  , David Paleino <dapal@debian.org>
  , Gürkan Sengün <gurkan@phys.ethz.ch>
 Build-Depends: debhelper (>= 7.0.50),
-               quilt,
                type-handling,
                libtool,
                libltdl-dev,

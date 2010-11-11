@@ -27,8 +27,9 @@ libgphoto2 (2.4.10.1-1) UNRELEASED; urgency=low
   [ Gürkan Sengün ]
   * Add myself to uploaders.
   * Bump standards version to 3.9.1.
+  * Switch to source format 3.0, drop quilt from control and rules.
 
- -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 09:32:10 +0100
+ -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 09:33:04 +0100
 
 libgphoto2 (2.4.6-3) unstable; urgency=low
 
