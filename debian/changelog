@@ -1,7 +1,8 @@
 libgphoto2 (2.4.10.1-2) UNRELEASED; urgency=low
 
-  * Fix regression from 2.4.6-3: set CAMLIBS when generating udev rules
-  * Fix regression from 2.4.6-3: generate HAL FDI again
+  * Fix regressions from 2.4.6-3:
+    - set CAMLIBS when generating udev rules
+    - generate HAL FDI again
 
  -- David Paleino <dapal@debian.org>  Fri, 12 Nov 2010 09:51:00 +0100
 
