@@ -1,6 +1,6 @@
 libgphoto2 (2.4.10.1-2ubuntu1) UNRELEASED; urgency=low
 
-  * Merge from Debian experimental, remaining changes:
+  * Merge from Debian experimental, remaining changes (LP: #657324):
     - Disabled graphviz from the Build-Dependencies on ARM to prevent
       documentation graphs from building. This prevents an FTBFS caused
       by the buildds choking on running dot. (LP: #567422)
