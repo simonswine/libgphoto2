@@ -17,7 +17,7 @@ Build-Depends: debhelper (>= 7.0.50),
                libjpeg62-dev,
                libhal-dev (>= 0.5.0) [!hurd-i386],
                doxygen,
-               graphviz,
+               graphviz [!armel],
                libdbus-1-dev
 Build-Conflicts: liblockdev1-dev
 Standards-Version: 3.9.1
