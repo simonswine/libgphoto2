@@ -57,6 +57,44 @@ libgphoto2 (2.4.10.1-1) experimental; urgency=low
 
  -- David Paleino <dapal@debian.org>  Thu, 11 Nov 2010 19:19:03 +0100
 
+libgphoto2 (2.4.8-0ubuntu2) lucid; urgency=high
+
+  * Disabled graphviz from the Build-Dependencies on ARM to prevent
+    documentation graphs from building. This prevents an FTBFS caused
+    by the buildds choking on running dot. (LP: #567422)
+
+ -- Michael Casadevall <mcasadevall@ubuntu.com>  Tue, 20 Apr 2010 15:25:25 +0000
+
+libgphoto2 (2.4.8-0ubuntu1) lucid; urgency=low
+
+  * New upstream maintenance release, with bug fixes and some new USB IDs for
+    new cameras. (LP: #519811)
+  * Drop patches accepted upstream (all of them except
+    03_udev_rules_media_player have been disabled in the series file long ago)
+    - 01_udev_rules_136
+    - 02_iphone_fdi
+    - 03_udev_rules_media_player
+    - 10_disable_cache
+    - 11_hurd_no_path_max_bsdsource
+    - 45_increase_canon_timeout
+    - 80_kfreebsd
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Thu, 18 Mar 2010 19:57:00 +0100
+
+libgphoto2 (2.4.7-0ubuntu1) lucid; urgency=low
+
+  * New upstream release (Closes LP: #414949).
+  * debian/patches/series: Removed patches that were no longer required:
+    - 80_kfreebsd
+    - 45_increase_canon_timeout
+    - 11_hurd_no_path_max_bsdsource
+    - 10_disable_cache
+    - 02_iphone_fdi
+    - 01_udev_rules_136
+  * debian/control: bump standard-versions to 3.8.3
+
+ -- Frank Cheung <fcuk112@gmail.com>  Wed, 18 Nov 2009 09:43:36 +0000
+
 libgphoto2 (2.4.6-3) unstable; urgency=low
 
   * Merge one more patch by Martin Pitt (thanks!): move HAL FDI
@@ -84,6 +122,67 @@ libgphoto2 (2.4.6-2) unstable; urgency=low
   * Added myself to Uploaders
 
  -- David Paleino <dapal@debian.org>  Mon, 08 Nov 2010 11:19:51 +0100
+
+libgphoto2 (2.4.6-1ubuntu6) karmic; urgency=low
+
+  * Add 03_udev_rules_media_player: Fix udev rules to identify media players.
+    (LP: #444083)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 12 Oct 2009 16:04:11 +0200
+
+libgphoto2 (2.4.6-1ubuntu5) karmic; urgency=low
+
+  * debian/rules: Set CAMLIBS to local directory when calling
+    print-camera-list, so that it also works on the buildds.
+  * debian/patches/02_iphone_fdi: Update to use correct interface
+    class/protocol, thanks to Nikias Bassen! (LP: #386002)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 15 Jun 2009 09:17:37 +0200
+
+libgphoto2 (2.4.6-1ubuntu4) karmic; urgency=low
+
+  * debian/rules: Fix name of FDI file.
+  * Add debian/patches/02_iphone_fdi: Detect iPhones in hal FDI properly.
+    Taken from upstream SVN, thanks Marcus Meissner! (LP: #386002)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Sun, 14 Jun 2009 22:25:59 +0200
+
+libgphoto2 (2.4.6-1ubuntu3) karmic; urgency=low
+
+  * Drop libhal-dev build dependency. The libgphoto-port disk backend properly
+    falls back on parsing /etc/mtab. The hal backend only detects mounted
+    devices as well, and DeviceKit-disks still writes /etc/mtab, so this is
+    just fine for now.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Tue, 09 Jun 2009 15:03:18 +0200
+
+libgphoto2 (2.4.6-1ubuntu2) karmic; urgency=low
+
+  * Add patch 01_udev_rules_136: Add a new udev mode "136" to create
+    contemporary udev rules which will avoid using the check_ptp_camera
+    script, and provide udev DB tags for the hal deprecation. (Now accepted
+    into upstream svn).
+  * debian/rules: Create udev rules (with new mode 136), install them with
+    dh_installudev.
+  * Move hal fdi creation from debian/libgphoto2-2.postinst to debian/rules.
+    This avoids problems with half-configured libraries during
+    upgrade/installation (LP: #352271), and is generally more robust as well.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 05 Jun 2009 13:37:34 +0200
+
+libgphoto2 (2.4.6-1ubuntu1) karmic; urgency=low
+
+  * Merge with Debian unstable. Remaining Ubuntu changes:
+    - Rely on udev-extras' automatic ACLs instead of custom udev rules for
+      controlling permissions on USB devices:
+      + debian/control: Drop udev/hal recommendation.
+      + debian/libgphoto2-2.post{inst,rm}, debian/rules: Do not install/remove
+        udev rules.
+      + Drop debian/libgphoto2-2.README.Debian, since it does not apply.
+      + debian/libgphoto2-2.dirs: Don't make the directory since we don't ship
+        any udev rules.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Wed, 03 Jun 2009 11:52:35 +0200
 
 libgphoto2 (2.4.6-1) unstable; urgency=low
 
