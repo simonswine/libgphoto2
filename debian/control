@@ -1,7 +1,8 @@
 Source: libgphoto2
 Section: libs
 Priority: optional
-Maintainer: Debian PhotoTools Maintainers <pkg-phototools-devel@lists.alioth.debian.org>
+Maintainer: Ubuntu Core Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Debian PhotoTools Maintainers <pkg-phototools-devel@lists.alioth.debian.org>
 Uploaders: Frederic Peters <fpeters@debian.org>, Cyril Brulebois <kibi@debian.org>
  , David Paleino <dapal@debian.org>
  , Gürkan Sengün <gurkan@phys.ethz.ch>
