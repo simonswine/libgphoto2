@@ -1,3 +1,9 @@
+libgphoto2 (2.4.10.1-2ubuntu2) natty; urgency=low
+
+  * Drop libhal build dependency, was missed in last merge.
+
+ -- Jani Monoses <jani@ubuntu.com>  Sun, 05 Dec 2010 11:38:08 +0200
+
 libgphoto2 (2.4.10.1-2ubuntu1) natty; urgency=low
 
   * Merge from Debian experimental, remaining changes (LP: #657324):
