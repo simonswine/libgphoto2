@@ -1,4 +1,4 @@
-libgphoto2 (2.4.10.1-3) UNRELEASED; urgency=low
+libgphoto2 (2.4.10.1-3) experimental; urgency=low
 
   * Merge from Ubuntu:
     - debian/patches/80_avchd_support.patch: Report .MTS and .M2TS
@@ -8,7 +8,7 @@ libgphoto2 (2.4.10.1-3) UNRELEASED; urgency=low
       shipped in the -dev package. Thanks to Martin Pitt
       (Closes: #606944)
 
- -- David Paleino <dapal@debian.org>  Mon, 13 Dec 2010 11:08:08 +0100
+ -- David Paleino <dapal@debian.org>  Mon, 13 Dec 2010 11:09:51 +0100
 
 libgphoto2 (2.4.10.1-2) experimental; urgency=low
 
