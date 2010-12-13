@@ -1,3 +1,4 @@
 #10_disable_cache
 #11_hurd_no_path_max_bsdsource
 70_increase_max_entries
+80_avchd_support.patch

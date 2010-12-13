@@ -1,3 +1,11 @@
+libgphoto2 (2.4.10.1-2ubuntu3) natty; urgency=low
+
+  * debian/patches/80_avchd_support.patch: Report .MTS and .M2TS
+    files on mass-storage devices as they are AVCHD video streams.
+    Patch from upstream svn trunk.
+
+ -- Jani Monoses <jani@ubuntu.com>  Sun, 05 Dec 2010 15:32:10 +0200
+
 libgphoto2 (2.4.10.1-2ubuntu2) natty; urgency=low
 
   * Drop libhal build dependency, was missed in last merge.
