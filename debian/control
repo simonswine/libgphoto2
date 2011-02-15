@@ -14,7 +14,6 @@ Build-Depends: debhelper (>= 7.0.50),
                pkg-config,
                libexif-dev (>= 0.5.9),
                libjpeg62-dev,
-               libhal-dev (>= 0.5.0) [!hurd-i386],
                doxygen,
                graphviz,
                libdbus-1-dev

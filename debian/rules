@@ -44,10 +44,6 @@ override_dh_install:
 		mv debian/tmp/usr/lib/udev/check-mtp-device \
 			debian/libgphoto2-port0/lib/udev/check-mtp-device
 
-	CAMLIBS=`ls -d debian/libgphoto2-$(major)/usr/lib/libgphoto2/2*` \
-		./packaging/generic/print-camera-list hal-fdi > \
-		debian/libgphoto2-$(major)/usr/share/hal/fdi/preprobe/10osvendor/20-libgphoto2.fdi
-
 ifeq ($(DEB_HOST_ARCH_OS),linux)
 override_dh_installudev:
 	# No longer needed with current udev. But check with non-Linux architectures stuff:
