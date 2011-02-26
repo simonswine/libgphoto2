@@ -39,6 +39,17 @@ Description: gphoto2 digital camera library (development files)
  .
  This package contains the development files.
 
+Package: libgphoto2-dev-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Description: gphoto2 digital camera library (development documentation)
+ The gphoto2 library can be used by applications to access various
+ digital camera models, via standard protocols such as USB Mass Storage
+ and PTP, or vendor-specific protocols.
+ .
+ This package contains the development documentation.
+
 Package: libgphoto2-port0
 Architecture: any
 Provides: libgphoto2port
@@ -68,6 +79,20 @@ Description: gphoto2 digital camera library
  and PTP, or vendor-specific protocols.
  .
  This package contains the library.
+ .
+ The gphoto2 command-line frontend is shipped separately, in the gphoto2
+ package.
+
+Package: libgphoto2-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}
+Description: gphoto2 digital camera library - documentation
+ The gphoto2 library can be used by applications to access various
+ digital camera models, via standard protocols such as USB Mass Storage
+ and PTP, or vendor-specific protocols.
+ .
+ This package contains the library documentation.
  .
  The gphoto2 command-line frontend is shipped separately, in the gphoto2
  package.
