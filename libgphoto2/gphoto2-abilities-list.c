@@ -187,7 +187,8 @@ gp_abilities_list_load_dir (CameraAbilitiesList *list, const char *dir,
 	}
 	if (1) { /* a new block in which we can define a temporary variable */
 		int ret;
-		foreach_data_t foreach_data = { flist, GP_OK };
+		foreach_data_t foreach_data = { NULL, GP_OK };
+		foreach_data.list = flist;
 		lt_dlinit ();
 		lt_dladdsearchdir (dir);
 		ret = lt_dlforeachfile (dir, foreach_func, &foreach_data);
@@ -338,7 +339,7 @@ gp_abilities_list_detect_usb (CameraAbilitiesList *list,
 	for (i = 0; i < count; i++) {
 		int v, p, c, s;
 
-		if (!(list->abilities[i].port & GP_PORT_USB))
+		if (!(list->abilities[i].port & port->type))
 			continue;
 
 		v = list->abilities[i].usb_vendor;
@@ -434,7 +435,9 @@ gp_abilities_list_detect (CameraAbilitiesList *list,
 		CHECK_RESULT (gp_port_info_list_get_info (info_list, i, &info));
 		CHECK_RESULT (gp_port_set_info (port, info));
 		switch (info.type) {
-		case GP_PORT_USB: {
+		case GP_PORT_USB:
+		case GP_PORT_USB_SCSI:
+		case GP_PORT_USB_DISK_DIRECT: {
 			int ability;
 			res = gp_abilities_list_detect_usb (list, &ability, port);
 			if (res == GP_OK) {

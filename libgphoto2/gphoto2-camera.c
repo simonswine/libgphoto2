@@ -664,15 +664,23 @@ gp_camera_init (Camera *camera, GPContext *context)
 	if (strcasecmp (camera->pc->a.model, "Directory Browse") &&
 	    !strcmp ("", camera->pc->a.model)) {
 		CameraAbilitiesList *al;
-		GPPortInfoList *il;
-		int m, p;
-		GPPortInfo info;
-        	CameraList *list;
+		GPPortInfo	pinfo;
+		GPPortInfoList	*il;
+		int		m, p;
+		GPPortInfo	info;
+        	CameraList	*list;
 
 		result = gp_list_new (&list);
 		if (result < GP_OK)
 			return result;
 
+		result = gp_port_get_info (camera->port, &pinfo);
+		if (result < GP_OK)
+			return result;
+
+		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "pinfo.type %d", pinfo.type);
+		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "pinfo.path %s", pinfo.path);
+		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "pinfo.name %s", pinfo.name);
 		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "Neither "
 			"port nor model set. Trying auto-detection...");
 
@@ -685,18 +693,35 @@ gp_camera_init (Camera *camera, GPContext *context)
 		if (!gp_list_count (list)) {
 			gp_abilities_list_free (al);
 			gp_port_info_list_free (il);
-			gp_context_error (context, _("Could not detect "
-					     "any camera"));
+			gp_context_error (context, _("Could not detect any camera"));
 			gp_list_free (list);
 			return (GP_ERROR_MODEL_NOT_FOUND);
 		}
+		p = 0;
+		/* if the port was set before, then use that entry. but not if it is "usb:" */
+		if (	(pinfo.type == GP_PORT_USB) &&
+			strlen(pinfo.path) &&
+			strcmp(pinfo.path,"usb:")
+		) {
+			for (p = gp_list_count (list);p--;) {
+				const char *xp;
 
-		gp_list_get_name  (list, 0, &model);
+				gp_list_get_value (list, p, &xp);
+				if (!strcmp (xp, pinfo.path))
+					break;
+			}
+			if (p<0) {
+				gp_context_error (context, _("Could not detect any camera at port %s"), pinfo.path);
+				return (GP_ERROR_FILE_NOT_FOUND);
+			}
+		}
+
+		gp_list_get_name  (list, p, &model);
 		m = gp_abilities_list_lookup_model (al, model);
 		gp_abilities_list_get_abilities (al, m, &a);
 		gp_abilities_list_free (al);
 		CRSL (camera, gp_camera_set_abilities (camera, a), context, list);
-		CRSL (camera, gp_list_get_value (list, 0, &port), context, list);
+		CRSL (camera, gp_list_get_value (list, p, &port), context, list);
 		p = gp_port_info_list_lookup_path (il, port);
 		gp_port_info_list_get_info (il, p, &info);
 		gp_port_info_list_free (il);
@@ -1035,8 +1060,6 @@ gp_camera_wait_for_event (Camera *camera, int timeout,
 	CHECK_INIT (camera, context);
 
 	if (!camera->functions->wait_for_event) {
-		gp_context_error (context, _("This camera does "
-			"not support event handling."));
 		CAMERA_UNUSED (camera, context);
                 return (GP_ERROR_NOT_SUPPORTED);
 	}
@@ -1374,15 +1397,26 @@ gp_camera_folder_remove_dir (Camera *camera, const char *folder,
 }
 
 /**
- * Gets information on the camera attached storage.
+ * \brief Gets information on the camera attached storage.
  *
- * @param camera a #Camera
- * @param folder the folder from which to remove the directory
- * @param name the name of the directory to be removed
- * @param context a #GPContext
- * @return a gphoto2 error code
+ * \param camera a #Camera
+ * \param sifs Pointer to receive a pointer to/array of storage info items
+ * \param nrofsifs Pointer to receive number of array entries
+ * \param context a #GPContext
+ * \return a gphoto2 error code
  *
- */
+ * Retrieves the storage information, like maximum and free space, for
+ * the specified filesystem, if supported by the device. The storage
+ * information is returned in an newly allocated array of
+ * #CameraStorageInformation objects, to which the pointer pointed to
+ * by #sifs will be set.
+ *
+ * The variable pointed to by #nrofsifs will be set to the number of
+ * elements in that array.
+ *
+ * It is the caller's responsibility to free the memory of the array.
+ *
+ **/
 int
 gp_camera_get_storageinfo (
 	Camera *camera, CameraStorageInformation **sifs,

@@ -4,8 +4,8 @@ AC_PREREQ(2.59)
 dnl NOTE: Be version style _higher_ than the last release.
 dnl       So lastversion.X.trunk for instance. Bump X if necessary.
 
-dnl ******* THE NEXT RELEASE VERSION MUST BE 2.4.6 at least or higher!
-AC_INIT([libgphoto2 photo camera library], [2.4.6], [gphoto-devel@lists.sourceforge.net], [libgphoto2])
+dnl ******* THE NEXT RELEASE VERSION MUST BE 2.4.11 at least or higher!
+AC_INIT([libgphoto2 photo camera library], [2.4.10.1], [gphoto-devel@lists.sourceforge.net], [libgphoto2])
 AC_CONFIG_SRCDIR([libgphoto2/gphoto2-version.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([auto-m4])
@@ -268,6 +268,20 @@ AC_CHECK_LIB(jpeg,jpeg_start_decompress,[
 ])
 GP_CONFIG_MSG([JPEG mangling support],[${libjpeg_msg}])
 
+dnl ---------------------------------------------------------------------------
+dnl check for libgd
+dnl ---------------------------------------------------------------------------
+LIBGD=""
+libgd_msg="no"
+AC_SUBST(LIBGD)
+AC_CHECK_LIB(gd,gdImageCreateTrueColor,[
+	AC_CHECK_HEADER(gd.h,[
+		AC_DEFINE(HAVE_GD,1,[define if we have LIBGD and its headers])
+		LIBGD="-lgd"
+		libgd_msg="yes"
+	])
+])
+GP_CONFIG_MSG([GD conversion support],[${libgd_msg}])
 
 dnl ---------------------------------------------------------------------------
 dnl Checks for header files.
@@ -276,7 +290,7 @@ AC_HEADER_DIRENT
 # before _HEADER_STDC
 AC_HEADER_STDC
 # after _HEADER_STDC
-AC_CHECK_HEADERS([getopt.h unistd.h mcheck.h limits.h])
+AC_CHECK_HEADERS([sys/param.h sys/select.h locale.h memory.h getopt.h unistd.h mcheck.h limits.h sys/time.h])
 AC_C_INLINE([])
 AC_C_CONST([])
 dnl FIXME: AC_STRUCT_TIMEZONE
@@ -420,7 +434,7 @@ if test "x${utilsdir}" = "x"; then utilsdir="\${libdir}/\${PACKAGE_TARNAME}"; fi
 AC_ARG_VAR([utilsdir],[Directory where utilities like print-camera-list will be installed])
 AC_SUBST([utilsdir])
 
-GP_UDEV
+GP_UDEV([true])
 
 
 dnl ---------------------------------------------------------------------------
@@ -454,6 +468,7 @@ dnl * Please add new camlibs in alphabetical order.
 GP_CAMLIB([adc65])dnl
 GP_CAMLIB([agfa_cl20])dnl
 GP_CAMLIB([aox])dnl
+GP_CAMLIB([ax203])dnl
 GP_CAMLIB([barbie])dnl
 GP_CAMLIB([canon])dnl
 GP_CAMLIB([casio_qv])dnl
@@ -470,7 +485,7 @@ GP_CAMLIB([iclick])dnl
 GP_CAMLIB([jamcam])dnl
 GP_CAMLIB([jd11])dnl
 GP_CAMLIB([jl2005a])dnl
-GP_CAMLIB([jl2005c], [obsolete])dnl experimental dev stage, needs lot of work (obsolete means unlisted)
+GP_CAMLIB([jl2005c])dnl
 GP_CAMLIB([kodak_dc120])dnl
 GP_CAMLIB([kodak_dc210])dnl
 GP_CAMLIB([kodak_dc240])dnl
@@ -507,6 +522,7 @@ GP_CAMLIB([sony_dscf55])dnl
 GP_CAMLIB([soundvision])dnl
 GP_CAMLIB([spca50x])dnl
 GP_CAMLIB([sq905])dnl
+GP_CAMLIB([st2205])dnl
 GP_CAMLIB([stv0674])dnl
 GP_CAMLIB([stv0680])dnl
 GP_CAMLIB([sx330z])dnl

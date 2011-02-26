@@ -104,7 +104,7 @@ uint16_t
 ptp_usb_senddata (PTPParams* params, PTPContainer* ptp,
 		  unsigned long size, PTPDataHandler *handler
 ) {
-	uint16_t ret;
+	uint16_t ret = PTP_RC_OK;
 	int res, wlen, datawlen;
 	PTPUSBBulkContainer usbdata;
 	unsigned long bytes_left_to_transfer, written;
@@ -128,7 +128,7 @@ ptp_usb_senddata (PTPParams* params, PTPContainer* ptp,
 		/* For all camera devices. */
 		datawlen = (size<PTP_USB_BULK_PAYLOAD_LEN_WRITE)?size:PTP_USB_BULK_PAYLOAD_LEN_WRITE;
 		wlen = PTP_USB_BULK_HDR_LEN + datawlen;
-		ret = handler->getfunc(params, handler->private, datawlen, usbdata.payload.data, &gotlen);
+		ret = handler->getfunc(params, handler->priv, datawlen, usbdata.payload.data, &gotlen);
 		if (ret != PTP_RC_OK)
 			return ret;
 		if (gotlen != datawlen)
@@ -161,7 +161,7 @@ ptp_usb_senddata (PTPParams* params, PTPContainer* ptp,
 		toread = 4096;
 		if (toread > bytes_left_to_transfer)
 			toread = bytes_left_to_transfer;
-		ret = handler->getfunc (params, handler->private, toread, bytes, &readlen);
+		ret = handler->getfunc (params, handler->priv, toread, bytes, &readlen);
 		if (ret != PTP_RC_OK)
 			break;
 		res = gp_port_write (camera->port, (char*)bytes, readlen);
@@ -292,7 +292,7 @@ ptp_usb_getdata (PTPParams* params, PTPContainer* ptp, PTPDataHandler *handler)
 			if (!data) return PTP_RC_GeneralError;
 			/* Copy first part of data to 'data' */
 			handler->putfunc(
-				params, handler->private, rlen - PTP_USB_BULK_HDR_LEN, usbdata.payload.data,
+				params, handler->priv, rlen - PTP_USB_BULK_HDR_LEN, usbdata.payload.data,
 				&written
 			);
 			/* stuff data directly to passed data handler */
@@ -303,7 +303,7 @@ ptp_usb_getdata (PTPParams* params, PTPContainer* ptp, PTPDataHandler *handler)
 					free (data);
 					return PTP_ERROR_IO;
 				}
-				handler->putfunc (params, handler->private, result, data, &written);
+				handler->putfunc (params, handler->priv, result, data, &written);
 				if (result < PTP_USB_BULK_HS_MAX_PACKET_LEN_READ) 
 					break;
 			}
@@ -351,7 +351,7 @@ ptp_usb_getdata (PTPParams* params, PTPContainer* ptp, PTPDataHandler *handler)
 
 		/* Copy first part of data to 'data' */
 		handler->putfunc(
-			params, handler->private, rlen - PTP_USB_BULK_HDR_LEN, usbdata.payload.data,
+			params, handler->priv, rlen - PTP_USB_BULK_HDR_LEN, usbdata.payload.data,
 			&written
 		);
 		/* Is that all of data? */
@@ -385,7 +385,7 @@ retry:
 				ret = PTP_ERROR_IO;
 				break;
 			}
-			ret = handler->putfunc (params, handler->private,
+			ret = handler->putfunc (params, handler->priv,
 				res, data, &written
 			);
 			if (ret != PTP_RC_OK)
@@ -469,7 +469,7 @@ ptp_usb_getresp (PTPParams* params, PTPContainer* resp)
 		}
 		/* else will be handled by ptp.c as error. */
 	}
-
+	resp->Nparam=(rlen-12)/4;
 	resp->Param1=dtoh32(usbresp.payload.params.param1);
 	resp->Param2=dtoh32(usbresp.payload.params.param2);
 	resp->Param3=dtoh32(usbresp.payload.params.param3);
@@ -487,10 +487,15 @@ ptp_usb_getresp (PTPParams* params, PTPContainer* resp)
 static inline uint16_t
 ptp_usb_event (PTPParams* params, PTPContainer* event, int wait)
 {
-	int			result, timeout;
+	int			result, timeout, fasttimeout;
 	unsigned long		rlen;
 	PTPUSBEventContainer	usbevent;
 	Camera			*camera = ((PTPData *)params->data)->camera;
+
+	if (params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON)
+		fasttimeout = PTP2_FAST_TIMEOUT*4;
+	else
+		fasttimeout = PTP2_FAST_TIMEOUT;
 
 	PTP_CNT_INIT(usbevent);
 
@@ -504,8 +509,9 @@ ptp_usb_event (PTPParams* params, PTPContainer* event, int wait)
 		break;
 	case PTP_EVENT_CHECK_FAST:
 		gp_port_get_timeout (camera->port, &timeout);
-		gp_port_set_timeout (camera->port, PTP2_FAST_TIMEOUT);
+		gp_port_set_timeout (camera->port, fasttimeout);
 		result = gp_port_check_int (camera->port, (char*)&usbevent, sizeof(usbevent));
+		if (result <= 0) result = gp_port_check_int (camera->port, (char*)&usbevent, sizeof(usbevent));
 		gp_port_set_timeout (camera->port, timeout);
 		break;
 	default:
@@ -513,6 +519,8 @@ ptp_usb_event (PTPParams* params, PTPContainer* event, int wait)
 	}
 	if (result < 0) {
 		gp_log (GP_LOG_DEBUG, "ptp2/usb_event", "reading event an error %d occurred", result);
+		if (result == GP_ERROR_TIMEOUT)
+			return PTP_ERROR_TIMEOUT;
 		return PTP_ERROR_IO;
 	}
 	rlen = result;

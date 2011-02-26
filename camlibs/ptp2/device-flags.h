@@ -206,3 +206,52 @@
  * level.
  */
 #define DEVICE_FLAG_BROKEN_BATTERY_LEVEL 0x00010000
+
+/**
+ * Devices that send "ObjectDeleted" events after deletion
+ * of images. (libgphoto2) 
+ */ 
+#define DEVICE_FLAG_DELETE_SENDS_EVENT	0x00020000
+
+/**
+ * Cameras that can capture images. (libgphoto2)
+ */ 
+#define DEVICE_FLAG_CAPTURE		0x00040000
+
+/**
+ * Cameras that can capture images. (libgphoto2)
+ */ 
+#define DEVICE_FLAG_CAPTURE_PREVIEW	0x00080000
+
+/**
+ * Nikon broken capture support without proper ObjectAdded events.
+ * (libgphoto2)
+ */ 
+#define DEVICE_FLAG_NIKON_BROKEN_CAPTURE	0x00100000
+
+/**
+ * Broken capture support where cameras do not send CaptureComplete events.
+ * (libgphoto2)
+ */ 
+#define DEVICE_FLAG_NO_CAPTURE_COMPLETE		0x00400000
+
+/**
+ * Direct PTP match required.
+ * (libgphoto2)
+ */ 
+#define DEVICE_FLAG_MATCH_PTP_INTERFACE		0x00800000
+/**
+ * This flag is like DEVICE_FLAG_OGG_IS_UNKNOWN but for FLAC
+ * files instead. Using the unknown filetype for FLAC files.
+ */
+#define DEVICE_FLAG_FLAC_IS_UNKNOWN		0x01000000
+/**
+ * Device needs unique filenames, no two files can be
+ * named the same string.
+ */
+#define DEVICE_FLAG_UNIQUE_FILENAMES		0x02000000
+/**
+ * This flag performs some random magic on the BlackBerry
+ * device to switch from USB mass storage to MTP mode we think.
+ */
+#define DEVICE_FLAG_SWITCH_MODE_BLACKBERRY	0x04000000

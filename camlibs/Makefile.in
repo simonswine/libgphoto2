@@ -64,8 +64,9 @@ host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/adc65/Makefile-files \
 	$(srcdir)/agfa-cl20/Makefile-files \
-	$(srcdir)/aox/Makefile-files $(srcdir)/barbie/Makefile-files \
-	$(srcdir)/canon/Makefile-files $(srcdir)/casio/Makefile-files \
+	$(srcdir)/aox/Makefile-files $(srcdir)/ax203/Makefile-files \
+	$(srcdir)/barbie/Makefile-files $(srcdir)/canon/Makefile-files \
+	$(srcdir)/casio/Makefile-files \
 	$(srcdir)/clicksmart310/Makefile-files \
 	$(srcdir)/digigr8/Makefile-files \
 	$(srcdir)/digita/Makefile-files \
@@ -104,7 +105,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/sonydscf55/Makefile-files \
 	$(srcdir)/soundvision/Makefile-files \
 	$(srcdir)/spca50x/Makefile-files \
-	$(srcdir)/sq905/Makefile-files \
+	$(srcdir)/sq905/Makefile-files $(srcdir)/st2205/Makefile-files \
 	$(srcdir)/stv0674/Makefile-files \
 	$(srcdir)/stv0680/Makefile-files \
 	$(srcdir)/sx330z/Makefile-files \
@@ -162,6 +163,14 @@ am_aox_la_OBJECTS = aox/library.lo aox/aox.lo
 aox_la_OBJECTS = $(am_aox_la_OBJECTS)
 aox_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(aox_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_ax203_la_OBJECTS = ax203/library.lo ax203/ax203.lo \
+	ax203/ax203_decode_yuv.lo ax203/ax203_decode_yuv_delta.lo \
+	ax203/ax203_compress_jpeg.lo ax203/jpeg_memsrcdest.lo \
+	ax203/tinyjpeg.lo ax203/jidctflt.lo
+ax203_la_OBJECTS = $(am_ax203_la_OBJECTS)
+ax203_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(ax203_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_barbie_la_OBJECTS = barbie/barbie.lo
 barbie_la_OBJECTS = $(am_barbie_la_OBJECTS)
@@ -262,7 +271,9 @@ jl2005a_la_OBJECTS = $(am_jl2005a_la_OBJECTS)
 jl2005a_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(jl2005a_la_LDFLAGS) $(LDFLAGS) -o $@
-am_jl2005c_la_OBJECTS = jl2005c/library.lo jl2005c/jl2005c.lo
+am_jl2005c_la_OBJECTS = jl2005c/library.lo jl2005c/jl2005c.lo \
+	jl2005c/jpeg_memsrcdest.lo jl2005c/jl2005bcd_decompress.lo \
+	jl2005c/img_enhance.lo
 jl2005c_la_OBJECTS = $(am_jl2005c_la_OBJECTS)
 jl2005c_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -460,6 +471,12 @@ sq905_la_OBJECTS = $(am_sq905_la_OBJECTS)
 sq905_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(sq905_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_st2205_la_OBJECTS = st2205/library.lo st2205/st2205.lo \
+	st2205/st2205_decode.lo
+st2205_la_OBJECTS = $(am_st2205_la_OBJECTS)
+st2205_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(st2205_la_LDFLAGS) $(LDFLAGS) -o $@
 am_stv0674_la_OBJECTS = stv0674/stv0674.lo stv0674/library.lo
 stv0674_la_OBJECTS = $(am_stv0674_la_OBJECTS)
 stv0674_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -507,12 +524,13 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(adc65_la_SOURCES) $(agfa_cl20_la_SOURCES) \
-	$(aox_la_SOURCES) $(barbie_la_SOURCES) $(canon_la_SOURCES) \
-	$(casio_qv_la_SOURCES) $(clicksmart310_la_SOURCES) \
-	$(digigr8_la_SOURCES) $(digita_la_SOURCES) \
-	$(dimagev_la_SOURCES) $(dimera3500_la_SOURCES) \
-	$(directory_la_SOURCES) $(enigma13_la_SOURCES) \
-	$(fuji_la_SOURCES) $(gsmart300_la_SOURCES) $(hp215_la_SOURCES) \
+	$(aox_la_SOURCES) $(ax203_la_SOURCES) $(barbie_la_SOURCES) \
+	$(canon_la_SOURCES) $(casio_qv_la_SOURCES) \
+	$(clicksmart310_la_SOURCES) $(digigr8_la_SOURCES) \
+	$(digita_la_SOURCES) $(dimagev_la_SOURCES) \
+	$(dimera3500_la_SOURCES) $(directory_la_SOURCES) \
+	$(enigma13_la_SOURCES) $(fuji_la_SOURCES) \
+	$(gsmart300_la_SOURCES) $(hp215_la_SOURCES) \
 	$(iclick_la_SOURCES) $(jamcam_la_SOURCES) $(jd11_la_SOURCES) \
 	$(jl2005a_la_SOURCES) $(jl2005c_la_SOURCES) \
 	$(kodak_dc120_la_SOURCES) $(kodak_dc210_la_SOURCES) \
@@ -531,17 +549,18 @@ SOURCES = $(adc65_la_SOURCES) $(agfa_cl20_la_SOURCES) \
 	$(sipix_web2_la_SOURCES) $(smal_la_SOURCES) \
 	$(sonix_la_SOURCES) $(sony_dscf1_la_SOURCES) \
 	$(sony_dscf55_la_SOURCES) $(soundvision_la_SOURCES) \
-	$(spca50x_la_SOURCES) $(sq905_la_SOURCES) \
+	$(spca50x_la_SOURCES) $(sq905_la_SOURCES) $(st2205_la_SOURCES) \
 	$(stv0674_la_SOURCES) $(stv0680_la_SOURCES) \
 	$(sx330z_la_SOURCES) $(template_la_SOURCES) \
 	$(topfield_la_SOURCES) $(toshiba_pdrm11_la_SOURCES)
 DIST_SOURCES = $(adc65_la_SOURCES) $(agfa_cl20_la_SOURCES) \
-	$(aox_la_SOURCES) $(barbie_la_SOURCES) $(canon_la_SOURCES) \
-	$(casio_qv_la_SOURCES) $(clicksmart310_la_SOURCES) \
-	$(digigr8_la_SOURCES) $(digita_la_SOURCES) \
-	$(dimagev_la_SOURCES) $(dimera3500_la_SOURCES) \
-	$(directory_la_SOURCES) $(enigma13_la_SOURCES) \
-	$(fuji_la_SOURCES) $(gsmart300_la_SOURCES) $(hp215_la_SOURCES) \
+	$(aox_la_SOURCES) $(ax203_la_SOURCES) $(barbie_la_SOURCES) \
+	$(canon_la_SOURCES) $(casio_qv_la_SOURCES) \
+	$(clicksmart310_la_SOURCES) $(digigr8_la_SOURCES) \
+	$(digita_la_SOURCES) $(dimagev_la_SOURCES) \
+	$(dimera3500_la_SOURCES) $(directory_la_SOURCES) \
+	$(enigma13_la_SOURCES) $(fuji_la_SOURCES) \
+	$(gsmart300_la_SOURCES) $(hp215_la_SOURCES) \
 	$(iclick_la_SOURCES) $(jamcam_la_SOURCES) $(jd11_la_SOURCES) \
 	$(jl2005a_la_SOURCES) $(jl2005c_la_SOURCES) \
 	$(kodak_dc120_la_SOURCES) $(kodak_dc210_la_SOURCES) \
@@ -560,7 +579,7 @@ DIST_SOURCES = $(adc65_la_SOURCES) $(agfa_cl20_la_SOURCES) \
 	$(sipix_web2_la_SOURCES) $(smal_la_SOURCES) \
 	$(sonix_la_SOURCES) $(sony_dscf1_la_SOURCES) \
 	$(sony_dscf55_la_SOURCES) $(soundvision_la_SOURCES) \
-	$(spca50x_la_SOURCES) $(sq905_la_SOURCES) \
+	$(spca50x_la_SOURCES) $(sq905_la_SOURCES) $(st2205_la_SOURCES) \
 	$(stv0674_la_SOURCES) $(stv0680_la_SOURCES) \
 	$(sx330z_la_SOURCES) $(template_la_SOURCES) \
 	$(topfield_la_SOURCES) $(toshiba_pdrm11_la_SOURCES)
@@ -641,6 +660,7 @@ LDFLAGS = @LDFLAGS@
 LIBEXIF_CFLAGS = @LIBEXIF_CFLAGS@
 LIBEXIF_CONFIG_PROG = @LIBEXIF_CONFIG_PROG@
 LIBEXIF_LIBS = @LIBEXIF_LIBS@
+LIBGD = @LIBGD@
 LIBGPHOTO2_AGE = @LIBGPHOTO2_AGE@
 LIBGPHOTO2_CURRENT = @LIBGPHOTO2_CURRENT@
 LIBGPHOTO2_CURRENT_MIN = @LIBGPHOTO2_CURRENT_MIN@
@@ -782,7 +802,8 @@ EXTRA_DIST = camlib.sym adc65/README.adc65 adc65/TODO adc65/Changelog \
 	agfa-cl20/ChangeLog agfa-cl20/protocol.txt \
 	agfa-cl20/protocol2.txt agfa-cl20/commands.txt \
 	agfa-cl20/pic-header.txt agfa-cl20/RANDOM aox/README.aox \
-	aox/ChangeLog barbie/Protocol.txt barbie/ChangeLog \
+	aox/ChangeLog ax203/README.ax203-compression \
+	ax203/README.ax203 barbie/Protocol.txt barbie/ChangeLog \
 	canon/.indent.pro canon/ChangeLog canon/urb-interpret \
 	canon/README.canon canon/TODO casio/PROTOCOL.txt \
 	casio/ChangeLog clicksmart310/README.clicksmart310 \
@@ -795,13 +816,13 @@ EXTRA_DIST = camlib.sym adc65/README.adc65 adc65/TODO adc65/Changelog \
 	hp215/ChangeLog hp215/PROTOCOL iclick/README.iclick \
 	iclick/ChangeLog jamcam/README.jamcam jamcam/ChangeLog \
 	jd11/jd11.html jd11/ChangeLog jl2005a/README.jl2005a \
-	jl2005c/README.jl2005c kodak/dc120/ChangeLog \
-	kodak/dc210/ChangeLog kodak/dc210/TODO kodak/dc240/ChangeLog \
-	kodak/dc3200/ChangeLog kodak/ez200/Protocol.txt \
-	kodak/ez200/ez200-lsusb.txt kodak/ez200/ChangeLog \
-	kodak/CAMERAS konica/EXPERTS konica/qm150.txt \
-	konica/README.konica konica/ChangeLog konica/COPYING \
-	konica/TODO largan/lmini/README.largan-lmini \
+	jl2005c/README.jl2005c jl2005c/README.jl2005bcd-compression \
+	kodak/dc120/ChangeLog kodak/dc210/ChangeLog kodak/dc210/TODO \
+	kodak/dc240/ChangeLog kodak/dc3200/ChangeLog \
+	kodak/ez200/Protocol.txt kodak/ez200/ez200-lsusb.txt \
+	kodak/ez200/ChangeLog kodak/CAMERAS konica/EXPERTS \
+	konica/qm150.txt konica/README.konica konica/ChangeLog \
+	konica/COPYING konica/TODO largan/lmini/README.largan-lmini \
 	largan/lmini/ChangeLog lg_gsm/README.lg_gsm lg_gsm/ChangeLog \
 	mars/protocol.txt mars/README.mars mars/ChangeLog \
 	minolta/dimagev/README.minolta-dimagev minolta/dimagev/COPYING \
@@ -817,32 +838,37 @@ EXTRA_DIST = camlib.sym adc65/README.adc65 adc65/TODO adc65/Changelog \
 	polaroid/jpeghead.h polaroid/pdc320.html polaroid/gt98x.html \
 	polaroid/ChangeLog ptp2/ptp-pack.c ptp2/PTPIP.TXT \
 	ptp2/README.ptp2 ptp2/TODO ptp2/ChangeLog ptp2/ptpip.html \
-	ricoh/g3.txt ricoh/ChangeLog samsung/ChangeLog sierra/PROTOCOL \
-	sierra/ChangeLog sierra/MC-EU1-Protocol.txt sipix/web2.html \
-	sipix/blink.c sipix/blink.txt sipix/xjpeg.c sipix/blink2.txt \
-	sipix/ChangeLog smal/README.smal smal/ChangeLog \
-	sonix/README.sonix sonix/ChangeLog sonydscf1/README.sonydscf1 \
-	sonydscf1/ChangeLog sonydscf55/ChangeLog sonydscf55/TODO \
+	ptp2/TESTPLAN.ptp2 ricoh/g3.txt ricoh/ChangeLog \
+	samsung/ChangeLog sierra/PROTOCOL sierra/ChangeLog \
+	sierra/MC-EU1-Protocol.txt sipix/web2.html sipix/blink.c \
+	sipix/blink.txt sipix/xjpeg.c sipix/blink2.txt sipix/ChangeLog \
+	smal/README.smal smal/ChangeLog sonix/README.sonix \
+	sonix/ChangeLog sonydscf1/README.sonydscf1 sonydscf1/ChangeLog \
+	sonydscf55/ChangeLog sonydscf55/TODO \
 	soundvision/README.soundvision soundvision/BUGS \
 	soundvision/ChangeLog spca50x/ChangeLog.benq \
 	spca50x/ChangeLog.gsmart spca50x/ChangeLog.spca504_flash \
 	spca50x/lsusb-v spca50x/README.spca50x spca50x/ChangeLog \
 	sq905/README.913C sq905/README.sq905 sq905/ChangeLog \
-	sq905/TODO stv0674/Protocol stv0674/Changelog stv0680/CREDITS \
-	stv0680/ChangeLog stv0680/LICENCE stv0680/README.pdf \
+	sq905/TODO st2205/README.st2205-compression \
+	st2205/README.st2205 stv0674/Protocol stv0674/Changelog \
+	stv0680/CREDITS stv0680/ChangeLog stv0680/LICENCE \
+	stv0680/README.pdf \
 	stv0680/680_commands_and_communication_sdk.pdf.gz \
 	sx330z/ChangeLog template/README.template template/ChangeLog \
 	topfield/ChangeLog toshiba/pdrm11/README.toshiba-pdrm11
 camlibdoc_DATA = adc65/README.adc65 agfa-cl20/README.agfa-cl20 \
-	aox/README.aox canon/README.canon \
+	aox/README.aox ax203/README.ax203-compression \
+	ax203/README.ax203 canon/README.canon \
 	clicksmart310/README.clicksmart310 digigr8/README.905C \
 	digigr8/README.9050 digigr8/README.913D \
 	enigma13/README.enigma13 gsmart300/README.gsmart300 \
 	iclick/README.iclick jamcam/README.jamcam \
 	jl2005a/README.jl2005a jl2005c/README.jl2005c \
-	konica/README.konica largan/lmini/README.largan-lmini \
-	lg_gsm/README.lg_gsm mars/README.mars \
-	minolta/dimagev/README.minolta-dimagev mustek/README.mustek \
+	jl2005c/README.jl2005bcd-compression konica/README.konica \
+	largan/lmini/README.largan-lmini lg_gsm/README.lg_gsm \
+	mars/README.mars minolta/dimagev/README.minolta-dimagev \
+	mustek/README.mustek \
 	panasonic/coolshot/README.panasonic-coolshot \
 	panasonic/l859/README.panasonic-l859 \
 	panasonic/README.panasonic pccam300/README.pccam300 \
@@ -850,6 +876,7 @@ camlibdoc_DATA = adc65/README.adc65 agfa-cl20/README.agfa-cl20 \
 	sonix/README.sonix sonydscf1/README.sonydscf1 \
 	soundvision/README.soundvision spca50x/README.spca50x \
 	sq905/README.913C sq905/README.sq905 \
+	st2205/README.st2205-compression st2205/README.st2205 \
 	toshiba/pdrm11/README.toshiba-pdrm11
 localization_DATA = 
 localizationdir = 
@@ -857,8 +884,8 @@ noinst_DATA = template/README.template
 noinst_LTLIBRARIES = template.la
 
 # Seems to be obsolete
-EXTRA_LTLIBRARIES = adc65.la agfa_cl20.la aox.la barbie.la canon.la \
-	casio_qv.la clicksmart310.la digigr8.la digita.la \
+EXTRA_LTLIBRARIES = adc65.la agfa_cl20.la aox.la ax203.la barbie.la \
+	canon.la casio_qv.la clicksmart310.la digigr8.la digita.la \
 	dimera3500.la directory.la enigma13.la fuji.la gsmart300.la \
 	hp215.la iclick.la jamcam.la jd11.la jl2005a.la jl2005c.la \
 	kodak_dc120.la kodak_dc210.la kodak_dc240.la kodak_dc3200.la \
@@ -869,7 +896,7 @@ EXTRA_LTLIBRARIES = adc65.la agfa_cl20.la aox.la barbie.la canon.la \
 	polaroid_pdc700.la ptp2.la ricoh.la ricoh_g3.la samsung.la \
 	sierra.la sipix_blink.la sipix_blink2.la sipix_web2.la smal.la \
 	sonix.la sony_dscf1.la sony_dscf55.la soundvision.la \
-	spca50x.la sq905.la stv0674.la stv0680.la sx330z.la \
+	spca50x.la sq905.la st2205.la stv0674.la stv0680.la sx330z.la \
 	topfield.la toshiba_pdrm11.la
 
 ########################################################################
@@ -900,6 +927,10 @@ aox_la_SOURCES = aox/library.c aox/aox.c aox/aox.h
 aox_la_LDFLAGS = $(camlib_ldflags)
 aox_la_DEPENDENCIES = $(camlib_dependencies) 
 aox_la_LIBADD = $(camlib_libadd)
+ax203_la_SOURCES = ax203/library.c ax203/ax203.c ax203/ax203.h ax203/ax203_decode_yuv.c ax203/ax203_decode_yuv_delta.c ax203/ax203_compress_jpeg.c ax203/jpeg_memsrcdest.h ax203/jpeg_memsrcdest.c ax203/tinyjpeg.c ax203/tinyjpeg.h ax203/tinyjpeg-internal.h ax203/jidctflt.c
+ax203_la_LDFLAGS = $(camlib_ldflags)
+ax203_la_DEPENDENCIES = $(camlib_dependencies)
+ax203_la_LIBADD = $(camlib_libadd) @LIBGD@ @LIBJPEG@
 barbie_la_SOURCES = barbie/barbie.c
 barbie_la_LDFLAGS = $(camlib_ldflags)
 barbie_la_DEPENDENCIES = $(camlib_dependencies)
@@ -1019,11 +1050,17 @@ jl2005a_la_DEPENDENCIES = $(camlib_dependencies)
 jl2005a_la_LIBADD = $(camlib_libadd)
 jl2005c_la_SOURCES = jl2005c/library.c\
 		    jl2005c/jl2005c.c\
-		    jl2005c/jl2005c.h
+		    jl2005c/jpeg_memsrcdest.c \
+		    jl2005c/jpeg_memsrcdest.h \
+		    jl2005c/jl2005bcd_decompress.c\
+		    jl2005c/jl2005bcd_decompress.h\
+		    jl2005c/jl2005c.h\
+		    jl2005c/img_enhance.c\
+		    jl2005c/img_enhance.h
 
 jl2005c_la_LDFLAGS = $(camlib_ldflags)
 jl2005c_la_DEPENDENCIES = $(camlib_dependencies)
-jl2005c_la_LIBADD = $(camlib_libadd)
+jl2005c_la_LIBADD = $(camlib_libadd) @LIBJPEG@
 kodak_dc120_la_SOURCES = \
 	kodak/dc120/dc120.c kodak/dc120/dc120.h \
 	kodak/dc120/library.c kodak/dc120/library.h
@@ -1260,6 +1297,10 @@ sq905_la_SOURCES = sq905/library.c sq905/sq905.c sq905/sq905.h sq905/postprocess
 sq905_la_LDFLAGS = $(camlib_ldflags)
 sq905_la_DEPENDENCIES = $(camlib_dependencies)
 sq905_la_LIBADD = $(camlib_libadd)
+st2205_la_SOURCES = st2205/library.c st2205/st2205.c st2205/st2205.h st2205/st2205_decode.c
+st2205_la_LDFLAGS = $(camlib_ldflags)
+st2205_la_DEPENDENCIES = $(camlib_dependencies)
+st2205_la_LIBADD = $(camlib_libadd) @LIBGD@ $(LTLIBICONV)
 stv0674_la_SOURCES = \
 	stv0674/stv0674.c stv0674/stv0674.h \
 	stv0674/library.c stv0674/library.h
@@ -1304,7 +1345,7 @@ all: all-recursive
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/adc65/Makefile-files $(srcdir)/agfa-cl20/Makefile-files $(srcdir)/aox/Makefile-files $(srcdir)/barbie/Makefile-files $(srcdir)/canon/Makefile-files $(srcdir)/casio/Makefile-files $(srcdir)/clicksmart310/Makefile-files $(srcdir)/digigr8/Makefile-files $(srcdir)/digita/Makefile-files $(srcdir)/dimera/Makefile-files $(srcdir)/directory/Makefile-files $(srcdir)/enigma13/Makefile-files $(srcdir)/fuji/Makefile-files $(srcdir)/gsmart300/Makefile-files $(srcdir)/hp215/Makefile-files $(srcdir)/iclick/Makefile-files $(srcdir)/jamcam/Makefile-files $(srcdir)/jd11/Makefile-files $(srcdir)/jl2005a/Makefile-files $(srcdir)/jl2005c/Makefile-files $(srcdir)/kodak/dc120/Makefile-files $(srcdir)/kodak/dc210/Makefile-files $(srcdir)/kodak/dc240/Makefile-files $(srcdir)/kodak/dc3200/Makefile-files $(srcdir)/kodak/ez200/Makefile-files $(srcdir)/kodak/Makefile-files $(srcdir)/konica/Makefile-files $(srcdir)/largan/lmini/Makefile-files $(srcdir)/lg_gsm/Makefile-files $(srcdir)/mars/Makefile-files $(srcdir)/minolta/dimagev/Makefile-files $(srcdir)/minolta/Makefile-files $(srcdir)/mustek/Makefile-files $(srcdir)/panasonic/coolshot/Makefile-files $(srcdir)/panasonic/l859/Makefile-files $(srcdir)/panasonic/Makefile-files $(srcdir)/pccam300/Makefile-files $(srcdir)/pccam600/Makefile-files $(srcdir)/polaroid/Makefile-files $(srcdir)/ptp2/Makefile-files $(srcdir)/ricoh/Makefile-files $(srcdir)/samsung/Makefile-files $(srcdir)/sierra/Makefile-files $(srcdir)/sipix/Makefile-files $(srcdir)/smal/Makefile-files $(srcdir)/sonix/Makefile-files $(srcdir)/sonydscf1/Makefile-files $(srcdir)/sonydscf55/Makefile-files $(srcdir)/soundvision/Makefile-files $(srcdir)/spca50x/Makefile-files $(srcdir)/sq905/Makefile-files $(srcdir)/stv0674/Makefile-files $(srcdir)/stv0680/Makefile-files $(srcdir)/sx330z/Makefile-files $(srcdir)/template/Makefile-files $(srcdir)/topfield/Makefile-files $(srcdir)/toshiba/pdrm11/Makefile-files $(am__configure_deps)
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/adc65/Makefile-files $(srcdir)/agfa-cl20/Makefile-files $(srcdir)/aox/Makefile-files $(srcdir)/ax203/Makefile-files $(srcdir)/barbie/Makefile-files $(srcdir)/canon/Makefile-files $(srcdir)/casio/Makefile-files $(srcdir)/clicksmart310/Makefile-files $(srcdir)/digigr8/Makefile-files $(srcdir)/digita/Makefile-files $(srcdir)/dimera/Makefile-files $(srcdir)/directory/Makefile-files $(srcdir)/enigma13/Makefile-files $(srcdir)/fuji/Makefile-files $(srcdir)/gsmart300/Makefile-files $(srcdir)/hp215/Makefile-files $(srcdir)/iclick/Makefile-files $(srcdir)/jamcam/Makefile-files $(srcdir)/jd11/Makefile-files $(srcdir)/jl2005a/Makefile-files $(srcdir)/jl2005c/Makefile-files $(srcdir)/kodak/dc120/Makefile-files $(srcdir)/kodak/dc210/Makefile-files $(srcdir)/kodak/dc240/Makefile-files $(srcdir)/kodak/dc3200/Makefile-files $(srcdir)/kodak/ez200/Makefile-files $(srcdir)/kodak/Makefile-files $(srcdir)/konica/Makefile-files $(srcdir)/largan/lmini/Makefile-files $(srcdir)/lg_gsm/Makefile-files $(srcdir)/mars/Makefile-files $(srcdir)/minolta/dimagev/Makefile-files $(srcdir)/minolta/Makefile-files $(srcdir)/mustek/Makefile-files $(srcdir)/panasonic/coolshot/Makefile-files $(srcdir)/panasonic/l859/Makefile-files $(srcdir)/panasonic/Makefile-files $(srcdir)/pccam300/Makefile-files $(srcdir)/pccam600/Makefile-files $(srcdir)/polaroid/Makefile-files $(srcdir)/ptp2/Makefile-files $(srcdir)/ricoh/Makefile-files $(srcdir)/samsung/Makefile-files $(srcdir)/sierra/Makefile-files $(srcdir)/sipix/Makefile-files $(srcdir)/smal/Makefile-files $(srcdir)/sonix/Makefile-files $(srcdir)/sonydscf1/Makefile-files $(srcdir)/sonydscf55/Makefile-files $(srcdir)/soundvision/Makefile-files $(srcdir)/spca50x/Makefile-files $(srcdir)/sq905/Makefile-files $(srcdir)/st2205/Makefile-files $(srcdir)/stv0674/Makefile-files $(srcdir)/stv0680/Makefile-files $(srcdir)/sx330z/Makefile-files $(srcdir)/template/Makefile-files $(srcdir)/topfield/Makefile-files $(srcdir)/toshiba/pdrm11/Makefile-files $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -1398,6 +1439,29 @@ aox/library.lo: aox/$(am__dirstamp) aox/$(DEPDIR)/$(am__dirstamp)
 aox/aox.lo: aox/$(am__dirstamp) aox/$(DEPDIR)/$(am__dirstamp)
 aox.la: $(aox_la_OBJECTS) $(aox_la_DEPENDENCIES) 
 	$(aox_la_LINK)  $(aox_la_OBJECTS) $(aox_la_LIBADD) $(LIBS)
+ax203/$(am__dirstamp):
+	@$(MKDIR_P) ax203
+	@: > ax203/$(am__dirstamp)
+ax203/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ax203/$(DEPDIR)
+	@: > ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/library.lo: ax203/$(am__dirstamp) \
+	ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/ax203.lo: ax203/$(am__dirstamp) ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/ax203_decode_yuv.lo: ax203/$(am__dirstamp) \
+	ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/ax203_decode_yuv_delta.lo: ax203/$(am__dirstamp) \
+	ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/ax203_compress_jpeg.lo: ax203/$(am__dirstamp) \
+	ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/jpeg_memsrcdest.lo: ax203/$(am__dirstamp) \
+	ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/tinyjpeg.lo: ax203/$(am__dirstamp) \
+	ax203/$(DEPDIR)/$(am__dirstamp)
+ax203/jidctflt.lo: ax203/$(am__dirstamp) \
+	ax203/$(DEPDIR)/$(am__dirstamp)
+ax203.la: $(ax203_la_OBJECTS) $(ax203_la_DEPENDENCIES) 
+	$(ax203_la_LINK)  $(ax203_la_OBJECTS) $(ax203_la_LIBADD) $(LIBS)
 barbie/$(am__dirstamp):
 	@$(MKDIR_P) barbie
 	@: > barbie/$(am__dirstamp)
@@ -1632,6 +1696,12 @@ jl2005c/$(DEPDIR)/$(am__dirstamp):
 jl2005c/library.lo: jl2005c/$(am__dirstamp) \
 	jl2005c/$(DEPDIR)/$(am__dirstamp)
 jl2005c/jl2005c.lo: jl2005c/$(am__dirstamp) \
+	jl2005c/$(DEPDIR)/$(am__dirstamp)
+jl2005c/jpeg_memsrcdest.lo: jl2005c/$(am__dirstamp) \
+	jl2005c/$(DEPDIR)/$(am__dirstamp)
+jl2005c/jl2005bcd_decompress.lo: jl2005c/$(am__dirstamp) \
+	jl2005c/$(DEPDIR)/$(am__dirstamp)
+jl2005c/img_enhance.lo: jl2005c/$(am__dirstamp) \
 	jl2005c/$(DEPDIR)/$(am__dirstamp)
 jl2005c.la: $(jl2005c_la_OBJECTS) $(jl2005c_la_DEPENDENCIES) 
 	$(jl2005c_la_LINK)  $(jl2005c_la_OBJECTS) $(jl2005c_la_LIBADD) $(LIBS)
@@ -2014,6 +2084,20 @@ sq905/postprocess.lo: sq905/$(am__dirstamp) \
 	sq905/$(DEPDIR)/$(am__dirstamp)
 sq905.la: $(sq905_la_OBJECTS) $(sq905_la_DEPENDENCIES) 
 	$(sq905_la_LINK)  $(sq905_la_OBJECTS) $(sq905_la_LIBADD) $(LIBS)
+st2205/$(am__dirstamp):
+	@$(MKDIR_P) st2205
+	@: > st2205/$(am__dirstamp)
+st2205/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) st2205/$(DEPDIR)
+	@: > st2205/$(DEPDIR)/$(am__dirstamp)
+st2205/library.lo: st2205/$(am__dirstamp) \
+	st2205/$(DEPDIR)/$(am__dirstamp)
+st2205/st2205.lo: st2205/$(am__dirstamp) \
+	st2205/$(DEPDIR)/$(am__dirstamp)
+st2205/st2205_decode.lo: st2205/$(am__dirstamp) \
+	st2205/$(DEPDIR)/$(am__dirstamp)
+st2205.la: $(st2205_la_OBJECTS) $(st2205_la_DEPENDENCIES) 
+	$(st2205_la_LINK)  $(st2205_la_OBJECTS) $(st2205_la_LIBADD) $(LIBS)
 stv0674/$(am__dirstamp):
 	@$(MKDIR_P) stv0674
 	@: > stv0674/$(am__dirstamp)
@@ -2109,6 +2193,22 @@ mostlyclean-compile:
 	-rm -f aox/aox.lo
 	-rm -f aox/library.$(OBJEXT)
 	-rm -f aox/library.lo
+	-rm -f ax203/ax203.$(OBJEXT)
+	-rm -f ax203/ax203.lo
+	-rm -f ax203/ax203_compress_jpeg.$(OBJEXT)
+	-rm -f ax203/ax203_compress_jpeg.lo
+	-rm -f ax203/ax203_decode_yuv.$(OBJEXT)
+	-rm -f ax203/ax203_decode_yuv.lo
+	-rm -f ax203/ax203_decode_yuv_delta.$(OBJEXT)
+	-rm -f ax203/ax203_decode_yuv_delta.lo
+	-rm -f ax203/jidctflt.$(OBJEXT)
+	-rm -f ax203/jidctflt.lo
+	-rm -f ax203/jpeg_memsrcdest.$(OBJEXT)
+	-rm -f ax203/jpeg_memsrcdest.lo
+	-rm -f ax203/library.$(OBJEXT)
+	-rm -f ax203/library.lo
+	-rm -f ax203/tinyjpeg.$(OBJEXT)
+	-rm -f ax203/tinyjpeg.lo
 	-rm -f barbie/barbie.$(OBJEXT)
 	-rm -f barbie/barbie.lo
 	-rm -f canon/canon_la-canon.$(OBJEXT)
@@ -2185,8 +2285,14 @@ mostlyclean-compile:
 	-rm -f jl2005a/jl2005a.lo
 	-rm -f jl2005a/library.$(OBJEXT)
 	-rm -f jl2005a/library.lo
+	-rm -f jl2005c/img_enhance.$(OBJEXT)
+	-rm -f jl2005c/img_enhance.lo
+	-rm -f jl2005c/jl2005bcd_decompress.$(OBJEXT)
+	-rm -f jl2005c/jl2005bcd_decompress.lo
 	-rm -f jl2005c/jl2005c.$(OBJEXT)
 	-rm -f jl2005c/jl2005c.lo
+	-rm -f jl2005c/jpeg_memsrcdest.$(OBJEXT)
+	-rm -f jl2005c/jpeg_memsrcdest.lo
 	-rm -f jl2005c/library.$(OBJEXT)
 	-rm -f jl2005c/library.lo
 	-rm -f kodak/dc120/dc120.$(OBJEXT)
@@ -2367,6 +2473,12 @@ mostlyclean-compile:
 	-rm -f sq905/postprocess.lo
 	-rm -f sq905/sq905.$(OBJEXT)
 	-rm -f sq905/sq905.lo
+	-rm -f st2205/library.$(OBJEXT)
+	-rm -f st2205/library.lo
+	-rm -f st2205/st2205.$(OBJEXT)
+	-rm -f st2205/st2205.lo
+	-rm -f st2205/st2205_decode.$(OBJEXT)
+	-rm -f st2205/st2205_decode.lo
 	-rm -f stv0674/library.$(OBJEXT)
 	-rm -f stv0674/library.lo
 	-rm -f stv0674/stv0674.$(OBJEXT)
@@ -2411,6 +2523,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@agfa-cl20/$(DEPDIR)/agfa_cl20.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@aox/$(DEPDIR)/aox.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@aox/$(DEPDIR)/library.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/ax203.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/ax203_compress_jpeg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/ax203_decode_yuv.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/ax203_decode_yuv_delta.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/jidctflt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/jpeg_memsrcdest.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/library.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ax203/$(DEPDIR)/tinyjpeg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@barbie/$(DEPDIR)/barbie.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@canon/$(DEPDIR)/canon_la-canon.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@canon/$(DEPDIR)/canon_la-crc.Plo@am__quote@
@@ -2449,7 +2569,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@jd11/$(DEPDIR)/serial.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@jl2005a/$(DEPDIR)/jl2005a.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@jl2005a/$(DEPDIR)/library.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@jl2005c/$(DEPDIR)/img_enhance.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@jl2005c/$(DEPDIR)/jl2005bcd_decompress.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@jl2005c/$(DEPDIR)/jl2005c.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@jl2005c/$(DEPDIR)/jpeg_memsrcdest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@jl2005c/$(DEPDIR)/library.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kodak/dc120/$(DEPDIR)/dc120.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@kodak/dc120/$(DEPDIR)/library.Plo@am__quote@
@@ -2540,6 +2663,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@sq905/$(DEPDIR)/library.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sq905/$(DEPDIR)/postprocess.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sq905/$(DEPDIR)/sq905.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@st2205/$(DEPDIR)/library.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@st2205/$(DEPDIR)/st2205.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@st2205/$(DEPDIR)/st2205_decode.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@stv0674/$(DEPDIR)/library.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@stv0674/$(DEPDIR)/stv0674.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@stv0680/$(DEPDIR)/bayer.Plo@am__quote@
@@ -2724,6 +2850,7 @@ clean-libtool:
 	-rm -rf adc65/.libs adc65/_libs
 	-rm -rf agfa-cl20/.libs agfa-cl20/_libs
 	-rm -rf aox/.libs aox/_libs
+	-rm -rf ax203/.libs ax203/_libs
 	-rm -rf barbie/.libs barbie/_libs
 	-rm -rf canon/.libs canon/_libs
 	-rm -rf casio/.libs casio/_libs
@@ -2770,6 +2897,7 @@ clean-libtool:
 	-rm -rf soundvision/.libs soundvision/_libs
 	-rm -rf spca50x/.libs spca50x/_libs
 	-rm -rf sq905/.libs sq905/_libs
+	-rm -rf st2205/.libs st2205/_libs
 	-rm -rf stv0674/.libs stv0674/_libs
 	-rm -rf stv0680/.libs stv0680/_libs
 	-rm -rf sx330z/.libs sx330z/_libs
@@ -3019,6 +3147,8 @@ distclean-generic:
 	-rm -f agfa-cl20/$(am__dirstamp)
 	-rm -f aox/$(DEPDIR)/$(am__dirstamp)
 	-rm -f aox/$(am__dirstamp)
+	-rm -f ax203/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ax203/$(am__dirstamp)
 	-rm -f barbie/$(DEPDIR)/$(am__dirstamp)
 	-rm -f barbie/$(am__dirstamp)
 	-rm -f canon/$(DEPDIR)/$(am__dirstamp)
@@ -3111,6 +3241,8 @@ distclean-generic:
 	-rm -f spca50x/$(am__dirstamp)
 	-rm -f sq905/$(DEPDIR)/$(am__dirstamp)
 	-rm -f sq905/$(am__dirstamp)
+	-rm -f st2205/$(DEPDIR)/$(am__dirstamp)
+	-rm -f st2205/$(am__dirstamp)
 	-rm -f stv0674/$(DEPDIR)/$(am__dirstamp)
 	-rm -f stv0674/$(am__dirstamp)
 	-rm -f stv0680/$(DEPDIR)/$(am__dirstamp)
@@ -3133,7 +3265,7 @@ clean-am: clean-camlibLTLIBRARIES clean-generic clean-libtool \
 	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
-	-rm -rf adc65/$(DEPDIR) agfa-cl20/$(DEPDIR) aox/$(DEPDIR) barbie/$(DEPDIR) canon/$(DEPDIR) casio/$(DEPDIR) clicksmart310/$(DEPDIR) digigr8/$(DEPDIR) digita/$(DEPDIR) dimera/$(DEPDIR) directory/$(DEPDIR) enigma13/$(DEPDIR) fuji/$(DEPDIR) gsmart300/$(DEPDIR) hp215/$(DEPDIR) iclick/$(DEPDIR) jamcam/$(DEPDIR) jd11/$(DEPDIR) jl2005a/$(DEPDIR) jl2005c/$(DEPDIR) kodak/dc120/$(DEPDIR) kodak/dc210/$(DEPDIR) kodak/dc240/$(DEPDIR) kodak/dc3200/$(DEPDIR) kodak/ez200/$(DEPDIR) konica/$(DEPDIR) largan/lmini/$(DEPDIR) lg_gsm/$(DEPDIR) mars/$(DEPDIR) minolta/dimagev/$(DEPDIR) mustek/$(DEPDIR) panasonic/$(DEPDIR) panasonic/coolshot/$(DEPDIR) panasonic/l859/$(DEPDIR) pccam300/$(DEPDIR) pccam600/$(DEPDIR) polaroid/$(DEPDIR) ptp2/$(DEPDIR) ricoh/$(DEPDIR) samsung/$(DEPDIR) sierra/$(DEPDIR) sipix/$(DEPDIR) smal/$(DEPDIR) sonix/$(DEPDIR) sonydscf1/$(DEPDIR) sonydscf55/$(DEPDIR) soundvision/$(DEPDIR) spca50x/$(DEPDIR) sq905/$(DEPDIR) stv0674/$(DEPDIR) stv0680/$(DEPDIR) sx330z/$(DEPDIR) template/$(DEPDIR) topfield/$(DEPDIR) toshiba/pdrm11/$(DEPDIR)
+	-rm -rf adc65/$(DEPDIR) agfa-cl20/$(DEPDIR) aox/$(DEPDIR) ax203/$(DEPDIR) barbie/$(DEPDIR) canon/$(DEPDIR) casio/$(DEPDIR) clicksmart310/$(DEPDIR) digigr8/$(DEPDIR) digita/$(DEPDIR) dimera/$(DEPDIR) directory/$(DEPDIR) enigma13/$(DEPDIR) fuji/$(DEPDIR) gsmart300/$(DEPDIR) hp215/$(DEPDIR) iclick/$(DEPDIR) jamcam/$(DEPDIR) jd11/$(DEPDIR) jl2005a/$(DEPDIR) jl2005c/$(DEPDIR) kodak/dc120/$(DEPDIR) kodak/dc210/$(DEPDIR) kodak/dc240/$(DEPDIR) kodak/dc3200/$(DEPDIR) kodak/ez200/$(DEPDIR) konica/$(DEPDIR) largan/lmini/$(DEPDIR) lg_gsm/$(DEPDIR) mars/$(DEPDIR) minolta/dimagev/$(DEPDIR) mustek/$(DEPDIR) panasonic/$(DEPDIR) panasonic/coolshot/$(DEPDIR) panasonic/l859/$(DEPDIR) pccam300/$(DEPDIR) pccam600/$(DEPDIR) polaroid/$(DEPDIR) ptp2/$(DEPDIR) ricoh/$(DEPDIR) samsung/$(DEPDIR) sierra/$(DEPDIR) sipix/$(DEPDIR) smal/$(DEPDIR) sonix/$(DEPDIR) sonydscf1/$(DEPDIR) sonydscf55/$(DEPDIR) soundvision/$(DEPDIR) spca50x/$(DEPDIR) sq905/$(DEPDIR) st2205/$(DEPDIR) stv0674/$(DEPDIR) stv0680/$(DEPDIR) sx330z/$(DEPDIR) template/$(DEPDIR) topfield/$(DEPDIR) toshiba/pdrm11/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -3168,7 +3300,7 @@ install-ps: install-ps-recursive
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-	-rm -rf adc65/$(DEPDIR) agfa-cl20/$(DEPDIR) aox/$(DEPDIR) barbie/$(DEPDIR) canon/$(DEPDIR) casio/$(DEPDIR) clicksmart310/$(DEPDIR) digigr8/$(DEPDIR) digita/$(DEPDIR) dimera/$(DEPDIR) directory/$(DEPDIR) enigma13/$(DEPDIR) fuji/$(DEPDIR) gsmart300/$(DEPDIR) hp215/$(DEPDIR) iclick/$(DEPDIR) jamcam/$(DEPDIR) jd11/$(DEPDIR) jl2005a/$(DEPDIR) jl2005c/$(DEPDIR) kodak/dc120/$(DEPDIR) kodak/dc210/$(DEPDIR) kodak/dc240/$(DEPDIR) kodak/dc3200/$(DEPDIR) kodak/ez200/$(DEPDIR) konica/$(DEPDIR) largan/lmini/$(DEPDIR) lg_gsm/$(DEPDIR) mars/$(DEPDIR) minolta/dimagev/$(DEPDIR) mustek/$(DEPDIR) panasonic/$(DEPDIR) panasonic/coolshot/$(DEPDIR) panasonic/l859/$(DEPDIR) pccam300/$(DEPDIR) pccam600/$(DEPDIR) polaroid/$(DEPDIR) ptp2/$(DEPDIR) ricoh/$(DEPDIR) samsung/$(DEPDIR) sierra/$(DEPDIR) sipix/$(DEPDIR) smal/$(DEPDIR) sonix/$(DEPDIR) sonydscf1/$(DEPDIR) sonydscf55/$(DEPDIR) soundvision/$(DEPDIR) spca50x/$(DEPDIR) sq905/$(DEPDIR) stv0674/$(DEPDIR) stv0680/$(DEPDIR) sx330z/$(DEPDIR) template/$(DEPDIR) topfield/$(DEPDIR) toshiba/pdrm11/$(DEPDIR)
+	-rm -rf adc65/$(DEPDIR) agfa-cl20/$(DEPDIR) aox/$(DEPDIR) ax203/$(DEPDIR) barbie/$(DEPDIR) canon/$(DEPDIR) casio/$(DEPDIR) clicksmart310/$(DEPDIR) digigr8/$(DEPDIR) digita/$(DEPDIR) dimera/$(DEPDIR) directory/$(DEPDIR) enigma13/$(DEPDIR) fuji/$(DEPDIR) gsmart300/$(DEPDIR) hp215/$(DEPDIR) iclick/$(DEPDIR) jamcam/$(DEPDIR) jd11/$(DEPDIR) jl2005a/$(DEPDIR) jl2005c/$(DEPDIR) kodak/dc120/$(DEPDIR) kodak/dc210/$(DEPDIR) kodak/dc240/$(DEPDIR) kodak/dc3200/$(DEPDIR) kodak/ez200/$(DEPDIR) konica/$(DEPDIR) largan/lmini/$(DEPDIR) lg_gsm/$(DEPDIR) mars/$(DEPDIR) minolta/dimagev/$(DEPDIR) mustek/$(DEPDIR) panasonic/$(DEPDIR) panasonic/coolshot/$(DEPDIR) panasonic/l859/$(DEPDIR) pccam300/$(DEPDIR) pccam600/$(DEPDIR) polaroid/$(DEPDIR) ptp2/$(DEPDIR) ricoh/$(DEPDIR) samsung/$(DEPDIR) sierra/$(DEPDIR) sipix/$(DEPDIR) smal/$(DEPDIR) sonix/$(DEPDIR) sonydscf1/$(DEPDIR) sonydscf55/$(DEPDIR) soundvision/$(DEPDIR) spca50x/$(DEPDIR) sq905/$(DEPDIR) st2205/$(DEPDIR) stv0674/$(DEPDIR) stv0680/$(DEPDIR) sx330z/$(DEPDIR) template/$(DEPDIR) topfield/$(DEPDIR) toshiba/pdrm11/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

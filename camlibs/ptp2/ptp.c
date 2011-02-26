@@ -4,6 +4,7 @@
  * Copyright (C) 2003-2009 Marcus Meissner <marcus@jet.franken.de>
  * Copyright (C) 2006-2008 Linus Walleij <triad@df.lth.se>
  * Copyright (C) 2007 Tero Saarni <tero.saarni@gmail.com>
+ * Copyright (C) 2009 Axel Waggershauser <awagger@web.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +23,7 @@
  */
 
 #define _BSD_SOURCE
-#include <config.h>
+#include "config.h"
 #include "ptp.h"
 
 #include <stdlib.h>
@@ -138,11 +139,13 @@ ptp_transaction_new (PTPParams* params, PTPContainer* ptp,
 		uint16_t flags, unsigned int sendlen,
 		PTPDataHandler *handler
 ) {
-	int tries;
+	int 		tries;
+	uint16_t	cmd;
 
 	if ((params==NULL) || (ptp==NULL)) 
 		return PTP_ERROR_BADPARAM;
 
+	cmd = ptp->Code;
 	ptp->Transaction_ID=params->transaction_id++;
 	ptp->SessionID=params->session_id;
 	/* send request */
@@ -184,12 +187,29 @@ ptp_transaction_new (PTPParams* params, PTPContainer* ptp,
 		return PTP_ERROR_BADPARAM;
 	}
 	tries = 3;
-	while (1) {
+	while (tries--) {
+		uint16_t ret;
 		/* get response */
-		CHECK_PTP_RC(params->getresp_func(params, ptp));
+		ret = params->getresp_func(params, ptp);
+		if (ret == PTP_ERROR_RESP_EXPECTED) {
+			ptp_debug (params,"PTP: response expected but not got, retrying.");
+			tries++;
+			continue;
+		}
+		if (ret != PTP_RC_OK)
+			return ret;
+		
+		if (ptp->Transaction_ID < params->transaction_id-1) {
+			tries++;
+			ptp_debug (params,
+				"PTP: Sequence number mismatch %d vs expected %d, suspecting old reply.",
+				ptp->Transaction_ID, params->transaction_id-1
+			);
+			continue;
+		}
 		if (ptp->Transaction_ID != params->transaction_id-1) {
 			/* try to clean up potential left overs from previous session */
-			if ((ptp->Code == PTP_OC_OpenSession) && tries--)
+			if ((cmd == PTP_OC_OpenSession) && tries)
 				continue;
 			ptp_error (params,
 				"PTP: Sequence number mismatch %d vs expected %d.",
@@ -233,6 +253,8 @@ memory_putfunc(PTPParams* params, void* private,
 
 	if (priv->curoff + sendlen > priv->size) {
 		priv->data = realloc (priv->data, priv->curoff+sendlen);
+		if (!priv->data)
+			return PTP_RC_GeneralError;
 		priv->size = priv->curoff + sendlen;
 	}
 	memcpy (priv->data + priv->curoff, data, sendlen);
@@ -246,7 +268,9 @@ static uint16_t
 ptp_init_recv_memory_handler(PTPDataHandler *handler) {
 	PTPMemHandlerPrivate* priv;
 	priv = malloc (sizeof(PTPMemHandlerPrivate));
-	handler->private = priv;
+	if (!priv)
+		return PTP_RC_GeneralError;
+	handler->priv = priv;
 	handler->getfunc = memory_getfunc;
 	handler->putfunc = memory_putfunc;
 	priv->data = NULL;
@@ -266,7 +290,7 @@ ptp_init_send_memory_handler(PTPDataHandler *handler,
 	priv = malloc (sizeof(PTPMemHandlerPrivate));
 	if (!priv)
 		return PTP_RC_GeneralError;
-	handler->private = priv;
+	handler->priv = priv;
 	handler->getfunc = memory_getfunc;
 	handler->putfunc = memory_putfunc;
 	priv->data = data;
@@ -278,7 +302,7 @@ ptp_init_send_memory_handler(PTPDataHandler *handler,
 /* free private struct + data */
 static uint16_t
 ptp_exit_send_memory_handler (PTPDataHandler *handler) {
-	PTPMemHandlerPrivate* priv = (PTPMemHandlerPrivate*)handler->private;
+	PTPMemHandlerPrivate* priv = (PTPMemHandlerPrivate*)handler->priv;
 	/* data is owned by caller */
 	free (priv);
 	return PTP_RC_OK;
@@ -289,7 +313,7 @@ static uint16_t
 ptp_exit_recv_memory_handler (PTPDataHandler *handler,
 	unsigned char **data, unsigned long *size
 ) {
-	PTPMemHandlerPrivate* priv = (PTPMemHandlerPrivate*)handler->private;
+	PTPMemHandlerPrivate* priv = (PTPMemHandlerPrivate*)handler->priv;
 	*data = priv->data;
 	*size = priv->size;
 	free (priv);
@@ -337,7 +361,9 @@ static uint16_t
 ptp_init_fd_handler(PTPDataHandler *handler, int fd) {
 	PTPFDHandlerPrivate* priv;
 	priv = malloc (sizeof(PTPFDHandlerPrivate));
-	handler->private = priv;
+	if (!priv)
+		return PTP_RC_GeneralError;
+	handler->priv = priv;
 	handler->getfunc = fd_getfunc;
 	handler->putfunc = fd_putfunc;
 	priv->fd = fd;
@@ -346,7 +372,7 @@ ptp_init_fd_handler(PTPDataHandler *handler, int fd) {
 
 static uint16_t
 ptp_exit_fd_handler (PTPDataHandler *handler) {
-	PTPFDHandlerPrivate* priv = (PTPFDHandlerPrivate*)handler->private;
+	PTPFDHandlerPrivate* priv = (PTPFDHandlerPrivate*)handler->priv;
 	free (priv);
 	return PTP_RC_OK;
 }
@@ -419,6 +445,7 @@ ptp_getdeviceinfo (PTPParams* params, PTPDeviceInfo* deviceinfo)
 	len=0;
 	ret=ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, &handler);
 	ptp_exit_recv_memory_handler (&handler, &di, &len);
+	if (!di) ret = PTP_RC_GeneralError;
 	if (ret == PTP_RC_OK) ptp_unpack_DI(params, di, deviceinfo, len);
 	free(di);
 	return ret;
@@ -444,6 +471,39 @@ ptp_canon_eos_getdeviceinfo (PTPParams* params, PTPCanonEOSDeviceInfo*di)
 	if (ret == PTP_RC_OK) ptp_unpack_EOS_DI(params, data, di, len);
 	free (data);
 	return ret;
+}
+
+/**
+ * ptp_generic_no_data:
+ * params:	PTPParams*
+ * 		code	PTP OP Code
+ * 		n_param	count of parameters
+ *		... variable argument list ...
+ *
+ * Emits a generic PTP command without any data transfer.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+uint16_t
+ptp_generic_no_data (PTPParams* params, uint16_t code, unsigned int n_param, ...)
+{
+	PTPContainer ptp;
+	va_list args;
+	int i;
+
+	if( n_param > 5 )
+		return PTP_RC_InvalidParameter;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code=code;
+	ptp.Nparam=n_param;
+
+	va_start(args, n_param);
+	for( i=0; i<n_param; ++i )
+		(&ptp.Param1)[i] = va_arg(args, uint32_t);
+	va_end(args);
+
+	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 }
 
 /**
@@ -474,7 +534,6 @@ ptp_opensession (PTPParams* params, uint32_t session)
 	/* no split headers */
 	params->split_header_data = 0;
 
-	
 	PTP_CNT_INIT(ptp);
 	ptp.Code=PTP_OC_OpenSession;
 	ptp.Param1=session;
@@ -483,33 +542,6 @@ ptp_opensession (PTPParams* params, uint32_t session)
 	/* now set the global session id to current session number */
 	params->session_id=session;
 	return ret;
-}
-
-/**
- * ptp_closesession:
- * params:	PTPParams*
- *
- * Closes session.
- *
- * Return values: Some PTP_RC_* code.
- **/
-uint16_t
-ptp_closesession (PTPParams* params)
-{
-	PTPContainer ptp;
-
-	ptp_debug(params,"PTP: Closing session");
-
-	/* free any dangling response packet */
-	if (params->response_packet_size > 0) {
-		free(params->response_packet);
-		params->response_packet = NULL;
-		params->response_packet_size = 0;
-	}
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CloseSession;
-	ptp.Nparam=0;
-	return ptp_transaction_new(params, &ptp, PTP_DP_NODATA, 0, NULL);
 }
 
 /**
@@ -532,6 +564,15 @@ ptp_free_params (PTPParams *params) {
 	}
 	if (params->props) free (params->props);
 	if (params->canon_flags) free (params->canon_flags);
+
+	if (params->canon_props) {
+		for (i=0;i<params->nrofcanon_props;i++) {
+			free (params->canon_props[i].data);
+			ptp_free_devicepropdesc (&params->canon_props[i].dpd);
+		}
+		free (params->canon_props);
+	}
+
 	if (params->cameraname) free (params->cameraname);
 	if (params->wifi_profiles) free (params->wifi_profiles);
 	free (params->handles.Handler);
@@ -539,27 +580,6 @@ ptp_free_params (PTPParams *params) {
 		ptp_free_objectinfo (&params->objectinfo[i]);
 	free (params->objectinfo);
 	ptp_free_DI (&params->deviceinfo);
-}
-
-/**
- * ptp_resetdevice:
- * params:	PTPParams*
- *		
- * Uses the built-in function to reset the device
- *
- * Return values: Some PTP_RC_* code.
- *
- */
-uint16_t
-ptp_resetdevice (PTPParams* params)
-{
-	PTPContainer ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_ResetDevice;
-	ptp.Nparam=0;
-
-	return ptp_transaction_new(params, &ptp, PTP_DP_NODATA, 0, NULL);
 }
 
 /**
@@ -616,28 +636,6 @@ ptp_getstorageinfo (PTPParams* params, uint32_t storageid,
 	if (ret == PTP_RC_OK) ptp_unpack_SI(params, si, storageinfo, len);
 	free(si);
 	return ret;
-}
-
-/**
- * ptp_formatstore:
- * params:	PTPParams*
- *              storageid		- StorageID
- *
- * Formats the storage on the device.
- *
- * Return values: Some PTP_RC_* code.
- **/
-uint16_t
-ptp_formatstore (PTPParams* params, uint32_t storageid)
-{
-	PTPContainer ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_FormatStore;
-	ptp.Param1=storageid;
-	ptp.Param2=PTP_FST_Undefined;
-	ptp.Nparam=2;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 }
 
 /**
@@ -728,6 +726,79 @@ ptp_getnumobjects (PTPParams* params, uint32_t storage,
 		else
 			ret = PTP_RC_GeneralError;
 	}
+	return ret;
+}
+
+/**
+ * ptp_eos_bulbstart:
+ * params:	PTPParams*
+ *
+ * Starts EOS Bulb capture.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+uint16_t
+ptp_canon_eos_bulbstart (PTPParams* params)
+{
+	uint16_t ret;
+	PTPContainer ptp;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code   = PTP_OC_CANON_EOS_BulbStart;
+	ptp.Nparam = 0;
+	ret = ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
+	if ((ret == PTP_RC_OK) && (ptp.Nparam >= 1) && ((ptp.Param1 & 0x7000) == 0x2000))
+		ret = ptp.Param1;
+	return ret;
+}
+
+/**
+ * ptp_eos_capture:
+ * params:	PTPParams*
+ *              uint32_t*	result
+ *
+ * This starts a EOS400D style capture. You have to use the
+ * get_eos_events to find out what resulted.
+ * The return value is "0" for all OK, and "1" for capture failed. (not fully confirmed)
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+uint16_t
+ptp_canon_eos_capture (PTPParams* params, uint32_t *result)
+{
+	uint16_t ret;
+	PTPContainer ptp;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code   = PTP_OC_CANON_EOS_RemoteRelease;
+	ptp.Nparam = 0;
+	*result = 0;
+	ret = ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
+	if ((ret == PTP_RC_OK) && (ptp.Nparam >= 1))
+		*result = ptp.Param1;
+	return ret;
+}
+
+/**
+ * ptp_canon_eos_bulbend:
+ * params:	PTPParams*
+ *
+ * Starts EOS Bulb capture.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+uint16_t
+ptp_canon_eos_bulbend (PTPParams* params)
+{
+	uint16_t ret;
+	PTPContainer ptp;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code   = PTP_OC_CANON_EOS_BulbEnd;
+	ptp.Nparam = 0;
+	ret = ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
+	if ((ret == PTP_RC_OK) && (ptp.Nparam >= 1) && ((ptp.Param1 & 0x7000) == 0x2000))
+		ret = ptp.Param1;
 	return ret;
 }
 
@@ -844,6 +915,7 @@ ptp_getobject_tofd (PTPParams* params, uint32_t handle, int fd)
  *		offset			- Offset into object
  *		maxbytes		- Maximum of bytes to read
  *		object			- pointer to data area
+ *		len			- pointer to returned length
  *
  * Get object 'handle' from device and store the data in newly
  * allocated 'object'. Start from offset and read at most maxbytes.
@@ -852,10 +924,10 @@ ptp_getobject_tofd (PTPParams* params, uint32_t handle, int fd)
  **/
 uint16_t
 ptp_getpartialobject (PTPParams* params, uint32_t handle, uint32_t offset,
-			uint32_t maxbytes, unsigned char** object)
+			uint32_t maxbytes, unsigned char** object,
+			uint32_t *len)
 {
 	PTPContainer ptp;
-	unsigned int len;
 
 	PTP_CNT_INIT(ptp);
 	ptp.Code=PTP_OC_GetPartialObject;
@@ -863,8 +935,8 @@ ptp_getpartialobject (PTPParams* params, uint32_t handle, uint32_t offset,
 	ptp.Param2=offset;
 	ptp.Param3=maxbytes;
 	ptp.Nparam=3;
-	len=0;
-	return ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, object, &len);
+	*len=0;
+	return ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, object, len);
 }
 
 /**
@@ -965,30 +1037,6 @@ ptp_sendobjectinfo (PTPParams* params, uint32_t* store,
 }
 
 /**
- * ptp_setobjectprotection:
- * params:	PTPParams*
- *		uint16_t newprot	- object protection flag
- *		
- * Set protection of object.
- *
- * Return values: Some PTP_RC_* code.
- *
- */
-uint16_t
-ptp_setobjectprotection (PTPParams* params, uint32_t oid, uint16_t newprot)
-{
-	PTPContainer ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code = PTP_OC_SetObjectProtection;
-	ptp.Param1 = oid;
-	ptp.Param2 = newprot;
-	ptp.Nparam = 2;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-
-/**
  * ptp_sendobject:
  * params:	PTPParams*
  *		char*	object		- contains the object that is to be sent
@@ -1061,35 +1109,6 @@ ptp_sendobject_fromfd (PTPParams* params, int fd, uint32_t size)
 	return ret;
 }
 
-
-/**
- * ptp_initiatecapture:
- * params:	PTPParams*
- *		storageid		- destination StorageID on Responder
- *		ofc			- object format code
- * 
- * Causes device to initiate the capture of one or more new data objects
- * according to its current device properties, storing the data into store
- * indicated by storageid. If storageid is 0x00000000, the object(s) will
- * be stored in a store that is determined by the capturing device.
- * The capturing of new data objects is an asynchronous operation.
- *
- * Return values: Some PTP_RC_* code.
- **/
-
-uint16_t
-ptp_initiatecapture (PTPParams* params, uint32_t storageid,
-			uint32_t ofc)
-{
-	PTPContainer ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_InitiateCapture;
-	ptp.Param1=storageid;
-	ptp.Param2=ofc;
-	ptp.Nparam=2;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
 
 uint16_t
 ptp_getdevicepropdesc (PTPParams* params, uint16_t propcode, 
@@ -1456,53 +1475,6 @@ ptp_canon_get_directory (PTPParams* params,
 }
 
 /**
- * ptp_canon_setobjectarchive:
- *
- * params:	PTPParams*
- *		uint32_t	objectid
- *		uint32_t	flags
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_setobjectarchive (PTPParams* params, uint32_t oid, uint32_t flags)
-{
-	PTPContainer ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_SetObjectArchive;
-	ptp.Nparam=2;
-	ptp.Param1=oid;
-	ptp.Param2=flags;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-
-/**
- * ptp_canon_startshootingmode:
- * params:	PTPParams*
- * 
- * Starts shooting session. It emits a StorageInfoChanged
- * event via the interrupt pipe and pushes the StorageInfoChanged
- * and CANON_CameraModeChange events onto the event stack
- * (see operation PTP_OC_CANON_CheckEvent).
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_startshootingmode (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_InitiateReleaseControl;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
  * ptp_canon_gettreeinfo:
  * params:	PTPParams*
  *              uint32_t *out
@@ -1588,6 +1560,10 @@ ptp_canon_gettreesize (PTPParams* params,
 		return ret;
 	*cnt = dtoh32a(out);
 	*entries = malloc(sizeof(PTPCanon_directtransfer_entry)*(*cnt));
+	if (!*entries) {
+		free (out);
+		return PTP_RC_GeneralError;
+	}
 	cur = out+4;
 	for (i=0;i<*cnt;i++) {
 		unsigned char len;
@@ -1598,99 +1574,6 @@ ptp_canon_gettreesize (PTPParams* params,
 	free (out);
 	return PTP_RC_OK;
 }
-/**
- * ptp_canon_endshootingmode:
- * params:	PTPParams*
- * 
- * This operation is observed after pressing the Disconnect 
- * button on the Remote Capture app. It emits a StorageInfoChanged 
- * event via the interrupt pipe and pushes the StorageInfoChanged
- * and CANON_CameraModeChange events onto the event stack
- * (see operation PTP_OC_CANON_CheckEvent).
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_endshootingmode (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_TerminateReleaseControl;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_viewfinderon:
- * params:	PTPParams*
- * 
- * Prior to start reading viewfinder images, one  must call this operation.
- * Supposedly, this operation affects the value of the CANON_ViewfinderMode
- * property.
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_viewfinderon (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_ViewfinderOn;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_viewfinderoff:
- * params:	PTPParams*
- * 
- * Before changing the shooting mode, or when one doesn't need to read
- * viewfinder images any more, one must call this operation.
- * Supposedly, this operation affects the value of the CANON_ViewfinderMode
- * property.
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_viewfinderoff (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_ViewfinderOff;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_reset_aeafawb:
- * params:	PTPParams*
- * 		uint32_t flags 	- what shall be reset.
- *			1 - autoexposure
- *			2 - autofocus
- * 			4 - autowhitebalance
- * 
- * Called "Reset AeAfAwb" (auto exposure, focus, white balance)
- *
- * Return values: Some PTP_RC_* code.
- **/
-uint16_t
-ptp_canon_reset_aeafawb (PTPParams* params, uint32_t flags)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_DoAeAfAwb;
-	ptp.Param1=flags;
-	ptp.Nparam=1;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
 
 /**
  * ptp_canon_checkevent:
@@ -1772,6 +1655,13 @@ ptp_check_event (PTPParams *params) {
 		if (isevent)
 			goto store_event;
 		/* FIXME: fallthrough or return? */
+#ifdef __APPLE__
+		/* the libusb 1 on darwin currently does not like polling
+		 * for interrupts, they have no timeout for it. 2010/08/23
+		 * Check back in 2011 or so. -Marcus
+		 */
+		return ret;
+#endif
 	}
 	ret = params->event_check(params,&event);
 
@@ -1785,6 +1675,8 @@ store_event:
 		memcpy (&params->events[params->nrofevents],&event,1*sizeof(PTPContainer));
 		params->nrofevents += 1;
 	}
+	if (ret == PTP_ERROR_TIMEOUT) /* ok, just new events */
+		ret = PTP_RC_OK;
 	return ret;
 }
 
@@ -1796,147 +1688,11 @@ ptp_get_one_event(PTPParams *params, PTPContainer *event) {
 	memmove (params->events, params->events+1, sizeof(PTPContainer)*(params->nrofevents-1));
 	/* do not realloc on shrink. */
 	params->nrofevents--;
+	if (!params->nrofevents) {
+		free (params->events);
+		params->events = NULL;
+	}
 	return 1;
-}
-
-
-/**
- * ptp_canon_focuslock:
- *
- * This operation locks the focus. It is followed by the CANON_GetChanges(?)
- * operation in the log. 
- * It affects the CANON_MacroMode property. 
- *
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_focuslock (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_FocusLock;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_focusunlock:
- *
- * This operation unlocks the focus. It is followed by the CANON_GetChanges(?)
- * operation in the log. 
- * It sets the CANON_MacroMode property value to 1 (where it occurs in the log).
- * 
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_focusunlock (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_FocusUnlock;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_keepdeviceon:
- *
- * This operation sends a "ping" style message to the camera.
- * 
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_keepdeviceon (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_KeepDeviceOn;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_eos_keepdeviceon:
- *
- * This operation sends a "ping" style message to the camera.
- * 
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_eos_keepdeviceon (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_EOS_KeepDeviceOn;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_initiatecaptureinmemory:
- * 
- * This operation starts the image capture according to the current camera
- * settings. When the capture has happened, the camera emits a CaptureComplete
- * event via the interrupt pipe and pushes the CANON_RequestObjectTransfer,
- * CANON_DeviceInfoChanged and CaptureComplete events onto the event stack
- * (see operation CANON_CheckEvent). From the CANON_RequestObjectTransfer
- * event's parameter one can learn the just captured image's ObjectHandle.
- * The image is stored in the camera's own RAM.
- * On the next capture the image will be overwritten!
- *
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_initiatecaptureinmemory (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_InitiateCaptureInMemory;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_eos_capture:
- * 
- * This starts a EOS400D style capture. You have to use the
- * 0x9116 command to poll for its completion.
- * The image is saved on the CF Card currently.
- *
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_eos_capture (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_EOS_RemoteRelease;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 }
 
 /**
@@ -1967,6 +1723,7 @@ ptp_canon_eos_getevent (PTPParams* params, PTPCanon_changes_entry **entries, int
 	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &data, &size);
 	if (ret != PTP_RC_OK) return ret;
         *nrofentries = ptp_unpack_CANON_changes(params,data,size,entries);
+	free (data);
 	return PTP_RC_OK;
 }
 
@@ -1989,8 +1746,12 @@ ptp_canon_eos_getdevicepropdesc (PTPParams* params, uint16_t propcode,
 			params->canon_props[i].dpd.FORM.Enum.SupportedValue,
 			sizeof (PTPPropertyValue)*dpd->FORM.Enum.NumberOfValues
 		);
-		/* FIXME: duplicate strings if type is STR. */
 	}
+	if (dpd->DataType == PTP_DTC_STR) {
+		dpd->FactoryDefaultValue.str = strdup( params->canon_props[i].dpd.FactoryDefaultValue.str );
+		dpd->CurrentValue.str = strdup( params->canon_props[i].dpd.CurrentValue.str );
+	}
+
 	return PTP_RC_OK;
 }
 
@@ -2013,18 +1774,18 @@ ptp_canon_eos_getstorageids (PTPParams* params, PTPStorageIDs* storageids)
 }
 
 uint16_t
-ptp_canon_eos_getstorageinfo (PTPParams* params, uint32_t p1)
+ptp_canon_eos_getstorageinfo (PTPParams* params, uint32_t p1, unsigned char **data, unsigned int *size)
 {
 	PTPContainer ptp;
-	unsigned char	*data = NULL;
-	unsigned int	size = 0;
 	uint16_t	ret;
 	
+	*size = 0;
+	*data = NULL;
 	PTP_CNT_INIT(ptp);
 	ptp.Code 	= PTP_OC_CANON_EOS_GetStorageInfo;
 	ptp.Nparam	= 1;
 	ptp.Param1	= p1;
-	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &data, &size);
+	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, data, size);
 	/* FIXME: do stuff with data */
 	return ret;
 }
@@ -2061,29 +1822,6 @@ ptp_canon_eos_getpartialobject (PTPParams* params, uint32_t oid, uint32_t offset
 	return ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, data, &size);
 }
 
-/**
- * ptp_canon_eos_transfercomplete:
- * 
- * This ends a direct object transfer from an EOS camera.
- *
- * params:	PTPParams*
- * 		oid		Object ID
- *
- * Return values: Some PTP_RC_* code.
- *
- */
-uint16_t
-ptp_canon_eos_transfercomplete (PTPParams* params, uint32_t oid)
-{
-	PTPContainer	ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code 	= PTP_OC_CANON_EOS_TransferComplete;
-	ptp.Nparam	= 1;
-	ptp.Param1	= oid;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
 uint16_t
 ptp_canon_eos_setdevicepropvalueex (PTPParams* params, unsigned char* data, unsigned int size)
 {
@@ -2113,88 +1851,62 @@ ptp_canon_eos_setdevicepropvalue (PTPParams* params,
 			break;
 	if (params->nrofcanon_props == i)
 		return PTP_RC_Undefined;
-	if (datatype != PTP_DTC_STR) {
-		data = calloc(sizeof(uint32_t),3);
-		size = sizeof(uint32_t)*3;
-	} else {
-		 /* FIXME! */
-		return PTP_RC_Undefined;
+
+	switch (propcode) {
+	case PTP_DPC_CANON_EOS_ImageFormat:
+	case PTP_DPC_CANON_EOS_ImageFormatCF:
+	case PTP_DPC_CANON_EOS_ImageFormatSD:
+	case PTP_DPC_CANON_EOS_ImageFormatExtHD:
+		/* special handling of ImageFormat properties */
+		size = 8 + ptp_pack_EOS_ImageFormat( params, NULL, value->u16 );
+		data = malloc( size );
+		if (!data) return PTP_RC_GeneralError;
+		params->canon_props[i].dpd.CurrentValue.u16 = value->u16;
+		ptp_pack_EOS_ImageFormat( params, data + 8, value->u16 );
+		break;
+	default:
+		if (datatype != PTP_DTC_STR) {
+			data = calloc(sizeof(uint32_t),3);
+			if (!data) return PTP_RC_GeneralError;
+			size = sizeof(uint32_t)*3;
+		} else {
+			size = strlen(value->str) + 1 + 8;
+			data = calloc(sizeof(char),size);
+			if (!data) return PTP_RC_GeneralError;
+		}
+		switch (datatype) {
+		case PTP_DTC_INT8:
+		case PTP_DTC_UINT8:
+			/*fprintf (stderr, "%x -> %d\n", propcode, value->u8);*/
+			htod8a(&data[8], value->u8);
+			params->canon_props[i].dpd.CurrentValue.u8 = value->u8;
+			break;
+		case PTP_DTC_UINT16:
+		case PTP_DTC_INT16:
+			/*fprintf (stderr, "%x -> %d\n", propcode, value->u16);*/
+			htod16a(&data[8], value->u16);
+			params->canon_props[i].dpd.CurrentValue.u16 = value->u16;
+			break;
+		case PTP_DTC_INT32:
+		case PTP_DTC_UINT32:
+			/*fprintf (stderr, "%x -> %d\n", propcode, value->u32);*/
+			htod32a(&data[8], value->u32);
+			params->canon_props[i].dpd.CurrentValue.u32 = value->u32;
+			break;
+		case PTP_DTC_STR:
+			strcpy((char*)data + 8, value->str);
+			free (params->canon_props[i].dpd.CurrentValue.str);
+			params->canon_props[i].dpd.CurrentValue.str = strdup(value->str);
+			break;
+		}
 	}
+
 	htod32a(&data[0], size);
 	htod32a(&data[4], propcode);
-	switch (datatype) {
-	case PTP_DTC_UINT8:
-		/*fprintf (stderr, "%x -> %d\n", propcode, value->u8);*/
-		htod8a(&data[8], value->u8);
-		params->canon_props[i].dpd.CurrentValue.u8 = value->u8;
-		break;
-	case PTP_DTC_UINT16:
-		/*fprintf (stderr, "%x -> %d\n", propcode, value->u16);*/
-		htod16a(&data[8], value->u16);
-		params->canon_props[i].dpd.CurrentValue.u16 = value->u16;
-		break;
-	case PTP_DTC_UINT32:
-		/*fprintf (stderr, "%x -> %d\n", propcode, value->u32);*/
-		htod32a(&data[8], value->u32);
-		params->canon_props[i].dpd.CurrentValue.u32 = value->u32;
-		break;
-	}
+
 	ret = ptp_transaction(params, &ptp, PTP_DP_SENDDATA, size, &data, NULL);
 	free (data);
 	return ret;
-}
-
-/* inHDD = %d, inLength =%d, inReset = %d */
-uint16_t
-ptp_canon_eos_pchddcapacity (PTPParams* params, uint32_t p1, uint32_t p2, uint32_t p3)
-{
-	PTPContainer	ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code 	= PTP_OC_CANON_EOS_PCHDDCapacity;
-	ptp.Nparam	= 3;
-	ptp.Param1	= p1;
-	ptp.Param2	= p2;
-	ptp.Param3	= p3;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-
-uint16_t
-ptp_canon_eos_setremotemode (PTPParams* params, uint32_t p1)
-{
-	PTPContainer	ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code 	= PTP_OC_CANON_EOS_SetRemoteMode;
-	ptp.Nparam	= 1;
-	ptp.Param1	= p1;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-
-uint16_t
-ptp_canon_eos_seteventmode (PTPParams* params, uint32_t p1)
-{
-	PTPContainer	ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code 	= PTP_OC_CANON_EOS_SetEventMode;
-	ptp.Nparam	= 1;
-	ptp.Param1	= p1;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-
-uint16_t
-ptp_canon_9012 (PTPParams* params)
-{
-	PTPContainer ptp;
-	
-	PTP_CNT_INIT(ptp);
-	ptp.Code=0x9012;
-	ptp.Nparam=0;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 }
 
 /**
@@ -2463,7 +2175,7 @@ uint16_t
 ptp_nikon_get_vendorpropcodes (PTPParams* params, uint16_t **props, unsigned int *size) {
 	PTPContainer	ptp;
 	uint16_t	ret;
-	unsigned char	*xdata;
+	unsigned char	*xdata = NULL;
 	unsigned int 	xsize;
 
 	*props = NULL;
@@ -2474,6 +2186,7 @@ ptp_nikon_get_vendorpropcodes (PTPParams* params, uint16_t **props, unsigned int
 	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &xdata, &xsize); 
 	if (ret == PTP_RC_OK)
         	*size = ptp_unpack_uint16_t_array(params,xdata,0,props);
+	free (xdata);
 	return ret;
 }
 
@@ -2492,160 +2205,6 @@ ptp_nikon_getfileinfoinblock ( PTPParams* params,
 	ptp.Param2	= p2;
 	ptp.Param3	= p3;
 	return ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, data, size); 
-}
-
-/**
- * ptp_nikon_setcontrolmode:
- *
- * This command can switch the camera to full PC control mode.
- *  
- * params:	PTPParams*
- *      uint32_t mode - mode
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_setcontrolmode (PTPParams* params, uint32_t mode)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_SetControlMode;
-        ptp.Param1=mode;
-        ptp.Nparam=1;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_nikon_afdrive:
- *
- * This command runs (drives) the lens autofocus.
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_afdrive (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_AfDrive;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_nikon_mfdrive:
- *
- * This command runs (drives) the lens autofocus.
- *  
- * params:	PTPParams*
- * flag:        0x1 for (no limit - closest), 0x2 for (closest - no limit)
- * amount:      amount of steps
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_mfdrive (PTPParams* params, uint32_t flag, uint16_t amount)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_MfDrive;
-        ptp.Nparam = 2;
-        ptp.Param1 = flag;
-        ptp.Param2 = amount;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-/**
- * ptp_nikon_capture:
- *
- * This command captures a picture on the Nikon.
- *  
- * params:	PTPParams*
- *      uint32_t x - unknown parameter. seen to be -1.
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_capture (PTPParams* params, uint32_t x)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_Capture;
-        ptp.Param1=x;
-        ptp.Nparam=1;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_nikon_capture_sdram:
- *
- * This command captures a picture on the Nikon.
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_capture_sdram (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_AfCaptureSDRAM;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_nikon_start_liveview:
- *
- * This command starts LiveView mode of newer Nikons DSLRs.
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_start_liveview (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_StartLiveView;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_nikon_end_liveview:
- *
- * This command ends LiveView mode of newer Nikons DSLRs.
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_end_liveview (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_EndLiveView;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 }
 
 /**
@@ -2696,93 +2255,6 @@ ptp_nikon_get_preview_image (PTPParams* params, unsigned char **xdata, unsigned 
 	}
 	return ret;
 }
-
-/**
- * ptp_canon_eos_setuilock:
- *
- * This command sets UI lock
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_eos_setuilock (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_CANON_EOS_SetUILock;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-/**
- * ptp_canon_eos_resetuilock:
- *
- * This command sets UI lock
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_eos_resetuilock (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_CANON_EOS_ResetUILock;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-
-/**
- * ptp_canon_eos_start_viewfinder:
- *
- * This command starts Viewfinder mode of newer Canon DSLRs.
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_eos_start_viewfinder (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_CANON_EOS_InitiateViewfinder;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
-
-/**
- * ptp_canon_eos_end_viewfinder:
- *
- * This command ends Viewfinder mode of newer Canon DSLRs.
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_canon_eos_end_viewfinder (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_CANON_EOS_TerminateViewfinder;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
-}
-
 
 /**
  * ptp_canon_eos_get_viewfinder_image:
@@ -2836,28 +2308,6 @@ ptp_nikon_check_event (PTPParams* params, PTPContainer** event, int* evtcnt)
 		free (data);
 	}
 	return ret;
-}
-
-/**
- * ptp_nikon_device_ready:
- *
- * This command checks if the device is ready. Used after
- * a capture.
- *  
- * params:	PTPParams*
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_device_ready (PTPParams* params)
-{
-        PTPContainer ptp;
-        
-        PTP_CNT_INIT(ptp);
-        ptp.Code=PTP_OC_NIKON_DeviceReady;
-        ptp.Nparam=0;
-        return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 }
 
 /**
@@ -2978,29 +2428,6 @@ ptp_nikon_getwifiprofilelist (PTPParams* params)
 #endif
 
 	return PTP_RC_OK;
-}
-
-/**
- * ptp_nikon_deletewifiprofile:
- *
- * This command deletes a wifi profile.
- *  
- * params:	PTPParams*
- *	unsigned int profilenr	- profile number
- *
- * Return values: Some PTP_RC_* code.
- *
- **/
-uint16_t
-ptp_nikon_deletewifiprofile (PTPParams* params, uint32_t profilenr)
-{
-	PTPContainer ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_NIKON_DeleteProfile;
-	ptp.Nparam=1;
-	ptp.Param1=profilenr;
-	return ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 }
 
 /**
@@ -3697,6 +3124,8 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Shooting Bank Name C")},
 		{PTP_DPC_NIKON_ShootingBankNameD,		/* 0xD014 */
 		 N_("Shooting Bank Name D")},
+		{PTP_DPC_NIKON_ResetBank0,			/* 0xD015 */
+		 N_("Reset Bank 0")},
 		{PTP_DPC_NIKON_RawCompression,			/* 0xD016 */
 		 N_("Raw Compression")},
 		{PTP_DPC_NIKON_WhiteBalanceAutoBias,		/* 0xD017 */
@@ -3717,6 +3146,16 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("White Balance Colour Temperature")},
 		{PTP_DPC_NIKON_WhiteBalancePresetNo,		/* 0xD01f */
 		 N_("White Balance Preset Number")},
+		{PTP_DPC_NIKON_WhiteBalancePresetName0,		/* 0xD020 */
+		 N_("White Balance Preset Name 0")},
+		{PTP_DPC_NIKON_WhiteBalancePresetName1,		/* 0xD021 */
+		 N_("White Balance Preset Name 1")},
+		{PTP_DPC_NIKON_WhiteBalancePresetName2,		/* 0xD022 */
+		 N_("White Balance Preset Name 2")},
+		{PTP_DPC_NIKON_WhiteBalancePresetName3,		/* 0xD023 */
+		 N_("White Balance Preset Name 3")},
+		{PTP_DPC_NIKON_WhiteBalancePresetName4,		/* 0xD024 */
+		 N_("White Balance Preset Name 4")},
 		{PTP_DPC_NIKON_WhiteBalancePresetVal0,		/* 0xD025 */
 		 N_("White Balance Preset Value 0")},
 		{PTP_DPC_NIKON_WhiteBalancePresetVal1,		/* 0xD026 */
@@ -3738,7 +3177,15 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		{PTP_DPC_NIKON_NonCPULensDataFocalLength,	/* 0xD02e */
 		 N_("Lens Focal Length (Non CPU)")},
 		{PTP_DPC_NIKON_NonCPULensDataMaximumAperture,	/* 0xD02f */
-		 N_("Lens Max. Aperture (Non CPU)")},
+		 N_("Lens Maximum Aperture (Non CPU)")},
+		{PTP_DPC_NIKON_ShootingMode,			/* 0xD030 */
+		 N_("Shooting Mode")},
+		{PTP_DPC_NIKON_JPEG_Compression_Policy,		/* 0xD031 */
+		 N_("JPEG Compression Policy")},
+		{PTP_DPC_NIKON_ColorSpace,			/* 0xD032 */
+		 N_("Color Space")},
+		{PTP_DPC_NIKON_AutoDXCrop,			/* 0xD033 */
+		 N_("Auto DX Crop")},
 		{PTP_DPC_NIKON_CSMMenuBankSelect,		/* 0xD040 */
 		 "PTP_DPC_NIKON_CSMMenuBankSelect"},
 		{PTP_DPC_NIKON_MenuBankNameA,			/* 0xD041 */
@@ -3759,31 +3206,45 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 "PTP_DPC_NIKON_A3GroupDynamicAF"},
 		{PTP_DPC_NIKON_A4AFActivation,			/* 0xD04b */
 		 "PTP_DPC_NIKON_A4AFActivation"},
-		{PTP_DPC_NIKON_A5FocusAreaIllumManualFocus,	/* 0xD04c */
-		 "PTP_DPC_NIKON_A5FocusAreaIllumManualFocus"},
+		{PTP_DPC_NIKON_FocusAreaIllumManualFocus,	/* 0xD04c */
+		 "PTP_DPC_NIKON_FocusAreaIllumManualFocus"},
 		{PTP_DPC_NIKON_FocusAreaIllumContinuous,	/* 0xD04d */
 		 "PTP_DPC_NIKON_FocusAreaIllumContinuous"},
 		{PTP_DPC_NIKON_FocusAreaIllumWhenSelected,	/* 0xD04e */
 		 "PTP_DPC_NIKON_FocusAreaIllumWhenSelected"},
 		{PTP_DPC_NIKON_FocusAreaWrap,			/* 0xD04f */
 		 N_("Focus Area Wrap")},
-		{PTP_DPC_NIKON_A7VerticalAFON,			/* 0xD050 */
+		{PTP_DPC_NIKON_VerticalAFON,			/* 0xD050 */
 		 N_("Vertical AF On")},
+		{PTP_DPC_NIKON_AFLockOn,			/* 0xD051 */
+		 N_("AF Lock On")},
+		{PTP_DPC_NIKON_FocusAreaZone,			/* 0xD052 */
+		 N_("Focus Area Zone")},
+		{PTP_DPC_NIKON_EnableCopyright,			/* 0xD053 */
+		 N_("Enable Copyright")},
 		{PTP_DPC_NIKON_ISOAuto,				/* 0xD054 */
 		 N_("Auto ISO")},
-		{PTP_DPC_NIKON_B2ISOStep,			/* 0xD055 */
-		 N_("ISO Step")},
+		{PTP_DPC_NIKON_EVISOStep,			/* 0xD055 */
+		 N_("Exposure ISO Step")},
 		{PTP_DPC_NIKON_EVStep,				/* 0xD056 */
 		 N_("Exposure Step")},
-		{PTP_DPC_NIKON_B4ExposureCompEv,		/* 0xD057 */
+		{PTP_DPC_NIKON_EVStepExposureComp,		/* 0xD057 */
 		 N_("Exposure Compensation (EV)")},
 		{PTP_DPC_NIKON_ExposureCompensation,		/* 0xD058 */
 		 N_("Exposure Compensation")},
 		{PTP_DPC_NIKON_CenterWeightArea,		/* 0xD059 */
 		 N_("Centre Weight Area")},
-		{PTP_DPC_NIKON_AELockMode,			/* 0xD05e */
+		{PTP_DPC_NIKON_ExposureBaseMatrix,		/* 0xD05A */
+		 N_("Exposure Base Matrix")},
+		{PTP_DPC_NIKON_ExposureBaseCenter,		/* 0xD05B */
+		 N_("Exposure Base Center")},
+		{PTP_DPC_NIKON_ExposureBaseSpot,		/* 0xD05C */
+		 N_("Exposure Base Spot")},
+		{PTP_DPC_NIKON_LiveViewAF,			/* 0xD05D */
+		 N_("Live View AF")},
+		{PTP_DPC_NIKON_AELockMode,			/* 0xD05E */
 		 N_("Exposure Lock")},
-		{PTP_DPC_NIKON_AELAFLMode,			/* 0xD05f */
+		{PTP_DPC_NIKON_AELAFLMode,			/* 0xD05F */
 		 N_("Focus Lock")},
 		{PTP_DPC_NIKON_MeterOff,			/* 0xD062 */
 		 N_("Auto Meter Off Time")},
@@ -3791,23 +3252,35 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Self Timer Delay")},
 		{PTP_DPC_NIKON_MonitorOff,			/* 0xD064 */
 		 N_("LCD Off Time")},
+		{PTP_DPC_NIKON_ImgConfTime,			/* 0xD065 */
+		 N_("Img Conf Time")},
+		{PTP_DPC_NIKON_AngleLevel,			/* 0xD067 */
+		 N_("Angle Level")},
 		{PTP_DPC_NIKON_D1ShootingSpeed,			/* 0xD068 */
 		 N_("Shooting Speed")},
 		{PTP_DPC_NIKON_D2MaximumShots,			/* 0xD069 */
 		 N_("Maximum Shots")},
-		{PTP_DPC_NIKON_D3ExpDelayMode,			/* 0xD06a */
-		 "PTP_DPC_NIKON_D3ExpDelayMode"},
-		{PTP_DPC_NIKON_LongExposureNoiseReduction,	/* 0xD06b */
+		{PTP_DPC_NIKON_ExposureDelayMode,		/* 0xD06A */
+		 N_("Exposure delay mode")},
+		{PTP_DPC_NIKON_LongExposureNoiseReduction,	/* 0xD06B */
 		 N_("Long Exposure Noise Reduction")},
-		{PTP_DPC_NIKON_FileNumberSequence,		/* 0xD06c */
+		{PTP_DPC_NIKON_FileNumberSequence,		/* 0xD06C */
 		 N_("File Number Sequencing")},
-		{PTP_DPC_NIKON_D6ControlPanelFinderRearControl,	/* 0xD06d */
-		 "PTP_DPC_NIKON_D6ControlPanelFinderRearControl"},
-		{PTP_DPC_NIKON_ControlPanelFinderViewfinder,	/* 0xD06e */
+		{PTP_DPC_NIKON_ControlPanelFinderRearControl,	/* 0xD06D */
+		 "PTP_DPC_NIKON_ControlPanelFinderRearControl"},
+		{PTP_DPC_NIKON_ControlPanelFinderViewfinder,	/* 0xD06E */
 		 "PTP_DPC_NIKON_ControlPanelFinderViewfinder"},
-		{PTP_DPC_NIKON_D7Illumination,			/* 0xD06f */
-		 "PTP_DPC_NIKON_D7Illumination"},
-		{PTP_DPC_NIKON_E1FlashSyncSpeed,		/* 0xD074 */
+		{PTP_DPC_NIKON_D7Illumination,			/* 0xD06F */
+		 N_("LCD Illumination")},
+		{PTP_DPC_NIKON_NrHighISO,			/* 0xD070 */
+		 N_("High ISO noise reduction")},
+		{PTP_DPC_NIKON_SHSET_CH_GUID_DISP,		/* 0xD071 */
+		 N_("On screen tips")},
+		{PTP_DPC_NIKON_ArtistName,			/* 0xD072 */
+		 N_("Artist Name")},
+		{PTP_DPC_NIKON_CopyrightInfo,			/* 0xD073 */
+		 N_("Copyright Information")},
+		{PTP_DPC_NIKON_FlashSyncSpeed,			/* 0xD074 */
 		 N_("Flash Sync. Speed")},
 		{PTP_DPC_NIKON_FlashShutterSpeed,		/* 0xD075 */
 		 N_("Flash Shutter Speed")},
@@ -3819,9 +3292,9 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Bracket Set")},
 		{PTP_DPC_NIKON_E6ManualModeBracketing,		/* 0xD079 */
 		 N_("Manual Mode Bracketing")},
-		{PTP_DPC_NIKON_BracketOrder,			/* 0xD07a */
+		{PTP_DPC_NIKON_BracketOrder,			/* 0xD07A */
 		 N_("Bracket Order")},
-		{PTP_DPC_NIKON_E8AutoBracketSelection,		/* 0xD07b */
+		{PTP_DPC_NIKON_E8AutoBracketSelection,		/* 0xD07B */
 		 N_("Auto Bracket Selection")},
 		{PTP_DPC_NIKON_BracketingSet, N_("NIKON Auto Bracketing Set")},	/* 0xD07C */
 		{PTP_DPC_NIKON_F1CenterButtonShootingMode,	/* 0xD080 */
@@ -3844,21 +3317,35 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Menus and Playback")},
 		{PTP_DPC_NIKON_F6ButtonsAndDials,		/* 0xD089 */
 		 N_("Buttons and Dials")},
-		{PTP_DPC_NIKON_NoCFCard,			/* 0xD08a */
+		{PTP_DPC_NIKON_NoCFCard,			/* 0xD08A */
 		 N_("No CF Card Release")},
+		{PTP_DPC_NIKON_CenterButtonZoomRatio,		/* 0xD08B */
+		 N_("Center Button Zoom Ratio")},
+		{PTP_DPC_NIKON_FunctionButton2,			/* 0xD08C */
+		 N_("Function Button 2")},
+		{PTP_DPC_NIKON_AFAreaPoint,			/* 0xD08D */
+		 N_("AF Area Point")},
+		{PTP_DPC_NIKON_NormalAFOn,			/* 0xD08E */
+		 N_("Normal AF On")},
 		{PTP_DPC_NIKON_ImageCommentString,		/* 0xD090 */
 		 N_("Image Comment String")},
 		{PTP_DPC_NIKON_ImageCommentEnable,		/* 0xD091 */
 		 N_("Image Comment Enable")},
 		{PTP_DPC_NIKON_ImageRotation,			/* 0xD092 */
 		 N_("Image Rotation")},
-		{PTP_DPC_NIKON_Bracketing,			/* 0xD0c0 */
+		{PTP_DPC_NIKON_ManualSetLensNo,			/* 0xD093 */
+		 N_("Manual Set Lens Number")},
+		{PTP_DPC_NIKON_MovScreenSize,			/* 0xD0A0 */
+		 N_("Movie Screen Size")},
+		{PTP_DPC_NIKON_MovVoice,			/* 0xD0A1 */
+		 N_("Movie Voice")},
+		{PTP_DPC_NIKON_Bracketing,			/* 0xD0C0 */
 		 N_("Bracketing Enable")},
-		{PTP_DPC_NIKON_AutoExposureBracketStep,		/* 0xD0c1 */
+		{PTP_DPC_NIKON_AutoExposureBracketStep,		/* 0xD0C1 */
 		 N_("Exposure Bracketing Step")},
-		{PTP_DPC_NIKON_AutoExposureBracketProgram,	/* 0xD0c2 */
+		{PTP_DPC_NIKON_AutoExposureBracketProgram,	/* 0xD0C2 */
 		 N_("Exposure Bracketing Program")},
-		{PTP_DPC_NIKON_AutoExposureBracketCount,	/* 0xD0c3 */
+		{PTP_DPC_NIKON_AutoExposureBracketCount,	/* 0xD0C3 */
 		 N_("Auto Exposure Bracket Count")},
 		{PTP_DPC_NIKON_WhiteBalanceBracketStep, N_("White Balance Bracket Step")}, /* 0xD0C4 */
 		{PTP_DPC_NIKON_WhiteBalanceBracketProgram, N_("White Balance Bracket Program")}, /* 0xD0C5 */
@@ -3876,6 +3363,18 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Max. Aperture at Min. Focal Length")},
 		{PTP_DPC_NIKON_MaxApAtMaxFocalLength,		/* 0xD0E6 */
 		 N_("Max. Aperture at Max. Focal Length")},
+		{PTP_DPC_NIKON_FinderISODisp,			/* 0xD0F0 */
+		 N_("Finder ISO Display")},
+		{PTP_DPC_NIKON_AutoOffPhoto,			/* 0xD0F2 */
+		 N_("Auto Off Photo")},
+		{PTP_DPC_NIKON_AutoOffMenu,			/* 0xD0F3 */
+		 N_("Auto Off Menu")},
+		{PTP_DPC_NIKON_AutoOffInfo,			/* 0xD0F4 */
+		 N_("Auto Off Info")},
+		{PTP_DPC_NIKON_SelfTimerShootNum,		/* 0xD0F5 */
+		 N_("Self Timer Shot Number")},
+		{PTP_DPC_NIKON_VignetteCtrl,			/* 0xD0F7 */
+		 N_("Vignette Control")},
 		{PTP_DPC_NIKON_ExposureTime,			/* 0xD100 */
 		 N_("Nikon Exposure Time")},
 		{PTP_DPC_NIKON_ACPower, N_("AC Power")},	/* 0xD101 */
@@ -3891,24 +3390,38 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Active AF Sensor")},
 		{PTP_DPC_NIKON_FlexibleProgram,			/* 0xD109 */
 		 N_("Flexible Program")},
-		{PTP_DPC_NIKON_LightMeter,			/* 0xD10a */
+		{PTP_DPC_NIKON_LightMeter,			/* 0xD10A */
 		 N_("Exposure Meter")},
-		{PTP_DPC_NIKON_RecordingMedia,			/* 0xD10b */
+		{PTP_DPC_NIKON_RecordingMedia,			/* 0xD10B */
 		 N_("Recording Media")},
-		{PTP_DPC_NIKON_USBSpeed,			/* 0xD10c */
+		{PTP_DPC_NIKON_USBSpeed,			/* 0xD10C */
 		 N_("USB Speed")},
-		{PTP_DPC_NIKON_CCDNumber,			/* 0xD10d */
+		{PTP_DPC_NIKON_CCDNumber,			/* 0xD10D */
 		 N_("CCD Serial Number")},
-		{PTP_DPC_NIKON_CameraOrientation,		/* 0xD10e */
+		{PTP_DPC_NIKON_CameraOrientation,		/* 0xD10E */
 		 N_("Camera Orientation")},
+		{PTP_DPC_NIKON_GroupPtnType,			/* 0xD10F */
+		 N_("Group PTN Type")},
+		{PTP_DPC_NIKON_FNumberLock,			/* 0xD110 */
+		 N_("FNumber Lock")},
 		{PTP_DPC_NIKON_ExposureApertureLock,		/* 0xD111 */
 		 N_("Exposure Aperture Lock")},
+		{PTP_DPC_NIKON_TVLockSetting,			/* 0xD112 */
+		 N_("TV Lock Setting")},
+		{PTP_DPC_NIKON_AVLockSetting,			/* 0xD113 */
+		 N_("AV Lock Setting")},
+		{PTP_DPC_NIKON_IllumSetting,			/* 0xD114 */
+		 N_("Illum Setting")},
+		{PTP_DPC_NIKON_FocusPointBright,		/* 0xD115 */
+		 N_("Focus Point Bright")},
 		{PTP_DPC_NIKON_ExternalFlashAttached,		/* 0xD120 */
 		 N_("External Flash Attached")},
 		{PTP_DPC_NIKON_ExternalFlashStatus,		/* 0xD121 */
 		 N_("External Flash Status")},
 		{PTP_DPC_NIKON_ExternalFlashSort,		/* 0xD122 */
 		 N_("External Flash Sort")},
+		{PTP_DPC_NIKON_ExternalFlashMode,		/* 0xD123 */
+		 N_("External Flash Mode")},
 		{PTP_DPC_NIKON_ExternalFlashCompensation,	/* 0xD124 */
 		 N_("External Flash Compensation")},
 		{PTP_DPC_NIKON_NewExternalFlashMode,		/* 0xD125 */
@@ -3919,6 +3432,34 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Optimize Image")},
 		{PTP_DPC_NIKON_Saturation,			/* 0xD142 */
 		 N_("Saturation")},
+		{PTP_DPC_NIKON_BW_FillerEffect,			/* 0xD143 */
+		 N_("BW Filler Effect")},
+		{PTP_DPC_NIKON_BW_Sharpness,			/* 0xD144 */
+		 N_("BW Sharpness")},
+		{PTP_DPC_NIKON_BW_Contrast,			/* 0xD145 */
+		 N_("BW Contrast")},
+		{PTP_DPC_NIKON_BW_Setting_Type,			/* 0xD146 */
+		 N_("BW Setting Type")},
+		{PTP_DPC_NIKON_Slot2SaveMode,			/* 0xD148 */
+		 N_("Slot 2 Save Mode")},
+		{PTP_DPC_NIKON_RawBitMode,			/* 0xD149 */
+		 N_("Raw Bit Mode")},
+		{PTP_DPC_NIKON_ISOAutoTime,			/* 0xD14E */
+		 N_("ISO Auto Time")},
+		{PTP_DPC_NIKON_FlourescentType,			/* 0xD14F */
+		 N_("Flourescent Type")},
+		{PTP_DPC_NIKON_TuneColourTemperature,		/* 0xD150 */
+		 N_("Tune Colour Temperature")},
+		{PTP_DPC_NIKON_TunePreset0,			/* 0xD151 */
+		 N_("Tune Preset 0")},
+		{PTP_DPC_NIKON_TunePreset1,			/* 0xD152 */
+		 N_("Tune Preset 1")},
+		{PTP_DPC_NIKON_TunePreset2,			/* 0xD153 */
+		 N_("Tune Preset 2")},
+		{PTP_DPC_NIKON_TunePreset3,			/* 0xD154 */
+		 N_("Tune Preset 3")},
+		{PTP_DPC_NIKON_TunePreset4,			/* 0xD155 */
+		 N_("Tune Preset 4")},
 		{PTP_DPC_NIKON_BeepOff,				/* 0xD160 */
 		 N_("AF Beep Mode")},
 		{PTP_DPC_NIKON_AutofocusMode,			/* 0xD161 */
@@ -3937,6 +3478,8 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Flash Commander Mode")},
 		{PTP_DPC_NIKON_FlashSign,			/* 0xD169 */
 		 N_("Flash Sign")},
+		{PTP_DPC_NIKON_ISOAuto,				/* 0xD16A */
+		 N_("ISO Auto")},
 		{PTP_DPC_NIKON_RemoteTimeout,			/* 0xD16B */
 		 N_("Remote Timeout")},
 		{PTP_DPC_NIKON_GridDisplay,			/* 0xD16C */
@@ -3945,18 +3488,44 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Flash Mode Manual Power")},
 		{PTP_DPC_NIKON_FlashModeCommanderPower,		/* 0xD16E */
 		 N_("Flash Mode Commander Power")},
+		{PTP_DPC_NIKON_AutoFP,				/* 0xD16F */
+		 N_("Auto FP")},
 		{PTP_DPC_NIKON_CSMMenu,				/* 0xD180 */
 		 N_("CSM Menu")},
+		{PTP_DPC_NIKON_WarningDisplay,			/* 0xD181 */
+		 N_("Warning Display")},
+		{PTP_DPC_NIKON_BatteryCellKind,			/* 0xD182 */
+		 N_("Battery Cell Kind")},
+		{PTP_DPC_NIKON_ISOAutoHiLimit,			/* 0xD183 */
+		 N_("ISO Auto High Limit")},
+		{PTP_DPC_NIKON_DynamicAFArea,			/* 0xD184 */
+		 N_("Dynamic AF Area")},
+		{PTP_DPC_NIKON_ContinuousSpeedHigh,		/* 0xD186 */
+		 N_("Continuous Speed High")},
+		{PTP_DPC_NIKON_InfoDispSetting,			/* 0xD187 */
+		 N_("Info Disp Setting")},
+		{PTP_DPC_NIKON_PreviewButton,			/* 0xD189 */
+		 N_("Preview Button")},
+		{PTP_DPC_NIKON_PreviewButton2,			/* 0xD18A */
+		 N_("Preview Button 2")},
+		{PTP_DPC_NIKON_AEAFLockButton2,			/* 0xD18B */
+		 N_("AEAF Lock Button 2")},
+		{PTP_DPC_NIKON_IndicatorDisp,			/* 0xD18D */
+		 N_("Indicator Display")},
+		{PTP_DPC_NIKON_CellKindPriority,		/* 0xD18E */
+		 N_("Cell Kind Priority")},
 		{PTP_DPC_NIKON_BracketingFramesAndSteps,	/* 0xD190 */
 		 N_("Bracketing Frames and Steps")},
+		{PTP_DPC_NIKON_LiveViewMode,			/* 0xD1A0 */
+		 N_("Live View Mode")},
+		{PTP_DPC_NIKON_LiveViewDriveMode,		/* 0xD1A1 */
+		 N_("Live View Drive Mode")},
 		{PTP_DPC_NIKON_LiveViewStatus,			/* 0xD1A2 */
 		 N_("Live View Status")},
 		{PTP_DPC_NIKON_LiveViewImageZoomRatio,		/* 0xD1A3 */
 		 N_("Live View Image Zoom Ratio")},
 		{PTP_DPC_NIKON_LiveViewProhibitCondition,	/* 0xD1A4 */
 		 N_("Live View Prohibit Condition")},
-		{PTP_DPC_NIKON_ExposureDisplayStatus,		/* 0xD1B0 */
-		 N_("Exposure Display Status")},
 		{PTP_DPC_NIKON_ExposureDisplayStatus,		/* 0xD1B0 */
 		 N_("Exposure Display Status")},
 		{PTP_DPC_NIKON_ExposureIndicateStatus,		/* 0xD1B1 */
@@ -3967,6 +3536,32 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Flash Open")},
 		{PTP_DPC_NIKON_FlashCharged,			/* 0xD1C1 */
 		 N_("Flash Charged")},
+		{PTP_DPC_NIKON_FlashMRepeatValue,		/* 0xD1D0 */
+		 N_("Flash MRepeat Value")},
+		{PTP_DPC_NIKON_FlashMRepeatCount,		/* 0xD1D1 */
+		 N_("Flash MRepeat Count")},
+		{PTP_DPC_NIKON_FlashMRepeatInterval,		/* 0xD1D2 */
+		 N_("Flash MRepeat Interval")},
+		{PTP_DPC_NIKON_FlashCommandChannel,		/* 0xD1D3 */
+		 N_("Flash Command Channel")},
+		{PTP_DPC_NIKON_FlashCommandSelfMode,		/* 0xD1D4 */
+		 N_("Flash Command Self Mode")},
+		{PTP_DPC_NIKON_FlashCommandSelfCompensation,	/* 0xD1D5 */
+		 N_("Flash Command Self Compensation")},
+		{PTP_DPC_NIKON_FlashCommandSelfValue,		/* 0xD1D6 */
+		 N_("Flash Command Self Value")},
+		{PTP_DPC_NIKON_FlashCommandAMode,		/* 0xD1D7 */
+		 N_("Flash Command A Mode")},
+		{PTP_DPC_NIKON_FlashCommandACompensation,	/* 0xD1D8 */
+		 N_("Flash Command A Compensation")},
+		{PTP_DPC_NIKON_FlashCommandAValue,		/* 0xD1D9 */
+		 N_("Flash Command A Value")},
+		{PTP_DPC_NIKON_FlashCommandBMode,		/* 0xD1DA */
+		 N_("Flash Command B Mode")},
+		{PTP_DPC_NIKON_FlashCommandBCompensation,	/* 0xD1DB */
+		 N_("Flash Command B Compensation")},
+		{PTP_DPC_NIKON_FlashCommandBValue,		/* 0xD1DC */
+		 N_("Flash Command B Value")},
 		{PTP_DPC_NIKON_ActivePicCtrlItem,		/* 0xD200 */
 		 N_("Active Pic Ctrl Item")},
 		{PTP_DPC_NIKON_ChangePicCtrlItem,		/* 0xD201 */
@@ -3977,23 +3572,36 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		uint16_t dpc;
 		const char *txt;
         } ptp_device_properties_MTP[] = {
-		{PTP_DPC_MTP_SecureTime,        N_("Secure Time")},
-		{PTP_DPC_MTP_DeviceCertificate, N_("Device Certificate")},
-		{PTP_DPC_MTP_SynchronizationPartner,
+		{PTP_DPC_MTP_SecureTime,        N_("Secure Time")},		/* D101 */
+		{PTP_DPC_MTP_DeviceCertificate, N_("Device Certificate")},	/* D102 */
+		{PTP_DPC_MTP_RevocationInfo,    N_("Revocation Info")},		/* D103 */
+		{PTP_DPC_MTP_SynchronizationPartner,				/* D401 */
 		 N_("Synchronization Partner")},
-		{PTP_DPC_MTP_DeviceFriendlyName,
+		{PTP_DPC_MTP_DeviceFriendlyName,				/* D402 */
 		 N_("Friendly Device Name")},
-		{PTP_DPC_MTP_VolumeLevel,       N_("Volume Level")},
-		{PTP_DPC_MTP_DeviceIcon,        N_("Device Icon")},
-		{PTP_DPC_MTP_SessionInitiatorInfo,	N_("Session Initiator Info")},
-		{PTP_DPC_MTP_PerceivedDeviceType,	N_("Perceived Device Type")},
-		{PTP_DPC_MTP_PlaybackRate,      N_("Playback Rate")},
-		{PTP_DPC_MTP_PlaybackObject,    N_("Playback Object")},
-		{PTP_DPC_MTP_PlaybackContainerIndex,
+		{PTP_DPC_MTP_VolumeLevel,       N_("Volume Level")},		/* D403 */
+		{PTP_DPC_MTP_DeviceIcon,        N_("Device Icon")},		/* D405 */
+		{PTP_DPC_MTP_SessionInitiatorInfo,	N_("Session Initiator Info")},/* D406 */
+		{PTP_DPC_MTP_PerceivedDeviceType,	N_("Perceived Device Type")},/* D407 */
+		{PTP_DPC_MTP_PlaybackRate,      N_("Playback Rate")},		/* D410 */
+		{PTP_DPC_MTP_PlaybackObject,    N_("Playback Object")},		/* D411 */
+		{PTP_DPC_MTP_PlaybackContainerIndex,				/* D412 */
 		 N_("Playback Container Index")},
-		{PTP_DPC_MTP_PlaybackPosition,  N_("Playback Position")},
-		{PTP_DPC_MTP_RevocationInfo,    N_("Revocation Info")},
-		{PTP_DPC_MTP_PlaysForSureID,    N_("PlaysForSure ID")},
+		{PTP_DPC_MTP_PlaybackPosition,  N_("Playback Position")},	/* D413 */
+		{PTP_DPC_MTP_PlaysForSureID,    N_("PlaysForSure ID")},		/* D131 (?) */
+		{0,NULL}
+        };
+        struct {
+		uint16_t dpc;
+		const char *txt;
+        } ptp_device_properties_FUJI[] = {
+		{PTP_DPC_FUJI_ColorTemperature, N_("Color Temperature")},	/* 0xD017 */
+		{PTP_DPC_FUJI_Quality, N_("Quality")},				/* 0xD018 */
+		{PTP_DPC_FUJI_Quality, N_("Release Mode")},			/* 0xD201 */
+		{PTP_DPC_FUJI_Quality, N_("Focus Areas")},			/* 0xD206 */
+		{PTP_DPC_FUJI_Quality, N_("AE Lock")},				/* 0xD213 */
+		{PTP_DPC_FUJI_Quality, N_("Aperture")},				/* 0xD218 */
+		{PTP_DPC_FUJI_Quality, N_("Shutter Speed")},			/* 0xD219 */
 		{0,NULL}
         };
 
@@ -4001,7 +3609,8 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		if (ptp_device_properties[i].dpc==dpc)
 			return (ptp_device_properties[i].txt);
 
-	if (params->deviceinfo.VendorExtensionID==PTP_VENDOR_MICROSOFT)
+	if (params->deviceinfo.VendorExtensionID==PTP_VENDOR_MICROSOFT
+	    || params->deviceinfo.VendorExtensionID==PTP_VENDOR_MTP)
 		for (i=0; ptp_device_properties_MTP[i].txt!=NULL; i++)
 			if (ptp_device_properties_MTP[i].dpc==dpc)
 				return (ptp_device_properties_MTP[i].txt);
@@ -4020,6 +3629,11 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		for (i=0; ptp_device_properties_Nikon[i].txt!=NULL; i++)
 			if (ptp_device_properties_Nikon[i].dpc==dpc)
 				return (ptp_device_properties_Nikon[i].txt);
+
+	if (params->deviceinfo.VendorExtensionID==PTP_VENDOR_FUJI)
+		for (i=0; ptp_device_properties_FUJI[i].txt!=NULL; i++)
+			if (ptp_device_properties_FUJI[i].dpc==dpc)
+				return (ptp_device_properties_FUJI[i].txt);
 
 	return NULL;
 }
@@ -4082,21 +3696,27 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		double bias;
 		const char *format;
 	} ptp_value_trans[] = {
-		{PTP_DPC_ExposureIndex, 0, 1.0, 0.0, "ISO %.0f"},
-		{PTP_DPC_BatteryLevel, 0, 1.0, 0.0, "%.0f%%"},
-		{PTP_DPC_FNumber, 0, 0.01, 0.0, "f/%.2g"},
-		{PTP_DPC_FocalLength, 0, 0.01, 0.0, "%.0f mm"},
-		{PTP_DPC_ExposureTime, 0, 0.00001, 0.0, "%.2g sec"},
-		{PTP_DPC_ExposureBiasCompensation, 0, 0.001, 0.0, N_("%.1f stops")},
+		{PTP_DPC_BatteryLevel, 0, 1.0, 0.0, "%.0f%%"},		/* 5001 */
+		{PTP_DPC_FNumber, 0, 0.01, 0.0, "f/%.2g"},		/* 5007 */
+		{PTP_DPC_FocalLength, 0, 0.01, 0.0, "%.0f mm"},		/* 5008 */
+		{PTP_DPC_FocusDistance, 0, 0.01, 0.0, "%.0f mm"},	/* 5009 */
+		{PTP_DPC_ExposureTime, 0, 0.00001, 0.0, "%.2g sec"},	/* 500D */
+		{PTP_DPC_ExposureIndex, 0, 1.0, 0.0, "ISO %.0f"},	/* 500F */
+		{PTP_DPC_ExposureBiasCompensation, 0, 0.001, 0.0, N_("%.1f stops")},/* 5010 */
+		{PTP_DPC_CaptureDelay, 0, 0.001, 0.0, "%.1fs"},		/* 5012 */
+		{PTP_DPC_DigitalZoom, 0, 0.1, 0.0, "%.1f"},		/* 5016 */
+		{PTP_DPC_BurstInterval, 0, 0.001, 0.0, "%.1fs"},	/* 5019 */
 
-		{PTP_DPC_NIKON_LightMeter, PTP_VENDOR_NIKON, 0.08333, 0.0, N_("%.1f stops")},
-		{PTP_DPC_NIKON_FlashExposureCompensation, PTP_VENDOR_NIKON, 0.16666, 0.0, N_("%.1f stops")},
-		{PTP_DPC_NIKON_CenterWeightArea, PTP_VENDOR_NIKON, 2.0, 6.0, N_("%.0f mm")},
-		{PTP_DPC_NIKON_FocalLengthMin, PTP_VENDOR_NIKON, 0.01, 0.0, "%.0f mm"},
-		{PTP_DPC_NIKON_FocalLengthMax, PTP_VENDOR_NIKON, 0.01, 0.0, "%.0f mm"},
-		{PTP_DPC_NIKON_MaxApAtMinFocalLength, PTP_VENDOR_NIKON, 0.01, 0.0, "f/%.2g"},
-		{PTP_DPC_NIKON_MaxApAtMaxFocalLength, PTP_VENDOR_NIKON, 0.01, 0.0, "f/%.2g"},
-		{PTP_DPC_NIKON_ExternalFlashCompensation, PTP_VENDOR_NIKON, 1.0/6.0, 0.0,"%.0f"},
+		/* Nikon device properties */
+		{PTP_DPC_NIKON_LightMeter, PTP_VENDOR_NIKON, 0.08333, 0.0, N_("%.1f stops")},/* D10A */
+		{PTP_DPC_NIKON_FlashExposureCompensation, PTP_VENDOR_NIKON, 0.16666, 0.0, N_("%.1f stops")}, /* D126 */
+		{PTP_DPC_NIKON_CenterWeightArea, PTP_VENDOR_NIKON, 2.0, 6.0, N_("%.0f mm")},/* D059 */
+		{PTP_DPC_NIKON_FocalLengthMin, PTP_VENDOR_NIKON, 0.01, 0.0, "%.0f mm"}, /* D0E3 */
+		{PTP_DPC_NIKON_FocalLengthMax, PTP_VENDOR_NIKON, 0.01, 0.0, "%.0f mm"}, /* D0E4 */
+		{PTP_DPC_NIKON_MaxApAtMinFocalLength, PTP_VENDOR_NIKON, 0.01, 0.0, "f/%.2g"}, /* D0E5 */
+		{PTP_DPC_NIKON_MaxApAtMaxFocalLength, PTP_VENDOR_NIKON, 0.01, 0.0, "f/%.2g"}, /* D0E6 */
+		{PTP_DPC_NIKON_ExternalFlashCompensation, PTP_VENDOR_NIKON, 1.0/6.0, 0.0,"%.0f"}, /* D124 */
+		{PTP_DPC_NIKON_ExposureIndicateStatus, PTP_VENDOR_NIKON, 0.08333, 0.0, N_("%.1f stops")},/* D1B1 - FIXME: check if correct. */
 		{0, 0, 0.0, 0.0, NULL}
 	};
 
@@ -4106,13 +3726,13 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		int64_t key;
 		char *value;
 	} ptp_value_list[] = {
-		{PTP_DPC_CompressionSetting, 0, 0, N_("JPEG Basic")},
+		{PTP_DPC_CompressionSetting, 0, 0, N_("JPEG Basic")},	/* 5004 */
 		{PTP_DPC_CompressionSetting, 0, 1, N_("JPEG Norm")},
 		{PTP_DPC_CompressionSetting, 0, 2, N_("JPEG Fine")},
 		{PTP_DPC_CompressionSetting, 0, 4, N_("RAW")},
 		{PTP_DPC_CompressionSetting, 0, 5, N_("RAW + JPEG Basic")},
 		{PTP_DPC_WhiteBalance, 0, 1, N_("Manual")},
-		{PTP_DPC_WhiteBalance, 0, 2, N_("Automatic")},
+		{PTP_DPC_WhiteBalance, 0, 2, N_("Automatic")},		/* 5005 */
 		{PTP_DPC_WhiteBalance, 0, 3, N_("One-push Automatic")},
 		{PTP_DPC_WhiteBalance, 0, 4, N_("Daylight")},
 		{PTP_DPC_WhiteBalance, 0, 5, N_("Fluorescent")},
@@ -4122,7 +3742,17 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_WhiteBalance, PTP_VENDOR_NIKON, 32785, N_("Shade")},
 		{PTP_DPC_WhiteBalance, PTP_VENDOR_NIKON, 32786, N_("Color Temperature")},
 		{PTP_DPC_WhiteBalance, PTP_VENDOR_NIKON, 32787, N_("Preset")},
-		{PTP_DPC_FlashMode, 0, 0, N_("Undefined")},
+		{PTP_DPC_FocusMode, 0, 1, N_("Manual Focus")},		/* 500A */
+		{PTP_DPC_FocusMode, 0, 2, N_("Automatic")},
+		{PTP_DPC_FocusMode, 0, 3, N_("Automatic Macro (close-up)")},
+		{PTP_DPC_FocusMode, PTP_VENDOR_NIKON, 32784, "AF-S"},
+		{PTP_DPC_FocusMode, PTP_VENDOR_NIKON, 32785, "AF-C"},
+		{PTP_DPC_FocusMode, PTP_VENDOR_NIKON, 32786, "AF-A"},
+		{PTP_DPC_ExposureMeteringMode, 0, 1, N_("Average")},	/* 500B */
+		{PTP_DPC_ExposureMeteringMode, 0, 2, N_("Center Weighted Average")},
+		{PTP_DPC_ExposureMeteringMode, 0, 3, N_("Multi-spot")},
+		{PTP_DPC_ExposureMeteringMode, 0, 4, N_("Center-spot")},
+		{PTP_DPC_FlashMode, 0, 0, N_("Undefined")},		/* 500C */
 		{PTP_DPC_FlashMode, 0, 1, N_("Automatic flash")},
 		{PTP_DPC_FlashMode, 0, 2, N_("Flash off")},
 		{PTP_DPC_FlashMode, 0, 3, N_("Fill flash")},
@@ -4133,30 +3763,7 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_FlashMode, PTP_VENDOR_NIKON, 32785, N_("Slow Sync")},
 		{PTP_DPC_FlashMode, PTP_VENDOR_NIKON, 32786, N_("Rear Curtain Sync + Slow Sync")},
 		{PTP_DPC_FlashMode, PTP_VENDOR_NIKON, 32787, N_("Red-eye Reduction + Slow Sync")},
-		{PTP_DPC_FocusMeteringMode, 0, 1, N_("Centre-spot")},
-		{PTP_DPC_FocusMeteringMode, 0, 2, N_("Multi-spot")},
-		{PTP_DPC_FocusMeteringMode, PTP_VENDOR_NIKON, 32784, N_("Single Area")},
-		{PTP_DPC_FocusMeteringMode, PTP_VENDOR_NIKON, 32785, N_("Closest Subject")},
-		{PTP_DPC_FocusMeteringMode, PTP_VENDOR_NIKON, 32786, N_("Group Dynamic")},
-		{PTP_DPC_FocusMode, 0, 1, N_("Manual Focus")},
-		{PTP_DPC_FocusMode, 0, 2, N_("Automatic")},
-		{PTP_DPC_FocusMode, 0, 3, N_("Automatic Macro (close-up)")},
-		{PTP_DPC_FocusMode, PTP_VENDOR_NIKON, 32784, "AF-S"},
-		{PTP_DPC_FocusMode, PTP_VENDOR_NIKON, 32785, "AF-C"},
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ISOAuto,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ExposureCompensation,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_AELockMode,PTP_VENDOR_NIKON),
-		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 0, N_("AE/AF Lock")},
-		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 1, N_("AF Lock only")},
-		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 2, N_("AE Lock only")},
-		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 3, N_("AF Lock Hold")},
-		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 4, N_("AF On")},
-		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 5, N_("Flash Lock")},
-		{PTP_DPC_ExposureMeteringMode, 0, 1, N_("Average")},
-		{PTP_DPC_ExposureMeteringMode, 0, 2, N_("Center Weighted Average")},
-		{PTP_DPC_ExposureMeteringMode, 0, 3, N_("Multi-spot")},
-		{PTP_DPC_ExposureMeteringMode, 0, 4, N_("Center-spot")},
-		{PTP_DPC_ExposureProgramMode, 0, 1, "M"},
+		{PTP_DPC_ExposureProgramMode, 0, 1, "M"},		/* 500E */
 		{PTP_DPC_ExposureProgramMode, 0, 3, "A"},
 		{PTP_DPC_ExposureProgramMode, 0, 4, "S"},
 		{PTP_DPC_ExposureProgramMode, 0, 2, "P"},
@@ -4167,7 +3774,7 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_ExposureProgramMode, PTP_VENDOR_NIKON, 32788, N_("Sports")},
 		{PTP_DPC_ExposureProgramMode, PTP_VENDOR_NIKON, 32790, N_("Night Landscape")},
 		{PTP_DPC_ExposureProgramMode, PTP_VENDOR_NIKON, 32789, N_("Night Portrait")},
-		{PTP_DPC_StillCaptureMode, 0, 1, N_("Single Shot")},
+		{PTP_DPC_StillCaptureMode, 0, 1, N_("Single Shot")},	/* 5013 */
 		{PTP_DPC_StillCaptureMode, 0, 2, N_("Power Wind")},
 		{PTP_DPC_StillCaptureMode, 0, 3, N_("Timelapse")},
 		{PTP_DPC_StillCaptureMode, PTP_VENDOR_NIKON, 32784, N_("Continuous Low Speed")},
@@ -4175,57 +3782,15 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_StillCaptureMode, PTP_VENDOR_NIKON, 32787, N_("Remote")},
 		{PTP_DPC_StillCaptureMode, PTP_VENDOR_NIKON, 32787, N_("Mirror Up")},
 		{PTP_DPC_StillCaptureMode, PTP_VENDOR_NIKON, 32788, N_("Timer + Remote")},
-		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_AFAssist,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_ImageReview,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_GridDisplay,PTP_VENDOR_NIKON),
-		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 0, N_("AF-S")},
-		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 1, N_("AF-C")},
-		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 2, N_("AF-A")},
-		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 3, N_("MF (fixed)")},
-		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 4, N_("MF (selection)")},
-		{PTP_DPC_NIKON_AFAreaIllumination, PTP_VENDOR_NIKON, 0, N_("Auto")},
-		{PTP_DPC_NIKON_AFAreaIllumination, PTP_VENDOR_NIKON, 1, N_("Off")},
-		{PTP_DPC_NIKON_AFAreaIllumination, PTP_VENDOR_NIKON, 2, N_("On")},
-		{PTP_DPC_NIKON_ColorModel, PTP_VENDOR_NIKON, 0, "sRGB"},
-		{PTP_DPC_NIKON_ColorModel, PTP_VENDOR_NIKON, 1, "AdobeRGB"},
-		{PTP_DPC_NIKON_ColorModel, PTP_VENDOR_NIKON, 2, "sRGB"},
-		{PTP_DPC_NIKON_FlashMode, PTP_VENDOR_NIKON, 0, "iTTL"},
-		{PTP_DPC_NIKON_FlashMode, PTP_VENDOR_NIKON, 1, N_("Manual")},
-		{PTP_DPC_NIKON_FlashMode, PTP_VENDOR_NIKON, 2, N_("Commander")},
-		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 0, N_("Full")},
-		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 1, "1/2"},
-		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 2, "1/4"},
-		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 3, "1/8"},
-		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 4, "1/16"},
-		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_FlashSign,PTP_VENDOR_NIKON),
-		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 0, N_("1 min")},
-		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 1, N_("5 mins")},
-		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 2, N_("10 mins")},
-		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 3, N_("15 mins")},
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FlashOpen,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FlashCharged,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_LongExposureNoiseReduction,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_FileNumberSequence,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ReverseCommandDial,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_NoCFCard,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_ImageRotation,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_Bracketing,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ImageCommentEnable,PTP_VENDOR_NIKON),
-		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 0, N_("Centre")},
-		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 1, N_("Top")},
-		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 2, N_("Bottom")},
-		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 3, N_("Left")},
-		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 4, N_("Right")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 0, N_("Normal")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 1, N_("Vivid")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 2, N_("Sharper")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 3, N_("Softer")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 4, N_("Direct Print")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 5, N_("Portrait")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 6, N_("Landscape")},
-		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 7, N_("Custom")},
+		{PTP_DPC_FocusMeteringMode, 0, 1, N_("Centre-spot")},	/* 501C */
+		{PTP_DPC_FocusMeteringMode, 0, 2, N_("Multi-spot")},
+		{PTP_DPC_FocusMeteringMode, PTP_VENDOR_NIKON, 32784, N_("Single Area")},
+		{PTP_DPC_FocusMeteringMode, PTP_VENDOR_NIKON, 32785, N_("Closest Subject")},
+		{PTP_DPC_FocusMeteringMode, PTP_VENDOR_NIKON, 32786, N_("Group Dynamic")},
 
-		{PTP_DPC_NIKON_ImageSharpening, PTP_VENDOR_NIKON, 0, N_("Auto")},
+
+		/* Nikon specific device properties */
+		{PTP_DPC_NIKON_ImageSharpening, PTP_VENDOR_NIKON, 0, N_("Auto")},	/* D02A */
 		{PTP_DPC_NIKON_ImageSharpening, PTP_VENDOR_NIKON, 1, N_("Normal")},
 		{PTP_DPC_NIKON_ImageSharpening, PTP_VENDOR_NIKON, 2, N_("Low")},
 		{PTP_DPC_NIKON_ImageSharpening, PTP_VENDOR_NIKON, 3, N_("Medium Low")},
@@ -4233,7 +3798,7 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_NIKON_ImageSharpening, PTP_VENDOR_NIKON, 5, N_("High")},
 		{PTP_DPC_NIKON_ImageSharpening, PTP_VENDOR_NIKON, 6, N_("None")},
 
-		{PTP_DPC_NIKON_ToneCompensation, PTP_VENDOR_NIKON, 0, N_("Auto")},
+		{PTP_DPC_NIKON_ToneCompensation, PTP_VENDOR_NIKON, 0, N_("Auto")},	/* D02B */
 		{PTP_DPC_NIKON_ToneCompensation, PTP_VENDOR_NIKON, 1, N_("Normal")},
 		{PTP_DPC_NIKON_ToneCompensation, PTP_VENDOR_NIKON, 2, N_("Low contrast")},
 		{PTP_DPC_NIKON_ToneCompensation, PTP_VENDOR_NIKON, 3, N_("Medium Low")},
@@ -4241,35 +3806,19 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_NIKON_ToneCompensation, PTP_VENDOR_NIKON, 5, N_("High control")},
 		{PTP_DPC_NIKON_ToneCompensation, PTP_VENDOR_NIKON, 6, N_("Custom")},
 
-		{PTP_DPC_NIKON_Saturation, PTP_VENDOR_NIKON, 0, N_("Normal")},
-		{PTP_DPC_NIKON_Saturation, PTP_VENDOR_NIKON, 1, N_("Moderate")},
-		{PTP_DPC_NIKON_Saturation, PTP_VENDOR_NIKON, 2, N_("Enhanced")},
+		{PTP_DPC_NIKON_ColorModel, PTP_VENDOR_NIKON, 0, "sRGB"},		/* D02C */
+		{PTP_DPC_NIKON_ColorModel, PTP_VENDOR_NIKON, 1, "AdobeRGB"},
+		{PTP_DPC_NIKON_ColorModel, PTP_VENDOR_NIKON, 2, "sRGB"},
 
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 0, N_("Unknown")},
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 38, "Sigma 70-300mm 1:4-5.6 D APO Macro"},
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 83, "AF Nikkor 80-200mm 1:2.8 D ED"},
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 118, "AF Nikkor 50mm 1:1.8 D"},
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 127, "AF-S Nikkor 18-70mm 1:3.5-4.5G ED DX"},
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 139, "AF-S Nikkor 18-200mm 1:3.5-5.6 GED DX VR"},
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 147, "AF-S Nikkor 24-70mm 1:2.8G ED DX"},
-		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 154, "AF-S Nikkor 18-55mm 1:3.5-F5.6G DX VR"},
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_AutoDXCrop,PTP_VENDOR_NIKON),	   	/* D033 */
 
-		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 0, N_("10 seconds")},
-		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 1, N_("20 seconds")},
-		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 2, N_("1 minute")},
-		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 3, N_("5 minutes")},
-		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 4, N_("10 minutes")},
-		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 5, N_("5 seconds")}, /* d80 observed */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_FocusAreaWrap,PTP_VENDOR_NIKON),   	/* D04F */
 
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ExposureDisplayStatus,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_AFLockStatus,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_AELockStatus,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FVLockStatus,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ACPower,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_CSMMenu,PTP_VENDOR_NIKON),
-		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_BeepOff,PTP_VENDOR_NIKON),
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_EnableCopyright,PTP_VENDOR_NIKON),   	/* D053 */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ISOAuto,PTP_VENDOR_NIKON),	   	/* D054 */
 
-		{PTP_DPC_NIKON_ISOAuto,	PTP_VENDOR_NIKON, 0, "1/125"},
+		/* FIXME! this is not ISO Auto (which is a bool) Perhaps ISO Auto Time?*/
+		{PTP_DPC_NIKON_ISOAuto,	PTP_VENDOR_NIKON, 0, "1/125"},			/* D054 */
 		{PTP_DPC_NIKON_ISOAuto,	PTP_VENDOR_NIKON, 1, "1/60"},
 		{PTP_DPC_NIKON_ISOAuto,	PTP_VENDOR_NIKON, 2, "1/30"},
 		{PTP_DPC_NIKON_ISOAuto,	PTP_VENDOR_NIKON, 3, "1/15"},
@@ -4283,45 +3832,156 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_NIKON_ISOAuto,	PTP_VENDOR_NIKON, 11, "15"},
 		{PTP_DPC_NIKON_ISOAuto,	PTP_VENDOR_NIKON, 12, "30"},
 
-		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 0, "0'"},
-		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 1, "270'"},
-		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 2, "90'"},
-		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 3, "180'"},
+		{PTP_DPC_NIKON_EVStep, PTP_VENDOR_NIKON, 0, "1/3"},			/* D056 */
+		{PTP_DPC_NIKON_EVStep, PTP_VENDOR_NIKON, 1, "1/2"},
 
-		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 0, N_("2 seconds")},
-		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 1, N_("5 seconds")},
-		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 2, N_("10 seconds")},
-		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 3, N_("20 seconds")},
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ExposureCompensation,PTP_VENDOR_NIKON),/*D058 */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_AELockMode,PTP_VENDOR_NIKON),    	/* D05E */
 
-		{PTP_DPC_NIKON_MeterOff, PTP_VENDOR_NIKON, 0, N_("4 seconds")},
+		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 0, N_("AE/AF Lock")},	/* D05F */
+		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 1, N_("AF Lock only")},
+		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 2, N_("AE Lock only")},
+		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 3, N_("AF Lock Hold")},
+		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 4, N_("AF On")},
+		{PTP_DPC_NIKON_AELAFLMode, PTP_VENDOR_NIKON, 5, N_("Flash Lock")},
+
+		{PTP_DPC_NIKON_MeterOff, PTP_VENDOR_NIKON, 0, N_("4 seconds")},		/* D062 */
 		{PTP_DPC_NIKON_MeterOff, PTP_VENDOR_NIKON, 1, N_("6 seconds")},
 		{PTP_DPC_NIKON_MeterOff, PTP_VENDOR_NIKON, 2, N_("8 seconds")},
 		{PTP_DPC_NIKON_MeterOff, PTP_VENDOR_NIKON, 3, N_("16 seconds")},
 		{PTP_DPC_NIKON_MeterOff, PTP_VENDOR_NIKON, 4, N_("30 minutes")},
 		{PTP_DPC_NIKON_MeterOff, PTP_VENDOR_NIKON, 5, N_("30 seconds")},
 
-		{PTP_DPC_NIKON_BracketSet, PTP_VENDOR_NIKON, 0, N_("AE & Flash")},
+		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 0, N_("2 seconds")},	/* D063 */
+		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 1, N_("5 seconds")},
+		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 2, N_("10 seconds")},
+		{PTP_DPC_NIKON_SelfTimer, PTP_VENDOR_NIKON, 3, N_("20 seconds")},
+
+		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 0, N_("10 seconds")},	/* D064 */
+		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 1, N_("20 seconds")},
+		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 2, N_("1 minute")},
+		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 3, N_("5 minutes")},
+		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 4, N_("10 minutes")},
+		{PTP_DPC_NIKON_MonitorOff, PTP_VENDOR_NIKON, 5, N_("5 seconds")}, /* d80 observed */
+
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ExposureDelayMode,PTP_VENDOR_NIKON),	/* D06A */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_LongExposureNoiseReduction,PTP_VENDOR_NIKON),	/* D06B */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_FileNumberSequence,PTP_VENDOR_NIKON),	/* D06C */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_D7Illumination,PTP_VENDOR_NIKON),	/* D06F */
+
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_SHSET_CH_GUID_DISP,PTP_VENDOR_NIKON),	/* D071 */
+
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 0, "1/60s"},		/* D075 */
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 1, "1/30s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 2, "1/15s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 3, "1/8s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 4, "1/4s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 5, "1/2s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 6, "1s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 7, "2s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 8, "4s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 9, "8s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 10, "15s"},
+		{PTP_DPC_NIKON_FlashShutterSpeed, PTP_VENDOR_NIKON, 11, "30s"},
+
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_E4ModelingFlash,PTP_VENDOR_NIKON),	/* D077 */
+
+		{PTP_DPC_NIKON_BracketSet, PTP_VENDOR_NIKON, 0, N_("AE & Flash")},	/* D078 */
 		{PTP_DPC_NIKON_BracketSet, PTP_VENDOR_NIKON, 1, N_("AE only")},
 		{PTP_DPC_NIKON_BracketSet, PTP_VENDOR_NIKON, 2, N_("Flash only")},
 		{PTP_DPC_NIKON_BracketSet, PTP_VENDOR_NIKON, 3, N_("WB bracketing")},
 
-		{PTP_DPC_NIKON_BracketOrder, PTP_VENDOR_NIKON, 0, N_("MTR > Under")},
+		{PTP_DPC_NIKON_BracketOrder, PTP_VENDOR_NIKON, 0, N_("MTR > Under")},	/* D07A */
 		{PTP_DPC_NIKON_BracketOrder, PTP_VENDOR_NIKON, 1, N_("Under > MTR")},
 
-		{PTP_DPC_NIKON_FlashCommanderMode, PTP_VENDOR_NIKON, 0, N_("TTL")},
-		{PTP_DPC_NIKON_FlashCommanderMode, PTP_VENDOR_NIKON, 1, N_("Auto Aperture")},
-		{PTP_DPC_NIKON_FlashCommanderMode, PTP_VENDOR_NIKON, 2, N_("Full Manual")},
+		{PTP_DPC_NIKON_F1CenterButtonShootingMode, PTP_VENDOR_NIKON, 0, N_("Reset focus point to center")}, /* D080 */
+		{PTP_DPC_NIKON_F1CenterButtonShootingMode, PTP_VENDOR_NIKON, 1, N_("Highlight active focus point")},
+		{PTP_DPC_NIKON_F1CenterButtonShootingMode, PTP_VENDOR_NIKON, 2, N_("Unused")},
 
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 0, N_("Full")},
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 1, "1/2"},
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 2, "1/4"},
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 3, "1/8"},
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 4, "1/16"},
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 5, "1/32"},
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 6, "1/64"},
-		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 7, "1/128"},
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_F3PhotoInfoPlayback,PTP_VENDOR_NIKON),/* D083 */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_F5CustomizeCommDials,PTP_VENDOR_NIKON),/* D085 */
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ReverseCommandDial,PTP_VENDOR_NIKON),	/* D086 */
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_F6ButtonsAndDials,PTP_VENDOR_NIKON),	/* D089 */
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_NoCFCard,PTP_VENDOR_NIKON),		/* D08A */
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_AFAreaPoint,PTP_VENDOR_NIKON),	/* D08D */
 
-		{PTP_DPC_NIKON_PADVPMode, PTP_VENDOR_NIKON, 0,  "1/125"},
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_ImageCommentEnable,PTP_VENDOR_NIKON),	/* D091 */
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_ImageRotation,PTP_VENDOR_NIKON),	/* D092 */
+
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_MovVoice,PTP_VENDOR_NIKON),		/* D0A1 */
+
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_Bracketing,PTP_VENDOR_NIKON),		/* D0C0 */
+
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 0, N_("Unknown")},		/* D0E0 */
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 38, "Sigma 70-300mm 1:4-5.6 D APO Macro"},
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 83, "AF Nikkor 80-200mm 1:2.8 D ED"},
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 118, "AF Nikkor 50mm 1:1.8 D"},
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 127, "AF-S Nikkor 18-70mm 1:3.5-4.5G ED DX"},
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 139, "AF-S Nikkor 18-200mm 1:3.5-5.6 GED DX VR"},
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 147, "AF-S Nikkor 24-70mm 1:2.8G ED DX"},
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 154, "AF-S Nikkor 18-55mm 1:3.5-F5.6G DX VR"},
+		{PTP_DPC_NIKON_LensID, PTP_VENDOR_NIKON, 159, "AF-S Nikkor 35mm 1:1.8G DX"},
+		{PTP_DPC_NIKON_FinderISODisp, PTP_VENDOR_NIKON, 0, "Show ISO sensitivity"},/* 0xD0F0 */
+		{PTP_DPC_NIKON_FinderISODisp, PTP_VENDOR_NIKON, 1, "Show ISO/Easy ISO"},
+		{PTP_DPC_NIKON_FinderISODisp, PTP_VENDOR_NIKON, 2, "Show frame count"},
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ACPower,PTP_VENDOR_NIKON),		/* D101 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_AFLockStatus,PTP_VENDOR_NIKON),		/* D104 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_AELockStatus,PTP_VENDOR_NIKON),		/* D105 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FVLockStatus,PTP_VENDOR_NIKON),		/* D106 */
+
+		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 0, N_("Centre")},	/* D108 */
+		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 1, N_("Top")},
+		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 2, N_("Bottom")},
+		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 3, N_("Left")},
+		{PTP_DPC_NIKON_AutofocusArea, PTP_VENDOR_NIKON, 4, N_("Right")},
+
+		{PTP_DPC_NIKON_RecordingMedia, PTP_VENDOR_NIKON, 0, N_("Card")},	/* D10B */
+		{PTP_DPC_NIKON_RecordingMedia, PTP_VENDOR_NIKON, 1, N_("SDRam")},
+
+		{PTP_DPC_NIKON_USBSpeed, PTP_VENDOR_NIKON, 0, N_("USB 1.1")},		/* D10C */
+		{PTP_DPC_NIKON_USBSpeed, PTP_VENDOR_NIKON, 1, N_("USB 2.0")},
+
+		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 0, "0'"},		/* D10E */
+		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 1, "270'"},
+		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 2, "90'"},
+		{PTP_DPC_NIKON_CameraOrientation, PTP_VENDOR_NIKON, 3, "180'"},
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FNumberLock,PTP_VENDOR_NIKON),		/* D110 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ExposureApertureLock,PTP_VENDOR_NIKON),	/* D111 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_TVLockSetting,PTP_VENDOR_NIKON),	/* D112 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_AVLockSetting,PTP_VENDOR_NIKON),	/* D113 */
+
+		{PTP_DPC_NIKON_IllumSetting,PTP_VENDOR_NIKON,0,N_("LCD Backlight")},	/* D114 */
+		{PTP_DPC_NIKON_IllumSetting,PTP_VENDOR_NIKON,1,N_("LCD Backlight and Info Display")},
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ExternalFlashAttached,PTP_VENDOR_NIKON),/* D120 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ExternalFlashStatus,PTP_VENDOR_NIKON),	/* D121 */
+
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 0, N_("Normal")},	/* D140 */
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 1, N_("Vivid")},
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 2, N_("Sharper")},
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 3, N_("Softer")},
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 4, N_("Direct Print")},
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 5, N_("Portrait")},
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 6, N_("Landscape")},
+		{PTP_DPC_NIKON_OptimizeImage, PTP_VENDOR_NIKON, 7, N_("Custom")},
+
+		{PTP_DPC_NIKON_Saturation, PTP_VENDOR_NIKON, 0, N_("Normal")},		/* D142 */
+		{PTP_DPC_NIKON_Saturation, PTP_VENDOR_NIKON, 1, N_("Moderate")},
+		{PTP_DPC_NIKON_Saturation, PTP_VENDOR_NIKON, 2, N_("Enhanced")},
+
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_BeepOff,PTP_VENDOR_NIKON),		/* D160 */
+
+		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 0, N_("AF-S")},	 	/* D161 */
+		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 1, N_("AF-C")},
+		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 2, N_("AF-A")},
+		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 3, N_("MF (fixed)")},
+		{PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, 4, N_("MF (selection)")},
+
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_AFAssist,PTP_VENDOR_NIKON),   	/* D163 */
+
+		{PTP_DPC_NIKON_PADVPMode, PTP_VENDOR_NIKON, 0,  "1/125"},		/* D164 */
 		{PTP_DPC_NIKON_PADVPMode, PTP_VENDOR_NIKON, 1,  "1/60"},
 		{PTP_DPC_NIKON_PADVPMode, PTP_VENDOR_NIKON, 2,  "1/30"},
 		{PTP_DPC_NIKON_PADVPMode, PTP_VENDOR_NIKON, 3,  "1/15"},
@@ -4335,8 +3995,72 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_NIKON_PADVPMode, PTP_VENDOR_NIKON, 11, "15"},
 		{PTP_DPC_NIKON_PADVPMode, PTP_VENDOR_NIKON, 12, "30"},
 
-		{PTP_DPC_NIKON_EVStep, PTP_VENDOR_NIKON, 0, "1/3"},
-		{PTP_DPC_NIKON_EVStep, PTP_VENDOR_NIKON, 1, "1/2"},
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_ImageReview,PTP_VENDOR_NIKON),	/* D165 */
+
+		{PTP_DPC_NIKON_AFAreaIllumination, PTP_VENDOR_NIKON, 0, N_("Auto")},	/* D166 */
+		{PTP_DPC_NIKON_AFAreaIllumination, PTP_VENDOR_NIKON, 1, N_("Off")},
+		{PTP_DPC_NIKON_AFAreaIllumination, PTP_VENDOR_NIKON, 2, N_("On")},
+
+		{PTP_DPC_NIKON_FlashMode, PTP_VENDOR_NIKON, 0, "iTTL"},			/* D167 */
+		{PTP_DPC_NIKON_FlashMode, PTP_VENDOR_NIKON, 1, N_("Manual")},
+		{PTP_DPC_NIKON_FlashMode, PTP_VENDOR_NIKON, 2, N_("Commander")},
+
+		{PTP_DPC_NIKON_FlashCommanderMode, PTP_VENDOR_NIKON, 0, N_("TTL")},	/* D168 */
+		{PTP_DPC_NIKON_FlashCommanderMode, PTP_VENDOR_NIKON, 1, N_("Auto Aperture")},
+		{PTP_DPC_NIKON_FlashCommanderMode, PTP_VENDOR_NIKON, 2, N_("Full Manual")},
+
+		PTP_VENDOR_VAL_RBOOL(PTP_DPC_NIKON_FlashSign,PTP_VENDOR_NIKON),		/* D169 */
+
+		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 0, N_("1 min")},	/* D16B */
+		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 1, N_("5 mins")},
+		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 2, N_("10 mins")},
+		{PTP_DPC_NIKON_RemoteTimeout, PTP_VENDOR_NIKON, 3, N_("15 mins")},
+
+		PTP_VENDOR_VAL_BOOL(PTP_DPC_NIKON_GridDisplay,PTP_VENDOR_NIKON),	/* D16C */
+
+		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 0, N_("Full")},	/* D16D */
+		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 1, "1/2"},
+		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 2, "1/4"},
+		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 3, "1/8"},
+		{PTP_DPC_NIKON_FlashModeManualPower, PTP_VENDOR_NIKON, 4, "1/16"},
+
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 0, N_("Full")},/* D16E */
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 1, "1/2"},
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 2, "1/4"},
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 3, "1/8"},
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 4, "1/16"},
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 5, "1/32"},
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 6, "1/64"},
+		{PTP_DPC_NIKON_FlashModeCommanderPower, PTP_VENDOR_NIKON, 7, "1/128"},
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_CSMMenu,PTP_VENDOR_NIKON),		/* D180 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_WarningDisplay,PTP_VENDOR_NIKON),	/* D181 */
+
+		{PTP_DPC_NIKON_BatteryCellKind, PTP_VENDOR_NIKON, 0, "LR6 (AA alkaline)"},/* D182 */
+		{PTP_DPC_NIKON_BatteryCellKind, PTP_VENDOR_NIKON, 1, "HR6 (AA Ni-Mh)"},
+		{PTP_DPC_NIKON_BatteryCellKind, PTP_VENDOR_NIKON, 2, "FR6 (AA Lithium)"},
+		{PTP_DPC_NIKON_BatteryCellKind, PTP_VENDOR_NIKON, 3, "ZR6 (AA Ni-Mn)"},
+
+		{PTP_DPC_NIKON_ISOAutoHiLimit, PTP_VENDOR_NIKON, 0, "400"},		/* D183 */
+		{PTP_DPC_NIKON_ISOAutoHiLimit, PTP_VENDOR_NIKON, 1, "800"},
+		{PTP_DPC_NIKON_ISOAutoHiLimit, PTP_VENDOR_NIKON, 2, "1600"},
+		{PTP_DPC_NIKON_ISOAutoHiLimit, PTP_VENDOR_NIKON, 3, "3200"},
+		{PTP_DPC_NIKON_ISOAutoHiLimit, PTP_VENDOR_NIKON, 4, "Hi 1"},
+
+		{PTP_DPC_NIKON_InfoDispSetting, PTP_VENDOR_NIKON, 0, N_("Auto")},	/* 0xD187 */
+		{PTP_DPC_NIKON_InfoDispSetting, PTP_VENDOR_NIKON, 1, N_("Dark on light")},
+		{PTP_DPC_NIKON_InfoDispSetting, PTP_VENDOR_NIKON, 2, N_("Light on dark")},
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_IndicatorDisp,PTP_VENDOR_NIKON),	/* D18D */
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_LiveViewStatus,PTP_VENDOR_NIKON),	/* D1A2 */
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ExposureDisplayStatus,PTP_VENDOR_NIKON),/* D1B0 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_InfoDispErrStatus,PTP_VENDOR_NIKON),	/* D1B2 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ExposureIndicateLightup,PTP_VENDOR_NIKON),/* D1B3 */
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FlashOpen,PTP_VENDOR_NIKON),		/* D1C0 */
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FlashCharged,PTP_VENDOR_NIKON),		/* D1C1 */
 
 		/* Canon stuff */
 		PTP_VENDOR_VAL_BOOL(PTP_DPC_CANON_AssistLight,PTP_VENDOR_CANON),
@@ -4571,7 +4295,8 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 			return snprintf(out, length, "%s", _(ptp_value_list[i].value));
 		}
 	}
-	if (params->deviceinfo.VendorExtensionID==PTP_VENDOR_MICROSOFT) {
+	if (params->deviceinfo.VendorExtensionID==PTP_VENDOR_MICROSOFT
+	    || params->deviceinfo.VendorExtensionID==PTP_VENDOR_MTP) {
 		switch (dpc) {
 		case PTP_DPC_MTP_SynchronizationPartner:
 		case PTP_DPC_MTP_DeviceFriendlyName:
@@ -4652,6 +4377,7 @@ struct {
 	{PTP_OFC_MTP_AAC,"AAC"},
 	{PTP_OFC_MTP_AudibleCodec,N_("Audible.com Codec")},
 	{PTP_OFC_MTP_FLAC,"FLAC"},
+	{PTP_OFC_MTP_SamsungPlaylist,N_("Samsung Playlist")},
 	{PTP_OFC_MTP_UndefinedVideo,N_("Undefined Video")},
 	{PTP_OFC_MTP_WMV,"WMV"},
 	{PTP_OFC_MTP_MP4,"MP4"},
@@ -4704,7 +4430,7 @@ ptp_render_ofc(PTPParams* params, uint16_t ofc, int spaceleft, char *txt)
 	if (!(ofc & 0x8000)) {
 		for (i=0;i<sizeof(ptp_ofc_trans)/sizeof(ptp_ofc_trans[0]);i++)
 			if (ofc == ptp_ofc_trans[i].ofc)
-				return snprintf(txt, spaceleft,_(ptp_ofc_trans[i].format));
+				return snprintf(txt, spaceleft, "%s", _(ptp_ofc_trans[i].format));
 	} else {
 		switch (params->deviceinfo.VendorExtensionID) {
 		case PTP_VENDOR_EASTMAN_KODAK:
@@ -4724,9 +4450,10 @@ ptp_render_ofc(PTPParams* params, uint16_t ofc, int spaceleft, char *txt)
 			}
 			break;
 		case PTP_VENDOR_MICROSOFT:
+		case PTP_VENDOR_MTP:		  
 			for (i=0;i<sizeof(ptp_ofc_mtp_trans)/sizeof(ptp_ofc_mtp_trans[0]);i++)
 				if (ofc == ptp_ofc_mtp_trans[i].ofc)
-					return snprintf(txt, spaceleft,_(ptp_ofc_mtp_trans[i].format));
+					return snprintf(txt, spaceleft, "%s", _(ptp_ofc_mtp_trans[i].format));
 			break;
 		default:break;
 		}
@@ -4837,13 +4564,14 @@ ptp_render_opcode(PTPParams* params, uint16_t opcode, int spaceleft, char *txt)
 	if (!(opcode & 0x8000)) {
 		for (i=0;i<sizeof(ptp_opcode_trans)/sizeof(ptp_opcode_trans[0]);i++)
 			if (opcode == ptp_opcode_trans[i].opcode)
-				return snprintf(txt, spaceleft,_(ptp_opcode_trans[i].name));
+				return snprintf(txt, spaceleft, "%s", _(ptp_opcode_trans[i].name));
 	} else {
 		switch (params->deviceinfo.VendorExtensionID) {
 		case PTP_VENDOR_MICROSOFT:
+		case PTP_VENDOR_MTP:
 			for (i=0;i<sizeof(ptp_opcode_mtp_trans)/sizeof(ptp_opcode_mtp_trans[0]);i++)
 				if (opcode == ptp_opcode_mtp_trans[i].opcode)
-					return snprintf(txt, spaceleft,_(ptp_opcode_mtp_trans[i].name));
+					return snprintf(txt, spaceleft, "%s", _(ptp_opcode_mtp_trans[i].name));
 			break;
 		default:break;
 		}
@@ -5031,7 +4759,7 @@ ptp_render_mtp_propname(uint16_t propid, int spaceleft, char *txt) {
 	int i;
 	for (i=0;i<sizeof(ptp_opc_trans)/sizeof(ptp_opc_trans[0]);i++)
 		if (propid == ptp_opc_trans[i].id)
-			return snprintf(txt, spaceleft,ptp_opc_trans[i].name);
+			return snprintf(txt, spaceleft, "%s", ptp_opc_trans[i].name);
 	return snprintf (txt, spaceleft,"unknown(%04x)", propid);
 }
 

@@ -52,7 +52,6 @@
 #  define N_(String) (String)
 #endif
 
-typedef enum _SierraPacket SierraPacket;
 enum _SierraPacket {
 	NUL				= 0x00,
 	SIERRA_PACKET_DATA		= 0x02,
@@ -66,6 +65,7 @@ enum _SierraPacket {
 	SIERRA_PACKET_SESSION_ERROR	= 0xfc,
 	SIERRA_PACKET_SESSION_END	= 0xff
 };
+typedef enum _SierraPacket SierraPacket;
 
 /* Size of requested packet */
 #define SIERRA_PACKET_SIZE		32774
@@ -298,6 +298,8 @@ int sierra_check_battery_capacity (Camera *camera, GPContext *context)
 				     _("Cannot retrieve the battery capacity"));
 		return ret;
 	}
+	if (!capacity) /* 0% is unlikely */
+		return GP_OK;
 
 	if (capacity < 5) {
 		gp_context_error (context,
@@ -1231,7 +1233,7 @@ int sierra_get_string_register (Camera *camera, int reg, int fnumber,
 
 	if (file && total > min_progress_bytes) {
 		CHECK (gp_file_get_name(file, &file_name));
-		id = gp_context_progress_start (context, total, "%s", file_name);
+		id = gp_context_progress_start (context, total, _("Downloading data..."));
 	}
 
 	/* Read all the data packets */
@@ -1339,7 +1341,7 @@ sierra_capture (Camera *camera, CameraCaptureType type,
 {
 	int n, len = 0, r;
 	char filename[128];
-	const char *folder;
+	char *folder;
 	int timeout;
 
 	GP_DEBUG ("* sierra_capture");

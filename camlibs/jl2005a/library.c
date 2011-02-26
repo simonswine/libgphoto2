@@ -59,7 +59,7 @@ struct {
         {"American Idol Keychain Camera", GP_DRIVER_STATUS_TESTING, 
     							    0x0979, 0x0224},
         {"NogaNet TDC-15", GP_DRIVER_STATUS_TESTING, 0x0979, 0x0224},
-        {"Cobra DC-125", GP_DRIVER_STATUS_EXPERIMENTAL, 0x0979, 0x0224},
+	{"Cobra DC125", GP_DRIVER_STATUS_EXPERIMENTAL, 0x0979, 0x0224},
 	{NULL,0,0,0}
 };
 
@@ -143,7 +143,7 @@ file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
         Camera *camera = data; 
 	int n;
 	n = camera->pl->nb_entries;
-    	gp_list_populate (list, "jl_%02i.ppm", n);
+    	gp_list_populate (list, "jl_%03i.ppm", n);
     	return GP_OK;
 }
 
@@ -246,14 +246,14 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	}
 	sprintf ((char *)ppm,
 			"P6\n"
-			"# CREATOR: gphoto2, SQ905C library\n"
+			"# CREATOR: gphoto2, JL2005A library\n"
 			"%d %d\n"
 			"255\n", w, h);
 	size = strlen ((char *)ppm);
 	ptr = ppm + size;
 	size = size + (w * h * 3);
 	GP_DEBUG ("size = %i\n", size);				
-	gp_bayer_decode (p_data, w , h, ptr, BAYER_TILE_BGGR);
+	gp_ahd_decode (p_data, w , h, ptr, BAYER_TILE_BGGR);
 
 	free(p_data);
 	gp_gamma_fill_table (gtable, .65); 

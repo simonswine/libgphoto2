@@ -71,6 +71,16 @@ typedef struct _GPPortOperations {
                                 int value, int index, char *bytes, int size);
         int (*msg_class_read) (GPPort * dev, int request, 
                                 int value, int index, char *bytes, int size);
+
+	/* For USB disk direct IO devices */
+	int (*seek) (GPPort * dev, int offset, int whence);
+
+	/* For USB Mass Storage raw SCSI ports */
+	int (*send_scsi_cmd) (GPPort *port, int to_dev,
+				char *cmd, int cmd_size,
+				char *sense, int sense_size,
+				char *data, int data_size);
+
 } GPPortOperations;
 
 typedef GPPortType (* GPPortLibraryType) (void);

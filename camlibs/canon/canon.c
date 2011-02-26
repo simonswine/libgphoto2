@@ -1782,9 +1782,12 @@ canon_int_get_release_params (Camera *camera, GPContext *context)
         GP_DEBUG ("canon_int_get_release_params: exposurebias = 0x%02x", 
                   camera->pl->release_params[EXPOSUREBIAS_INDEX]);
 
+        GP_DEBUG ("canon_int_get_release_params: shooting mode = 0x%02x",
+                  camera->pl->release_params[SHOOTING_MODE_INDEX]);
+
 
         camera->pl->secondary_image = 0;
-	/* Based on the resolution settings in the release params, 
+	/* Based on the image format settings in the release params,
 	   determine whether we expect one or two images to be returned
 	   by the camera. 
            I am not sure if this will work correctly for non-EOS 5D 
@@ -1796,7 +1799,7 @@ canon_int_get_release_params (Camera *camera, GPContext *context)
            only save the primary image to disk.
            Thanks - <paul@booyaka.com>
         */
-	if (camera->pl->release_params[RESOLUTION_2_INDEX] & 0xf0) 
+	if (camera->pl->release_params[IMAGE_FORMAT_2_INDEX] & 0xf0)
 		camera->pl->secondary_image = 1;
 
         return GP_OK;
@@ -1992,17 +1995,16 @@ canon_int_set_flash (Camera *camera, canonFlashMode flash_mode,
 /**
  * canon_int_set_zoom
  * @camera: camera to work with
- * @zoom_level: zoom level to set - use one of the defines such as 
- *                 ZOOM_0 for no zoom
+ * @zoom_level: zoom level to set - A40: 1..10; G1: 0..40 (pMaxOpticalZoomPos*4)
  * @context: context for error reporting
  *
- * Sets the camera's zoom. Only tested for A40 via USB.
+ * Sets the camera's zoom. Only tested for A40 and G1 via USB.
  *
  * Returns: gphoto2 error code
  *
  */
 int
-canon_int_set_zoom (Camera *camera, canonZoomLevel zoom_level,
+canon_int_set_zoom (Camera *camera, unsigned char zoom_level,
                     GPContext *context)
 {
         int status;
@@ -2022,27 +2024,27 @@ canon_int_set_zoom (Camera *camera, canonZoomLevel zoom_level,
 
 
 /**
- * canon_int_set_resolution
+ * canon_int_set_image_format
  * @camera: camera to work with
- * @res_byte1: byte 1 of the 3-byte resolution code
- * @res_byte2: byte 2 of the 3-byte resolution code
- * @res_byte3: byte 3 of the 3-byte resolution code
- *                
+ * @res_byte1: byte 1 of the 3-byte image format code
+ * @res_byte2: byte 2 of the 3-byte image format code
+ * @res_byte3: byte 3 of the 3-byte image format code
+ *
  * @context: context for error reporting
  *
- * Sets the camera's output image resolution.  Only tested for EOS 5D via USB.
+ * Sets the camera's output image format.  Only tested for EOS 5D via USB.
  *
  * Returns: gphoto2 error code
  *
  */
 int
-canon_int_set_resolution (Camera *camera, unsigned char res_byte1, 
+canon_int_set_image_format (Camera *camera, unsigned char res_byte1,
                           unsigned char res_byte2, unsigned char res_byte3,  
                           GPContext *context)
 {
         int status;
 
-        GP_DEBUG ("canon_int_set_resolution() called");
+        GP_DEBUG ("canon_int_set_image_format() called");
 
         /* Get the current camera settings */
         
@@ -2051,14 +2053,14 @@ canon_int_set_resolution (Camera *camera, unsigned char res_byte1,
         if (status < 0)
                 return status;
         
-        /* Modify the resolution */
+        /* Modify the image format */
 
-        camera->pl->release_params[RESOLUTION_1_INDEX] = res_byte1;
-        camera->pl->release_params[RESOLUTION_2_INDEX] = res_byte2;
-        camera->pl->release_params[RESOLUTION_3_INDEX] = res_byte3;
+        camera->pl->release_params[IMAGE_FORMAT_1_INDEX] = res_byte1;
+        camera->pl->release_params[IMAGE_FORMAT_2_INDEX] = res_byte2;
+        camera->pl->release_params[IMAGE_FORMAT_3_INDEX] = res_byte3;
 
         
-        /* Upload the resolution to the camera */
+		/* Upload the image_format to the camera */
         status = canon_int_set_release_params (camera, context);
         
         if (status < 0)
@@ -2078,21 +2080,21 @@ canon_int_set_resolution (Camera *camera, unsigned char res_byte1,
         if (status < 0)
                 return status;
                 
-        if (camera->pl->release_params[RESOLUTION_1_INDEX] != res_byte1 ||
-            camera->pl->release_params[RESOLUTION_2_INDEX] != res_byte2 || 
-            camera->pl->release_params[RESOLUTION_3_INDEX] != res_byte3) {
-                GP_DEBUG ("canon_int_set_resolution: Could not set resolution "
+        if (camera->pl->release_params[IMAGE_FORMAT_1_INDEX] != res_byte1 ||
+            camera->pl->release_params[IMAGE_FORMAT_2_INDEX] != res_byte2 ||
+            camera->pl->release_params[IMAGE_FORMAT_3_INDEX] != res_byte3) {
+            GP_DEBUG ("canon_int_set_image_format: Could not set image format "
                           "to 0x%02x 0x%02x 0x%02x (camera returned 0x%02x 0x%02x 0x%02x)", 
                           res_byte1, res_byte2, res_byte3, 
-                          camera->pl->release_params[RESOLUTION_1_INDEX],
-                          camera->pl->release_params[RESOLUTION_2_INDEX],
-                          camera->pl->release_params[RESOLUTION_3_INDEX]);
-                return GP_ERROR_CORRUPTED_DATA;
+                          camera->pl->release_params[IMAGE_FORMAT_1_INDEX],
+                          camera->pl->release_params[IMAGE_FORMAT_2_INDEX],
+                          camera->pl->release_params[IMAGE_FORMAT_3_INDEX]);
+            return GP_ERROR_CORRUPTED_DATA;
         } else {
-                GP_DEBUG ("canon_int_set_resolution: resolution change verified");
+            GP_DEBUG ("canon_int_set_image_format: image_format change verified");
         }
         
-        GP_DEBUG ("canon_int_set_resolution() finished successfully");
+        GP_DEBUG ("canon_int_set_image_format() finished successfully");
 
         return GP_OK;        
 }
@@ -2154,6 +2156,53 @@ canon_int_set_iso (Camera *camera, canonIsoState iso,
 
         return GP_OK;        
 }
+
+
+/**
+ * canon_int_set_shooting_mode
+ * @camera: camera to work with
+ * @shooting_mode: use the unsigned char 8bit value in the array
+ * @context: context for error reporting
+ *
+ * Sets the camera's shooting mode.
+ *
+ * Returns: gphoto2 error code
+ *
+ */
+int
+canon_int_set_shooting_mode (Camera *camera, unsigned char shooting_mode,
+                             GPContext *context)
+{
+        int status;
+
+        GP_DEBUG ("canon_int_set_shooting_mode() called for shooting_mode 0x%02x", shooting_mode);
+        /* Get the current camera settings */
+        status = canon_int_get_release_params (camera, context);
+        if (status < 0)
+                return status;
+        /* Modify the shooting mode */
+        camera->pl->release_params[SHOOTING_MODE_INDEX] = shooting_mode;
+        /* Upload the shooting mode to the camera */
+        status = canon_int_set_release_params (camera, context);
+        if (status < 0)
+                return status;
+        /* Make sure the camera changed it! (not all are able to) */
+        status = canon_int_get_release_params (camera, context);
+        if (status < 0)
+                return status;
+        if (camera->pl->release_params[SHOOTING_MODE_INDEX] != shooting_mode) {
+                GP_DEBUG ("canon_int_set_shooting_mode: Could not set shooting mode "
+                          "to 0x%02x (camera returned 0x%02x)",
+                          shooting_mode,
+                          camera->pl->release_params[SHOOTING_MODE_INDEX]);
+                return GP_ERROR_CORRUPTED_DATA;
+        } else {
+                GP_DEBUG ("canon_int_set_shooting_mode: shooting_mode change verified");
+        }
+        GP_DEBUG ("canon_int_set_shooting_mode() finished successfully");
+        return GP_OK;
+}
+
 
 /**
  * canon_int_set_aperture
@@ -2339,7 +2388,7 @@ static int
 canon_int_set_release_params (Camera *camera, GPContext *context)
 {
         unsigned char payload[0x4c];
-        unsigned char *msg, *trash_handle;
+        unsigned char *msg = NULL, *trash_handle;
         unsigned int len, payloadlen, trash_int;
         int status;
 
@@ -2762,16 +2811,16 @@ canon_int_get_disk_name_info (Camera *camera, const char *name, int *capacity, i
                                 /* These newer cameras report sizes in
                                  * K instead of bytes, so max capacity
                                  * is 4TB rather than 4GB. */
-                                cap = le32atoh (msg + 4) * 1024;
-                                ava = le32atoh (msg + 8) * 1024;
+                                cap = le32atoh (msg + 4);
+                                ava = le32atoh (msg + 8);
                         }
                         else {
                                 msg = canon_usb_dialogue (camera, CANON_USB_FUNCTION_DISK_INFO, &len,
                                                           (unsigned char *)name, strlen (name) + 1);
 				if ( msg == NULL )
 					return GP_ERROR_OS_FAILURE;
-                                cap = le32atoh (msg + 4);
-                                ava = le32atoh (msg + 8);
+                                cap = le32atoh (msg + 4) / 1024;
+                                ava = le32atoh (msg + 8) / 1024;
                         }
                         break;
                 case GP_PORT_SERIAL:
@@ -2801,8 +2850,8 @@ canon_int_get_disk_name_info (Camera *camera, const char *name, int *capacity, i
                         *available = ava;
                         GP_DEBUG ("canon_int_get_disk_name_info: "
                                 "capacity %i kb, available %i kb",
-                                cap > 0 ? (cap / 1024) : 0,
-                                ava > 0 ? (ava / 1024) : 0);
+                                cap > 0 ? cap : 0,
+                                ava > 0 ? ava : 0);
                         break;
                 GP_PORT_DEFAULT
         }

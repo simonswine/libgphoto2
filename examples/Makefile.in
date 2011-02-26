@@ -37,7 +37,7 @@ check_PROGRAMS =
 TESTS =
 noinst_PROGRAMS = sample-autodetect$(EXEEXT) \
 	sample-multi-detect$(EXEEXT) lunkwill-canon-capture$(EXEEXT) \
-	sample-owner$(EXEEXT)
+	sample-owner$(EXEEXT) sample-preview$(EXEEXT)
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/installcheck.mk
 subdir = examples
@@ -103,6 +103,15 @@ sample_owner_DEPENDENCIES = $(top_builddir)/libgphoto2/libgphoto2.la \
 	$(top_builddir)/libgphoto2_port/libgphoto2_port/libgphoto2_port.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
+am_sample_preview_OBJECTS = preview.$(OBJEXT) context.$(OBJEXT) \
+	config.$(OBJEXT)
+sample_preview_OBJECTS = $(am_sample_preview_OBJECTS)
+sample_preview_LDADD = $(LDADD)
+sample_preview_DEPENDENCIES =  \
+	$(top_builddir)/libgphoto2/libgphoto2.la \
+	$(top_builddir)/libgphoto2_port/libgphoto2_port/libgphoto2_port.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/auto-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -117,10 +126,10 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(lunkwill_canon_capture_SOURCES) \
 	$(sample_autodetect_SOURCES) $(sample_multi_detect_SOURCES) \
-	$(sample_owner_SOURCES)
+	$(sample_owner_SOURCES) $(sample_preview_SOURCES)
 DIST_SOURCES = $(lunkwill_canon_capture_SOURCES) \
 	$(sample_autodetect_SOURCES) $(sample_multi_detect_SOURCES) \
-	$(sample_owner_SOURCES)
+	$(sample_owner_SOURCES) $(sample_preview_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -185,6 +194,7 @@ LDFLAGS = @LDFLAGS@
 LIBEXIF_CFLAGS = @LIBEXIF_CFLAGS@
 LIBEXIF_CONFIG_PROG = @LIBEXIF_CONFIG_PROG@
 LIBEXIF_LIBS = @LIBEXIF_LIBS@
+LIBGD = @LIBGD@
 LIBGPHOTO2_AGE = @LIBGPHOTO2_AGE@
 LIBGPHOTO2_CURRENT = @LIBGPHOTO2_CURRENT@
 LIBGPHOTO2_CURRENT_MIN = @LIBGPHOTO2_CURRENT_MIN@
@@ -321,6 +331,7 @@ sample_autodetect_SOURCES = sample-autodetect.c samples.h context.c config.c
 sample_owner_SOURCES = sample-owner.c samples.h context.c config.c
 sample_multi_detect_SOURCES = sample-multi-detect.c samples.h autodetect.c context.c config.c
 lunkwill_canon_capture_SOURCES = lunkwill-canon-capture.c context.c samples.h config.c
+sample_preview_SOURCES = preview.c samples.h context.c config.c
 LDADD = $(top_builddir)/libgphoto2/libgphoto2.la \
 	$(top_builddir)/libgphoto2_port/libgphoto2_port/libgphoto2_port.la \
 	$(LIBLTDL) \
@@ -386,6 +397,9 @@ sample-multi-detect$(EXEEXT): $(sample_multi_detect_OBJECTS) $(sample_multi_dete
 sample-owner$(EXEEXT): $(sample_owner_OBJECTS) $(sample_owner_DEPENDENCIES) 
 	@rm -f sample-owner$(EXEEXT)
 	$(LINK) $(sample_owner_OBJECTS) $(sample_owner_LDADD) $(LIBS)
+sample-preview$(EXEEXT): $(sample_preview_OBJECTS) $(sample_preview_DEPENDENCIES) 
+	@rm -f sample-preview$(EXEEXT)
+	$(LINK) $(sample_preview_OBJECTS) $(sample_preview_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -397,6 +411,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/context.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lunkwill-canon-capture.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/preview.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample-autodetect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample-multi-detect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample-owner.Po@am__quote@

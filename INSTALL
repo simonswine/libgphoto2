@@ -1,237 +1,243 @@
-Installation Instructions
-*************************
+########################################################################
+# This file describes how to install libgphoto2.
+########################################################################
 
-Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
-2006, 2007 Free Software Foundation, Inc.
+Follow these steps to build and install libgphoto2 from the source
+code. You don't have to run most of these steps as root, except when
+explicitly required. In fact, you really shouldn't.
 
-This file is free documentation; the Free Software Foundation gives
-unlimited permission to copy, distribute and modify it.
+In order to get libgphoto2 running after installation, you will
+probably want to read The gPhoto2 Manual. It is available from the
+homepage:
 
-Basic Installation
-==================
+    http://gphoto.org/
+    http://gphoto.com/
+    http://gphoto.sourceforge.net/
 
-Briefly, the shell commands `./configure; make; make install' should
-configure, build, and install this package.  The following
-more-detailed instructions are generic; see the `README' file for
-instructions specific to this package.
+At lease one of these should work at any time.
 
-   The `configure' shell script attempts to guess correct values for
-various system-dependent variables used during compilation.  It uses
-those values to create a `Makefile' in each directory of the package.
-It may also create one or more `.h' files containing system-dependent
-definitions.  Finally, it creates a shell script `config.status' that
-you can run in the future to recreate the current configuration, and a
-file `config.log' containing compiler output (useful mainly for
-debugging `configure').
 
-   It can also use an optional file (typically called `config.cache'
-and enabled with `--cache-file=config.cache' or simply `-C') that saves
-the results of its tests to speed up reconfiguring.  Caching is
-disabled by default to prevent problems with accidental use of stale
-cache files.
+===============================
+Step 0: Preparing configuration
+===============================
 
-   If you need to do unusual things to compile the package, please try
-to figure out how `configure' could check whether to do them, and mail
-diffs or instructions to the address given in the `README' so they can
-be considered for the next release.  If you are using the cache, and at
-some point `config.cache' contains results you don't want to keep, you
-may remove or edit it.
+If you have obtained your copy of gphoto2 packaged from a .tar.gz or
+.tar.bz2 tarball, SKIP THIS STEP. 
 
-   The file `configure.ac' (or `configure.in') is used to create
-`configure' by a program called `autoconf'.  You need `configure.ac' if
-you want to change it or regenerate `configure' using a newer version
-of `autoconf'.
+If you have obtained libgphoto2 from SVN, then you will have to
+prepare for step 1 (the configuration of the sources) by running
+the autoreconf program.
 
-The simplest way to compile this package is:
+For autoreconf to succeed, you require the following tools:
 
-  1. `cd' to the directory containing the package's source code and type
-     `./configure' to configure the package for your system.
+	automake
+	autoconf
+	gettext  (possibly from -dev or -devel package)
+	libtool  (possibly from -dev or -devel package)
 
-     Running `configure' might take a while.  While running, it prints
-     some messages telling which features it is checking for.
+in versions compatible with each other and with libgphoto2. Most
+combinations on current GNU/Linux systems work, whereas BSD systems
+tend to have some compatibility problems.
 
-  2. Type `make' to compile the package.
+We recommend you call autoreconf like this:
 
-  3. Optionally, type `make check' to run any self-tests that come with
-     the package.
+    $ autoreconf --install --symlink
 
-  4. Type `make install' to install the programs and any data files and
-     documentation.
 
-  5. You can remove the program binaries and object files from the
-     source code directory by typing `make clean'.  To also remove the
-     files that `configure' created (so you can compile the package for
-     a different kind of computer), type `make distclean'.  There is
-     also a `make maintainer-clean' target, but that is intended mainly
-     for the package's developers.  If you use it, you may have to get
-     all sorts of other programs in order to regenerate files that came
-     with the distribution.
+=============================
+Step 1: Configure the sources
+=============================
 
-  6. Often, you can also type `make uninstall' to remove the installed
-     files again.
+Now run either one of
 
-Compilers and Options
-=====================
 
-Some systems require unusual options for compilation or linking that the
-`configure' script does not know about.  Run `./configure --help' for
-details on some of the pertinent environment variables.
+  ./configure --prefix=/usr/local
 
-   You can give `configure' initial values for configuration parameters
-by setting variables in the command line or in the environment.  Here
-is an example:
+     to prepare a tarball source tree for installation in (e.g.) /usr/local
 
-     ./configure CC=c99 CFLAGS=-g LIBS=-lposix
 
-   *Note Defining Variables::, for more details.
+  ./configure --prefix=/home/me/root --with-drivers=ptp2,canon
 
-Compiling For Multiple Architectures
-====================================
+       to prepare a tarball source tree for installation in
+       /home/me/root and for compilation only of the drivers 
+       for PTP and Canon cameras.
 
-You can compile the package for more than one kind of computer at the
-same time, by placing the object files for each architecture in their
-own directory.  To do this, you can use GNU `make'.  `cd' to the
-directory where you want the object files and executables to go and run
-the `configure' script.  `configure' automatically checks for the
-source code in the directory that `configure' is in and in `..'.
+or run ./configure --help in order to find out about more
+configuration parameters.
 
-   With a non-GNU `make', it is safer to compile the package for one
-architecture at a time in the source code directory.  After you have
-installed the package for one architecture, use `make distclean' before
-reconfiguring for another architecture.
+See Appendix A at the end of this file for some hints on configuring
+for certain platforms.
 
-Installation Names
-==================
+The following software components are optional, and will improve the
+libraries' and/or command-line client's functionality if present:
 
-By default, `make install' installs the package's commands under
-`/usr/local/bin', include files under `/usr/local/include', etc.  You
-can specify an installation prefix other than `/usr/local' by giving
-`configure' the option `--prefix=PREFIX'.
+	libusb (ver. >= 0.1.6a) -- Universal Serial Bus camera support
+	    <URL:http://www.sourceforge.net/projects/libusb/>
 
-   You can specify separate installation prefixes for
-architecture-specific files and architecture-independent files.  If you
-pass the option `--exec-prefix=PREFIX' to `configure', the package uses
-PREFIX as the prefix for installing programs and libraries.
-Documentation and other data files still use the regular prefix.
+	gettext (ver. >= 0.10.40) -- internationalization using shared library
 
-   In addition, if you use an unusual directory layout you can give
-options like `--bindir=DIR' to specify different values for particular
-kinds of files.  Run `configure --help' for a list of the directories
-you can set and what kinds of files go in them.
+	gtk-doc -- documentation built in doc/api/
 
-   If the package supports it, you can cause programs to be installed
-with an extra prefix or suffix on their names by giving `configure' the
-option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
+	libexif - EXIF tag support
+	    <URL:http://www.sourceforge.net/projects/libexif>
 
-Optional Features
-=================
+Please check the output of the configure script for whether all
+desired libraries have been detected correctly. E.g., you might
+have to add the path where libusb-config resides to your PATH
+before running configure.
 
-Some packages pay attention to `--enable-FEATURE' options to
-`configure', where FEATURE indicates an optional part of the package.
-They may also pay attention to `--with-PACKAGE' options, where PACKAGE
-is something like `gnu-as' or `x' (for the X Window System).  The
-`README' should mention any `--enable-' and `--with-' options that the
-package recognizes.
 
-   For packages that use the X Window System, `configure' can usually
-find the X include and library files automatically, but if it doesn't,
-you can use the `configure' options `--x-includes=DIR' and
-`--x-libraries=DIR' to specify their locations.
+===========================
+Step 2: Compile the program
+===========================
 
-Specifying the System Type
-==========================
+You will probably be best off running GNU make. On GNU/Linux linux
+systems, you can run "make", on other systems (such as *BSD), you
+will have to run "gmake" or something similar.
 
-There may be some features `configure' cannot figure out automatically,
-but needs to determine by the type of machine the package will run on.
-Usually, assuming the package is built to be run on the _same_
-architectures, `configure' can figure that out, but if it prints a
-message saying it cannot guess the machine type, give it the
-`--build=TYPE' option.  TYPE can either be a short name for the system
-type, such as `sun4', or a canonical name which has the form:
+The classic way to compile the program is just to run
 
-     CPU-COMPANY-SYSTEM
+    make
+ or
+    make -jN    (if you have N CPU cores)
 
-where SYSTEM can have one of these forms:
+and wait until the source is built.
 
-     OS KERNEL-OS
 
-   See the file `config.sub' for the possible values of each field.  If
-`config.sub' isn't included in this package, then this package doesn't
-need to know the machine type.
+==============================
+Step 3: Installing the program
+==============================
 
-   If you are _building_ compiler tools for cross-compiling, you should
-use the option `--target=TYPE' to select the type of system they will
-produce code for.
+To install the stuff you just compiled by running "make", you can just
+run 
 
-   If you want to _use_ a cross compiler, that generates code for a
-platform different from the build platform, you should specify the
-"host" platform (i.e., that on which the generated programs will
-eventually be run) with `--host=TYPE'.
+   make install
 
-Sharing Defaults
-================
+now. If installing to a directory which is not writable by your
+current user, you will have to run it as root.
 
-If you want to set default values for `configure' scripts to share, you
-can create a site shell script called `config.site' that gives default
-values for variables like `CC', `cache_file', and `prefix'.
-`configure' looks for `PREFIX/share/config.site' if it exists, then
-`PREFIX/etc/config.site' if it exists.  Or, you can set the
-`CONFIG_SITE' environment variable to the location of the site script.
-A warning: not all `configure' scripts look for a site script.
+This installs the software and documentation into the proper
+directories on your system.
 
-Defining Variables
-==================
 
-Variables not defined in a site shell script can be set in the
-environment passed to `configure'.  However, some packages may run
-configure again during the build, and the customized values of these
-variables may be lost.  In order to avoid this problem, you should set
-them in the `configure' command line, using `VAR=value'.  For example:
+====================================================
+Step 4: Installation is finished - now what do I do?
+====================================================
 
-     ./configure CC=/usr/local2/bin/gcc
+Note that libgphoto2 is not designed to be run by a setuid/setgid
+program. Running ANY libgphoto2 frontend as root or setuid root or in
+a similar fashion will open up a SECURITY HOLE in your system!
 
-causes the specified `gcc' to be used as the C compiler (unless it is
-overridden in the site shell script).
+If you run into problems, please read the FAQ (at the website) first.
 
-Unfortunately, this technique does not work for `CONFIG_SHELL' due to
-an Autoconf bug.  Until the bug is fixed you can use this workaround:
+For more general information about how to configure libgphoto2, read
+The gPhoto2 Manual (at the website).
 
-     CONFIG_SHELL=/bin/bash /bin/bash ./configure CONFIG_SHELL=/bin/bash
+If you have permission problems when accessing your camera, read
+the chapter on Permission Setup -- you will probably want to create a
+new user group for the users that are to have camera access and change
+the permissions of the serial or USB device to match.
 
-`configure' Invocation
-======================
 
-`configure' recognizes the following options to control how it operates.
+===============================================
+Appendix A: Platform specific compilation hints
+===============================================
 
-`--help'
-`-h'
-     Print a summary of the options to `configure', and exit.
+libgphoto2 has been successfully used on many system.  Some systems
+where it has been reported to successfully compile are listed
+below. Not all, or even any, camera libraries have been tested on
+these systems, so there may be endian other other issues that prevent
+some camera libraries from working.
 
-`--version'
-`-V'
-     Print the version of Autoconf used to generate the `configure'
-     script, and exit.
+Please report any changes to this list to the gphoto developer mailing
+list.  As of this writing, USB support is only available on Linux and
+FreeBSD as those are the only systems on which libusb is available.
 
-`--cache-file=FILE'
-     Enable the cache: use and save the results of the tests in FILE,
-     traditionally `config.cache'.  FILE defaults to `/dev/null' to
-     disable caching.
+General Hints:
 
-`--config-cache'
-`-C'
-     Alias for `--cache-file=config.cache'.
+  - If you have build problems in the intl or po directories, try
+    re-running configure with the --disable-nls flag.
+  - If configure stops due to an error with 'test', try re-running
+    configure with the --without-usb flag.  
+  - If 'make' reports an error, try using GNU make (often called gmake
+    or gnumake) instead of the make that comes with your system.
+  - If one camera driver has compilation errors, re-run configure with
+    an appropriate --with-drivers= flag to prevent that driver from
+    being compiled.
 
-`--quiet'
-`--silent'
-`-q'
-     Do not print messages saying which checks are being made.  To
-     suppress all normal output, redirect it to `/dev/null' (any error
-     messages will still be shown).
+The list of working systems is a little outdated as of 2002-11-20, but
+we have still left it here as a reference.
 
-`--srcdir=DIR'
-     Look for the package's source code in directory DIR.  Usually
-     `configure' can determine that directory automatically.
+i386:
+  Debian GNU/Linux 2.2
+  Red Hat Linux 7.1
+  Red Hat Linux 4.2
+  TurboLinux 6.5
+  Slackware Linux 8.0
+  FreeBSD 4.3
+	Try the following to configure the optional libraries:
+	  env CFLAGS="-I/usr/local/include" CPPFLAGS="-I/usr/local/include" \
+	  LDFLAGS="-I/usr/local/lib" ./configure
+	(you may also need to append the flag --disable-nls).
+	Use GNU make to build (gmake).
 
-`configure' also accepts some other, not widely useful, options.  Run
-`configure --help' for more details.
+Alpha:
+  Debian GNU/Linux 2.2
+  OpenBSD 3.0
+  NetBSD 1.5.1
+  	Configure with this command:
+  	  ./configure --disable-nls
+	Use GNU make to build (gmake).
+  Tru64 5.1A
+  	Configure with this command:
+  	  env CFLAGS='-D__STDC_VERSION__=0' ./configure --disable-nls
+	Use GNU make to build (gnumake).
 
+PowerPC:
+  Debian GNU/Linux 2.2
+  Apple Darwin/OS X
+  	Need dlcompat from <URL:http://fink.sourceforge.net>
+  	Configure with this command:
+  	  env CFLAGS="-I/path/to/dlcompat -no-cpp-precomp" \
+  	  LDFLAGS="-L/path/to/dlcompat" ./configure --disable-nls
+	Need libtool ver. >= 1.4.2a
+
+Sparc:
+  Debian GNU/Linux 2.2
+  Solaris 8 (gcc)
+  	Configure with this command:
+  		./configure --without-usb
+	and use GNU make to build (gmake).
+
+StrongARM:
+  Intimate+Debian iPAQ GNU/Linux (native gcc)
+  Linux (cross-compiled gcc)
+
+Itanium:
+  Red Hat Linux 7.1 (gcc)
+
+
+The following systems have some problems compiling, but may be made to
+work with some effort:
+
+Itanium:
+  Red Hat Linux 7.1 (Intel ecc)
+  	There is a bug in ver. 5.0.1 of this compiler tickled by gphoto2 that
+  	prevents full compilation.
+  	Need better libtool support (newer than version 1.4.2).
+  Red Hat Linux 7.1 (sgicc)
+  	Need better libtool support (newer than version 1.4.2).
+
+Sparc:
+  Solaris 8 (cc)
+  	Sun's cc doesn't support #warning or # or ## macro features, which
+  	occur several times in the code.
+
+MIPS:
+  IRIX (cc)
+    MIPSpro C doesn't support #warning.
+
+
+Thanks go to SourceForge for their compile farm, and Compaq for their
+TestDrive program which allowed gphoto2 to be tested on many of these
+systems.

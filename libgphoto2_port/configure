@@ -883,9 +883,6 @@ ac_ct_F77
 LIBTOOL
 LTDLINCL
 LIBLTDL
-udevscriptdir
-HAVE_UDEV_TRUE
-HAVE_UDEV_FALSE
 URL_GPHOTO_HOME
 URL_GPHOTO_PROJECT
 URL_DIGICAM_LIST
@@ -917,6 +914,9 @@ LIBUSB_CONFIG_PROG
 REQUIREMENTS_FOR_LIBUSB
 HAVE_LIBUSB_TRUE
 HAVE_LIBUSB_FALSE
+udevscriptdir
+HAVE_UDEV_TRUE
+HAVE_UDEV_FALSE
 HAL_CFLAGS
 HAL_LIBS
 IOLIB_SUBDIRS
@@ -950,11 +950,11 @@ F77
 FFLAGS
 LTDLINCL
 LIBLTDL
-udevscriptdir
 PKG_CONFIG
 PKG_CONFIG_PATH
 LIBUSB_CFLAGS
 LIBUSB_LIBS
+udevscriptdir
 HAL_CFLAGS
 HAL_LIBS'
 
@@ -1575,7 +1575,7 @@ Optional Packages:
   --without-bonjour       whether to exclude Bonjour PTP/IP autodetection
   --with-libusb=PREFIX
                           where to find libusb, "no" or "auto"
-  --with-hal              wether to enable HAL disk autodetection
+  --with-hal              whether to enable HAL disk autodetection
                           default=yes
   --with-doc-dir=PATH     Where to install docs [default=autodetect]
   --with-html-dir=PATH    Where to install html docs [default=autodetect]
@@ -1596,15 +1596,15 @@ Some influential environment variables:
   FFLAGS      Fortran 77 compiler flags
   LTDLINCL    CFLAGS for compiling with libltdl
   LIBLTDL     LIBS to add for linking against libltdl
-  udevscriptdir
-              Directory where udev scripts like check-ptp-camere will be
-              installed
   PKG_CONFIG  pkg-config package config utility
   PKG_CONFIG_PATH
               directory where pkg-config looks for *.pc files
   LIBUSB_CFLAGS
               CFLAGS for compiling with libusb
   LIBUSB_LIBS LIBS to add for linking against libusb
+  udevscriptdir
+              Directory where udev scripts like check-ptp-camera will be
+              installed
   HAL_CFLAGS  C compiler flags for HAL, overriding pkg-config
   HAL_LIBS    linker flags for HAL, overriding pkg-config
 
@@ -20760,20 +20760,6 @@ _ACEOF
 AM_CPPFLAGS="$CPPFLAGS"
 AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_srcdir)"
 
-if test "x${udevscriptdir}" = "x"; then	udevscriptdir="\${libdir}/udev"; fi
-
-
- if echo $host|grep -i linux; then
-  HAVE_UDEV_TRUE=
-  HAVE_UDEV_FALSE='#'
-else
-  HAVE_UDEV_TRUE='#'
-  HAVE_UDEV_FALSE=
-fi
-
-
-
-
 # ----------------------------------------------------------------------
 # References to external resources (web sites, mailing listes, etc.)
 # ----------------------------------------------------------------------
@@ -23945,10 +23931,14 @@ fi
 
 
 
+
+
+
 for ac_header in stdlib.h unistd.h stdio.h fcntl.h errno.h sys/time.h	\
-	sys/param.h termios.h sgetty.h ttold.h ioctl-types.h		\
+	sys/param.h sys/select.h termios.h sgetty.h ttold.h ioctl-types.h	\
 	fcntl.h sgtty.h sys/ioctl.h sys/time.h termio.h unistd.h	\
-	endian.h byteswap.h asm/io.h mntent.h sys/mntent.h sys/mnttab.h
+	endian.h byteswap.h asm/io.h mntent.h sys/mntent.h sys/mnttab.h \
+	scsi/sg.h limits.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -24537,7 +24527,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 
-for ac_func in strerror snprintf vsnprintf
+
+
+for ac_func in setmntent endmntent strerror snprintf vsnprintf
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -26087,6 +26079,79 @@ fi # have_serial
 
 
 
+
+{ echo "$as_me:$LINENO: checking for pthread_create in -lpthread" >&5
+echo $ECHO_N "checking for pthread_create in -lpthread... $ECHO_C" >&6; }
+if test "${ac_cv_lib_pthread_pthread_create+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_create ();
+int
+main ()
+{
+return pthread_create ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_pthread_pthread_create=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_pthread_pthread_create=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_pthread_pthread_create" >&5
+echo "${ECHO_T}$ac_cv_lib_pthread_pthread_create" >&6; }
+if test $ac_cv_lib_pthread_pthread_create = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPTHREAD 1
+_ACEOF
+
+  LIBS="-lpthread $LIBS"
+
+fi
+
+
+
 gp_config_msg="${gp_config_msg}
   USB ports
 "
@@ -26587,7 +26652,7 @@ fi
 if test "x${have_LIBUSB}" = "xyes"; then
 # ACTION-IF-FOUND
 
-	IOLIB_SUBDIRS="$IOLIB_SUBDIRS usb"
+	IOLIB_SUBDIRS="$IOLIB_SUBDIRS usb usbdiskdirect usbscsi"
 
 fi
 if test "x${have_LIBUSB}" = "xyes"; then
@@ -26867,6 +26932,19 @@ fi
 gp_config_msg="${gp_config_msg}    ${gp_config_msg_lhs} no
 "
 fi
+
+
+if test "x${udevscriptdir}" = "x"; then	udevscriptdir="\${libdir}/udev"; fi
+
+
+ if if echo "$host"|grep -i linux >/dev/null ; then test "x$have_LIBUSB" = xyes; fi ; then
+  HAVE_UDEV_TRUE=
+  HAVE_UDEV_FALSE='#'
+else
+  HAVE_UDEV_TRUE='#'
+  HAVE_UDEV_FALSE=
+fi
+
 
 
 
@@ -27310,7 +27388,7 @@ AM_CPPFLAGS="$AM_CPPFLAGS -D_GPHOTO2_INTERNAL_CODE"
 # ---------------------------------------------------------------------------
 # Create output files
 # ---------------------------------------------------------------------------
-ac_config_files="$ac_config_files Makefile po/Makefile.in libgphoto2_port/Makefile libgphoto2_port.pc libgphoto2_port-uninstalled.pc serial/Makefile usb/Makefile disk/Makefile ptpip/Makefile gphoto2-port-config test/Makefile doc/Makefile m4/Makefile"
+ac_config_files="$ac_config_files Makefile po/Makefile.in libgphoto2_port/Makefile libgphoto2_port.pc libgphoto2_port-uninstalled.pc serial/Makefile usb/Makefile usbdiskdirect/Makefile usbscsi/Makefile disk/Makefile ptpip/Makefile gphoto2-port-config test/Makefile doc/Makefile m4/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -27429,17 +27507,17 @@ echo "$as_me: error: conditional \"am__fastdepCXX\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
-if test -z "${HAVE_UDEV_TRUE}" && test -z "${HAVE_UDEV_FALSE}"; then
-  { { echo "$as_me:$LINENO: error: conditional \"HAVE_UDEV\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-echo "$as_me: error: conditional \"HAVE_UDEV\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
 if test -z "${HAVE_LIBUSB_TRUE}" && test -z "${HAVE_LIBUSB_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_LIBUSB\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"HAVE_LIBUSB\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${HAVE_UDEV_TRUE}" && test -z "${HAVE_UDEV_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"HAVE_UDEV\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"HAVE_UDEV\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -27942,6 +28020,8 @@ do
     "libgphoto2_port-uninstalled.pc") CONFIG_FILES="$CONFIG_FILES libgphoto2_port-uninstalled.pc" ;;
     "serial/Makefile") CONFIG_FILES="$CONFIG_FILES serial/Makefile" ;;
     "usb/Makefile") CONFIG_FILES="$CONFIG_FILES usb/Makefile" ;;
+    "usbdiskdirect/Makefile") CONFIG_FILES="$CONFIG_FILES usbdiskdirect/Makefile" ;;
+    "usbscsi/Makefile") CONFIG_FILES="$CONFIG_FILES usbscsi/Makefile" ;;
     "disk/Makefile") CONFIG_FILES="$CONFIG_FILES disk/Makefile" ;;
     "ptpip/Makefile") CONFIG_FILES="$CONFIG_FILES ptpip/Makefile" ;;
     "gphoto2-port-config") CONFIG_FILES="$CONFIG_FILES gphoto2-port-config" ;;
@@ -28165,9 +28245,6 @@ ac_ct_F77!$ac_ct_F77$ac_delim
 LIBTOOL!$LIBTOOL$ac_delim
 LTDLINCL!$LTDLINCL$ac_delim
 LIBLTDL!$LIBLTDL$ac_delim
-udevscriptdir!$udevscriptdir$ac_delim
-HAVE_UDEV_TRUE!$HAVE_UDEV_TRUE$ac_delim
-HAVE_UDEV_FALSE!$HAVE_UDEV_FALSE$ac_delim
 URL_GPHOTO_HOME!$URL_GPHOTO_HOME$ac_delim
 URL_GPHOTO_PROJECT!$URL_GPHOTO_PROJECT$ac_delim
 URL_DIGICAM_LIST!$URL_DIGICAM_LIST$ac_delim
@@ -28199,6 +28276,9 @@ LIBUSB_CONFIG_PROG!$LIBUSB_CONFIG_PROG$ac_delim
 REQUIREMENTS_FOR_LIBUSB!$REQUIREMENTS_FOR_LIBUSB$ac_delim
 HAVE_LIBUSB_TRUE!$HAVE_LIBUSB_TRUE$ac_delim
 HAVE_LIBUSB_FALSE!$HAVE_LIBUSB_FALSE$ac_delim
+udevscriptdir!$udevscriptdir$ac_delim
+HAVE_UDEV_TRUE!$HAVE_UDEV_TRUE$ac_delim
+HAVE_UDEV_FALSE!$HAVE_UDEV_FALSE$ac_delim
 HAL_CFLAGS!$HAL_CFLAGS$ac_delim
 HAL_LIBS!$HAL_LIBS$ac_delim
 IOLIB_SUBDIRS!$IOLIB_SUBDIRS$ac_delim

@@ -1,3 +1,11 @@
+2009-07-30  Dan Fandrich <dan@coneharvesters.com>
+
+	* Fixed a bunch of C89 and SUS portability issues.
+
+	* camlibs/aox/library.c: Fixed a buffer overflow in the AOX
+	  driver that would occur when fewer than 15 pictures were
+	  on the camera.
+
 2007-07-25  Hubert Figuiere  <hub@figuiere.net>
 
 	* camlibs/ptp2/library.c: Added Kodak Z712 IS
@@ -1857,7 +1865,7 @@
 
 	* HACKING: we prefer patches against CVS and camlibs should use
 	  their own ChangeLog files
-	* doc/figures/*.fig: My, we are k3wl. We have CVS $Id: ChangeLog 10476 2007-07-25 17:57:08Z hfiguiere $s in PIX!
+	* doc/figures/*.fig: My, we are k3wl. We have CVS $Id: ChangeLog 12318 2009-07-30 21:05:05Z marcusmeissner $s in PIX!
 	* doc/figures/gphotofs.fig: added sketch of gphotofs idea flash
 	* libgphoto2/gphoto2-file.h: added note about CRW (Canon RaW)
 
