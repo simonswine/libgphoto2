@@ -1,5 +1,6 @@
-libgphoto2 (2.4.10.1-4) UNRELEASED; urgency=low
+libgphoto2 (2.4.10.1-4) unstable; urgency=low
 
+  * Upload to unstable
   * Removing KiBi from Uploaders, as requested. Thanks for all your
     previous work!
   * HALectomy: remove libhal-dev from Build-Depends, and remove
@@ -9,7 +10,7 @@ libgphoto2 (2.4.10.1-4) UNRELEASED; urgency=low
   * Rename libgphoto2-2-dev to libgphoto2-dev: this will ease SONAME
     transitions through binNMUs.
 
- -- David Paleino <dapal@debian.org>  Sat, 26 Feb 2011 17:41:07 +0100
+ -- David Paleino <dapal@debian.org>  Sat, 26 Feb 2011 18:08:38 +0100
 
 libgphoto2 (2.4.10.1-3) experimental; urgency=low
 
