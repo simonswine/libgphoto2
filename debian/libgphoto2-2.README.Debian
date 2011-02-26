@@ -7,7 +7,7 @@ allow camera access to all members of group 'plugdev'.
 This means the only configuration is to add authorized users to the 'plugdev'
 group.  Note that group changes will only apply when you relog.
 
-udev may fail to set group ownership for cameras that are not explicitely known
+udev may fail to set group ownership for cameras that are not explicitly known
 by gphoto2, if you know your camera is a generic PTP model not handled by udev,
 you can create a file in /etc/udev/rules.d/, say z25_my_camera.rules, with such
 a content:
