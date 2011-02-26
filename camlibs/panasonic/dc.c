@@ -1,5 +1,5 @@
 /*
-        $Id: dc.c 7736 2005-04-05 21:04:19Z hun $
+        $Id: dc.c 12314 2009-07-30 21:00:08Z marcusmeissner $
 
         Copyright © 2000 Mariusz Zynel <mariusz@mizar.org> (gPhoto port)
         Copyright © 2000 Fredrik Roubert <roubert@df.lth.se> (idea)
@@ -27,7 +27,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#ifdef HAVE_MEMORY_H
 #include <memory.h>
+#endif
 #include "dc.h"
 #include "dc1000.h"
 

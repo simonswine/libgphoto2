@@ -64,6 +64,7 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(iolibdir)"
 iolibLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(iolib_LTLIBRARIES)
+am__DEPENDENCIES_1 =
 am_ptpip_la_OBJECTS = ptpip_la-ptpip.lo
 ptpip_la_OBJECTS = $(am_ptpip_la_OBJECTS)
 ptpip_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -257,7 +258,7 @@ ptpip_la_CPPFLAGS = \
 	$(CPPFLAGS) 
 
 ptpip_la_DEPENDENCIES = $(top_srcdir)/iolib.sym
-ptpip_la_LIBADD = $(top_builddir)/libgphoto2_port/libgphoto2_port.la @MDNS_LIBS@
+ptpip_la_LIBADD = $(top_builddir)/libgphoto2_port/libgphoto2_port.la @MDNS_LIBS@ $(INTLLIBS)
 ptpip_la_SOURCES = ptpip.c
 all: all-am
 

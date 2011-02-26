@@ -26,6 +26,7 @@ int camera_get_config (Camera *camera, CameraWidget **window, GPContext *context
 int camera_set_config (Camera *camera, CameraWidget *window, GPContext *context);
 int camera_prepare_capture (Camera *camera, GPContext *context);
 int camera_unprepare_capture (Camera *camera, GPContext *context);
+int camera_canon_eos_update_capture_target(Camera *camera, GPContext *context, int value);
 
 /* library.c */
 void report_result (GPContext *context, short result, short vendor);
@@ -34,8 +35,13 @@ void fixup_cached_deviceinfo (Camera *camera, PTPDeviceInfo*);
 
 int init_ptp_fs (Camera *camera, GPContext *context);
 
+int _ptp_check_eos_events (PTPParams *params);
+int _ptp_get_one_eos_event (PTPParams *params, PTPCanon_changes_entry *entry);
+
+
 struct _CameraPrivateLibrary {
 	PTPParams params;
+	int checkevents;
 	unsigned long bugs;
 	int	fs_loaded;
 };

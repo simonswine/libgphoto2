@@ -30,7 +30,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/time.h>
+#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#endif
 #include <dirent.h>
 #include <string.h>
 #ifdef HAVE_MNTENT_H
@@ -48,7 +50,7 @@
 #define setmntent(f,m) fopen(f,m)
 #endif
 #ifndef HAVE_ENDMNTENT
-#define endmntent(f) close(f)
+#define endmntent(f) fclose(f)
 #endif
 
 #ifdef HAVE_HAL
@@ -107,7 +109,7 @@ gp_port_library_list (GPPortInfoList *list)
         if (!ctx) {
 		gp_log(GP_LOG_DEBUG, "gphoto2-port/disk", 
 		       "failed to initialize HAL!\n");
-                return GP_ERROR_HAL;
+                goto generic;
         }
         dbus_error_init (&error);
 
@@ -119,7 +121,7 @@ gp_port_library_list (GPPortInfoList *list)
 			error.message);
 		dbus_error_free (&error);
 		libhal_ctx_free(ctx);
-                return GP_ERROR_HAL;
+                goto generic;
         }
 
         libhal_ctx_set_dbus_connection (ctx, dbus_connection);
@@ -134,7 +136,7 @@ gp_port_library_list (GPPortInfoList *list)
 				error.message);
 			dbus_error_free (&error);
 		}
-                return GP_ERROR_HAL;
+                goto generic;
         }
 
 	gp_log(GP_LOG_DEBUG, "gphoto2-port/disk", "found %d volumes", 
@@ -331,6 +333,7 @@ gp_port_library_list (GPPortInfoList *list)
 #  endif
 # endif
 #endif
+generic:
 	/* generic disk:/xxx/ matcher */
 	info.type = GP_PORT_DISK;
 	memset (info.name, 0, sizeof(info.name));

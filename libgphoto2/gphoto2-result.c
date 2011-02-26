@@ -55,6 +55,7 @@ static struct {
 	{GP_ERROR_CANCEL,              N_("Operation cancelled")},
 	{GP_ERROR_CAMERA_ERROR,        N_("Camera could not complete operation")},
 	{GP_ERROR_OS_FAILURE,          N_("OS error in camera communication")},
+	{GP_ERROR_NO_SPACE,            N_("Not enough free space")},
 	{0, NULL}
 };
 
@@ -64,7 +65,7 @@ static struct {
  *
  * Translates a gphoto2 error code into a human readable string. If the 
  * error occurred in combination with a camera,
- * #gp_camera_get_result_as_string should be used instead.
+ * gp_camera_get_result_as_string() should be used instead.
  *
  * \return A string representation of a gphoto2 error code
  **/

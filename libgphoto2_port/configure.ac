@@ -93,9 +93,6 @@ AC_DEFINE_UNQUOTED(HAVE_CC,"$CC",[The C compiler we're using])
 AM_CPPFLAGS="$CPPFLAGS"
 AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_srcdir)"
 
-GP_UDEV
-
-
 # ----------------------------------------------------------------------
 # References to external resources (web sites, mailing listes, etc.)
 # ----------------------------------------------------------------------
@@ -147,9 +144,10 @@ AC_C_INLINE([])
 AC_C_CONST([])
 
 AC_CHECK_HEADERS(stdlib.h unistd.h stdio.h fcntl.h errno.h sys/time.h	\
-	sys/param.h termios.h sgetty.h ttold.h ioctl-types.h		\
+	sys/param.h sys/select.h termios.h sgetty.h ttold.h ioctl-types.h	\
 	fcntl.h sgtty.h sys/ioctl.h sys/time.h termio.h unistd.h	\
-	endian.h byteswap.h asm/io.h mntent.h sys/mntent.h sys/mnttab.h)
+	endian.h byteswap.h asm/io.h mntent.h sys/mntent.h sys/mnttab.h \
+	scsi/sg.h limits.h)
 	
 dnl FIXME: Provide regex.h with the corresponding object code for 
 dnl        platforms which do not have it, e.g. Windows.
@@ -205,7 +203,7 @@ AC_MSG_RESULT(no)
 AC_SUBST(MDNS_LIBS)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(strerror snprintf vsnprintf)
+AC_CHECK_FUNCS(setmntent endmntent strerror snprintf vsnprintf)
 
 dnl Check if TIOCM_RTS is included in one of several possible files
 AC_TRY_COMPILE([#include <termios.h>], [int foo = TIOCM_RTS;],
@@ -347,20 +345,28 @@ AC_SUBST([SERIAL_LIBS])
 dnl ---------------------------------------------------------------------------
 dnl libusb
 dnl ---------------------------------------------------------------------------
+
+dnl libusb 1 links against libpthread, but is loaded too late.
+dnl we need to load libpthread directly.
+AC_CHECK_LIB(pthread, pthread_create)
+
 GP_CONFIG_MSG([USB ports])
 GP_CHECK_LIBRARY([LIBUSB],[libusb],[>= 0.1.5],
 		[usb.h],[usb_open],[
-	IOLIB_SUBDIRS="$IOLIB_SUBDIRS usb"
+	IOLIB_SUBDIRS="$IOLIB_SUBDIRS usb usbdiskdirect usbscsi"
 ],[],
 		[disable-explicitly],
 		[http://libusb.sourceforge.net/]
 )
 
+dnl depends on libusb's availability
+GP_UDEV([test "x$have_LIBUSB" = xyes])
+
 dnl ---------------------------------------------------------------------------
 dnl disk - hal and various stuff
 dnl ---------------------------------------------------------------------------
 AC_ARG_WITH([hal],
-	AS_HELP_STRING([--with-hal], [wether to enable HAL disk autodetection [default=yes]]),
+	AS_HELP_STRING([--with-hal], [whether to enable HAL disk autodetection [default=yes]]),
 	,with_hal=yes)
 
 if test "x$with_hal" = "xyes"; then
@@ -485,6 +491,8 @@ libgphoto2_port.pc
 libgphoto2_port-uninstalled.pc
 serial/Makefile
 usb/Makefile
+usbdiskdirect/Makefile
+usbscsi/Makefile
 disk/Makefile
 ptpip/Makefile
 gphoto2-port-config

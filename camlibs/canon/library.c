@@ -93,27 +93,28 @@ extern long int timezone;
 #endif
 
 static const struct canonCaptureSizeClassStruct captureSizeArray[] = {
-        {CAPTURE_COMPATIBILITY, N_("Compatibility mode")},
+	{CAPTURE_COMPATIBILITY, N_("Compatibility Mode")},
         {CAPTURE_THUMB, N_("Thumbnail")},
         {CAPTURE_FULL_IMAGE, N_("Full Image")},
 	{0, NULL}
 };
 
 static const struct canonIsoStateStruct isoStateArray[] = {
-        {ISO_100, "ISO 100"},
-        {ISO_125, "ISO 125"},
-        {ISO_160, "ISO 160"},
-        {ISO_200, "ISO 200"},
-        {ISO_250, "ISO 250"},
-        {ISO_320, "ISO 320"},
-        {ISO_400, "ISO 400"},
-        {ISO_500, "ISO 500"},
-        {ISO_640, "ISO 640"},
-        {ISO_800, "ISO 800"},
-        {ISO_1000, "ISO 1000"},
-        {ISO_1250, "ISO 1250"},
-        {ISO_1600, "ISO 1600"},
-        {ISO_3200, "ISO 3200"},
+	{ISO_50, "50"},
+	{ISO_100, "100"},
+	{ISO_125, "125"},
+	{ISO_160, "160"},
+	{ISO_200, "200"},
+	{ISO_250, "250"},
+	{ISO_320, "320"},
+	{ISO_400, "400"},
+	{ISO_500, "500"},
+	{ISO_640, "640"},
+	{ISO_800, "800"},
+	{ISO_1000, "1000"},
+	{ISO_1250, "1250"},
+	{ISO_1600, "1600"},
+	{ISO_3200, "3200"},
 	{0, NULL},
 };
 
@@ -135,11 +136,11 @@ static const struct canonShutterSpeedStateStruct shutterSpeedStateArray[] = {
         {SHUTTER_SPEED_1_6_SEC,"1.6"},
         {SHUTTER_SPEED_1_3_SEC,"1.3"},
         {SHUTTER_SPEED_1_SEC,"1"},
-        {SHUTTER_SPEED_0_8_SEC,"8/10"},
-        {SHUTTER_SPEED_0_6_SEC,"6/10"},
-        {SHUTTER_SPEED_0_5_SEC,"1/2"},
-        {SHUTTER_SPEED_0_4_SEC,"4/10"},
-        {SHUTTER_SPEED_0_3_SEC,"3/10"},
+	{SHUTTER_SPEED_0_8_SEC,"0.8"},
+	{SHUTTER_SPEED_0_6_SEC,"0.6"},
+	{SHUTTER_SPEED_0_5_SEC,"0.5"},
+	{SHUTTER_SPEED_0_4_SEC,"0.4"},
+	{SHUTTER_SPEED_0_3_SEC,"0.3"},
         {SHUTTER_SPEED_1_4,"1/4"},
         {SHUTTER_SPEED_1_5,"1/5"},
         {SHUTTER_SPEED_1_6,"1/6"},
@@ -178,34 +179,34 @@ static const struct canonShutterSpeedStateStruct shutterSpeedStateArray[] = {
 };
 
 static const struct canonApertureStateStruct apertureStateArray[] = {
-        {APERTURE_F1_4, "f1.4"},
-        {APERTURE_F1_6, "f1.6"},
-        {APERTURE_F1_8, "f1.8"},
-        {APERTURE_F2_0, "f2.0"},
-        {APERTURE_F2_2, "f2.2"},
-        {APERTURE_F2_5, "f2.5"},
-        {APERTURE_F2_8, "f2.8"},
-        {APERTURE_F3_2, "f3.2"},
-        {APERTURE_F3_5, "f3.5"},
-        {APERTURE_F4_0, "f4.0"},
-        {APERTURE_F4_5, "f4.5"},
-        {APERTURE_F5_0, "f5.0"},
-        {APERTURE_F5_6, "f5.6"},
-        {APERTURE_F6_3, "f6.3"},
-        {APERTURE_F7_1, "f7.1"},
-        {APERTURE_F8, "f8"},
-        {APERTURE_F9, "f9"},
-        {APERTURE_F10, "f10"},
-        {APERTURE_F11, "f11"},
-        {APERTURE_F13, "f13"},
-        {APERTURE_F14, "f14"},
-        {APERTURE_F16, "f16"},
-        {APERTURE_F18, "f18"},
-        {APERTURE_F20, "f20"},
-        {APERTURE_F22, "f22"},
-        {APERTURE_F25, "f25"},
-        {APERTURE_F29, "f29"},
-        {APERTURE_F32, "f32"},
+	{APERTURE_F1_4, "1.4"},
+	{APERTURE_F1_6, "1.6"},
+	{APERTURE_F1_8, "1.8"},
+	{APERTURE_F2_0, "2.0"},
+	{APERTURE_F2_2, "2.2"},
+	{APERTURE_F2_5, "2.5"},
+	{APERTURE_F2_8, "2.8"},
+	{APERTURE_F3_2, "3.2"},
+	{APERTURE_F3_5, "3.5"},
+	{APERTURE_F4_0, "4.0"},
+	{APERTURE_F4_5, "4.5"},
+	{APERTURE_F5_0, "5.0"},
+	{APERTURE_F5_6, "5.6"},
+	{APERTURE_F6_3, "6.3"},
+	{APERTURE_F7_1, "7.1"},
+	{APERTURE_F8, "8"},
+	{APERTURE_F9, "9"},
+	{APERTURE_F10, "10"},
+	{APERTURE_F11, "11"},
+	{APERTURE_F13, "13"},
+	{APERTURE_F14, "14"},
+	{APERTURE_F16, "16"},
+	{APERTURE_F18, "18"},
+	{APERTURE_F20, "20"},
+	{APERTURE_F22, "22"},
+	{APERTURE_F25, "25"},
+	{APERTURE_F29, "29"},
+	{APERTURE_F32, "32"},
 	{0, NULL},
 };
 
@@ -227,20 +228,6 @@ static const struct canonFlashModeStateStruct flashModeStateArray[] = {
 	{FLASH_MODE_OFF, N_("Flash off")},
 	{FLASH_MODE_ON, N_("Flash on")},
 	{FLASH_MODE_AUTO, N_("Flash auto")},
-	{0, NULL},
-};
-
-static const struct canonZoomLevelStateStruct zoomLevelStateArray[] = {
-	{ZOOM_0, N_("No zoom")},
-	{ZOOM_1, N_("Zoom 1")},
-	{ZOOM_2, N_("Zoom 2")},
-	{ZOOM_3, N_("Zoom 3")},
-	{ZOOM_4, N_("Zoom 4")},
-	{ZOOM_5, N_("Zoom 5")},
-	{ZOOM_6, N_("Zoom 6")},
-	{ZOOM_7, N_("Zoom 7")},
-	{ZOOM_8, N_("Zoom 8")},
-	{ZOOM_9, N_("Zoom 9")},
 	{0, NULL},
 };
 
@@ -266,32 +253,73 @@ static const struct canonExposureBiasStateStruct exposureBiasStateArray[] = {
 };
 
 
-static const struct canonResolutionStateStruct resolutionStateArray[] = {
-	{RESOLUTION_RAW, N_("RAW"),
+static const struct canonShootingModeStateStruct shootingModeStateArray[] = {
+	{0x00,N_("AUTO")},
+	{0x01,N_("P")},
+	{0x02,N_("Tv")},
+	{0x03,N_("Av")},
+	{0x04,N_("M")},
+	{0x05,N_("A-DEP")},
+	{0x06,N_("M-DEP")},
+	{0x07,N_("Bulb")},
+	{0x65,N_("Manual 2")},
+	{0x66,N_("Far scene")},
+	{0x67,N_("Fast shutter")},
+	{0x68,N_("Slow shutter")},
+	{0x69,N_("Night scene")},
+	{0x6a,N_("Gray scale")},
+	{0x6b,N_("Sepia")},
+	{0x6c,N_("Portrait")},
+	{0x6d,N_("Spot")},
+	{0x6e,N_("Macro")},
+	{0x6f,N_("BW")},
+	{0x70,N_("PanFocus")},
+	{0x71,N_("Vivid")},
+	{0x72,N_("Neutral")},
+	{0x73,N_("Flash off")},
+	{0x74,N_("Long shutter")},
+	{0x75,N_("Super macro")},
+	{0x76,N_("Foilage")},
+	{0x77,N_("Indoor")},
+	{0x78,N_("Fireworks")},
+	{0x79,N_("Beach")},
+	{0x7a,N_("Underwater")},
+	{0x7b,N_("Snow")},
+	{0x7c,N_("Kids and pets")},
+	{0x7d,N_("Night snapshot")},
+	{0x7e,N_("Digital macro")},
+	{0x7f,N_("MyColors")},
+	{0x80,N_("Photo in movie")},
+	{0, NULL}
+};
+
+
+static const struct canonImageFormatStateStruct imageFormatStateArray[] = {
+	{IMAGE_FORMAT_RAW, N_("RAW"),
 	 0x04, 0x02, 0x00},
-	{RESOLUTION_SMALL_NORMAL_JPEG, N_("Small Normal JPEG"),
+	{IMAGE_FORMAT_SMALL_NORMAL_JPEG, N_("Small Normal JPEG"),
 	 0x02, 0x01, 0x02},
-	{RESOLUTION_SMALL_FINE_JPEG, N_("Small Fine JPEG"),
+	{IMAGE_FORMAT_SMALL_FINE_JPEG, N_("Small Fine JPEG"),
 	 0x03, 0x01, 0x02},
-	{RESOLUTION_MEDIUM_NORMAL_JPEG, N_("Medium Normal JPEG"),
+	{IMAGE_FORMAT_MEDIUM_NORMAL_JPEG, N_("Medium Normal JPEG"),
 	 0x02, 0x01, 0x01},
-	{RESOLUTION_MEDIUM_FINE_JPEG, N_("Medium Fine JPEG"),
+	{IMAGE_FORMAT_MEDIUM_FINE_JPEG, N_("Medium Fine JPEG"),
 	 0x03, 0x01, 0x01},
-	{RESOLUTION_LARGE_NORMAL_JPEG, N_("Large Normal JPEG"),
+	{IMAGE_FORMAT_LARGE_NORMAL_JPEG, N_("Large Normal JPEG"),
 	 0x02, 0x01, 0x00},
-	{RESOLUTION_LARGE_FINE_JPEG, N_("Large Fine JPEG"),
+	{IMAGE_FORMAT_LARGE_FINE_JPEG, N_("Large Fine JPEG"),
 	 0x03, 0x01, 0x00},
-	{RESOLUTION_RAW_AND_SMALL_NORMAL_JPEG, N_("RAW + Small Normal JPEG"),
+	{IMAGE_FORMAT_RAW_AND_SMALL_NORMAL_JPEG, N_("RAW + Small Normal JPEG"),
 	 0x24, 0x12, 0x20},
-	{RESOLUTION_RAW_AND_SMALL_FINE_JPEG, N_("RAW + Small Fine JPEG"),
+	{IMAGE_FORMAT_RAW_AND_SMALL_FINE_JPEG, N_("RAW + Small Fine JPEG"),
 	 0x34, 0x12, 0x20},
-	{RESOLUTION_RAW_AND_MEDIUM_NORMAL_JPEG, N_("RAW + Medium Normal JPEG"),
+	{IMAGE_FORMAT_RAW_AND_MEDIUM_NORMAL_JPEG, N_("RAW + Medium Normal JPEG"),
 	 0x24, 0x12, 0x10},
-	{RESOLUTION_RAW_AND_MEDIUM_FINE_JPEG, N_("RAW + Medium Fine JPEG"),
+	{IMAGE_FORMAT_RAW_AND_MEDIUM_FINE_JPEG, N_("RAW + Medium Fine JPEG"),
 	 0x34, 0x12, 0x10},
-	{RESOLUTION_RAW_AND_LARGE_NORMAL_JPEG, N_("RAW + Large Normal JPEG"),
+	{IMAGE_FORMAT_RAW_AND_LARGE_NORMAL_JPEG, N_("RAW + Large Normal JPEG"),
 	 0x24, 0x12, 0x00},
-	{RESOLUTION_RAW_AND_LARGE_FINE_JPEG, N_("RAW + Large Fine JPEG"),
+	{IMAGE_FORMAT_RAW_AND_LARGE_FINE_JPEG, N_("RAW + Large Fine JPEG"),
 	 0x34, 0x12, 0x00},
 	{0, NULL, 0, 0, 0},
 };
@@ -1098,9 +1126,11 @@ storage_info_func (
 		strcpy ((*sinfos)->basedir, camera->pl->cached_drive);
 	}
 	(*sinfos)->fields |= GP_STORAGEINFO_MAXCAPACITY;
-	(*sinfos)->capacitykbytes = camera->pl->cached_capacity / 1024;
+	(*sinfos)->capacitykbytes = camera->pl->cached_capacity;
 	(*sinfos)->fields |= GP_STORAGEINFO_FREESPACEKBYTES;
-	(*sinfos)->freekbytes = camera->pl->cached_available / 1024;
+	(*sinfos)->freekbytes = camera->pl->cached_available;
+	(*sinfos)->fields |= GP_STORAGEINFO_ACCESS;
+	(*sinfos)->access = GP_STORAGEINFO_AC_READONLY_WITH_DELETE;
 	return GP_OK;
 }
 	
@@ -1535,7 +1565,7 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	CameraWidget *t, *section;
 	char power_str[128], firm[64];
 
-	int iso, shutter_speed, aperture, focus_mode, flash_mode, beep_mode;
+	int iso, shutter_speed, aperture, focus_mode, flash_mode, beep_mode, shooting_mode;
 	int res_byte1, res_byte2, res_byte3;
 	int pwr_status, pwr_source, res, i, menuval;
 	unsigned int expbias;
@@ -1550,22 +1580,17 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	gp_widget_new (GP_WIDGET_WINDOW, _("Camera and Driver Configuration"), window);
 	gp_widget_set_name (*window, "main");
 
-	gp_widget_new (GP_WIDGET_SECTION, _("Camera"), &section);
-	gp_widget_set_name (section, "camera");
+	gp_widget_new (GP_WIDGET_SECTION, _("Camera Settings"), &section);
+	gp_widget_set_name (section, "settings");
 	gp_widget_append (*window, section);
 
-	gp_widget_new (GP_WIDGET_TEXT, _("Camera Model (readonly)"), &t);
-	gp_widget_set_name (t, "model");
-	gp_widget_set_value (t, camera->pl->ident);
-	gp_widget_append (section, t);
-
-	gp_widget_new (GP_WIDGET_TEXT, _("Owner name"), &t);
-	gp_widget_set_name (t, "owner");
+	gp_widget_new (GP_WIDGET_TEXT, _("Owner Name"), &t);
+	gp_widget_set_name (t, "ownername");
 	gp_widget_set_value (t, camera->pl->owner);
 	gp_widget_append (section, t);
 
 	/* Capture size class */
-	gp_widget_new (GP_WIDGET_MENU, _("Capture size class"), &t);
+	gp_widget_new (GP_WIDGET_MENU, _("Capture Size Class"), &t);
 	gp_widget_set_name (t, "capturesizeclass");
 
 	/* Map it to the list of choices */
@@ -1582,7 +1607,7 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	
 	/* Set to "Compatibility mode" if not currently set */
 	if (menuval == -1) 
-		gp_widget_set_value (t, _("Compatibility mode"));
+		gp_widget_set_value (t, _("Compatibility Mode"));
 
 	gp_widget_append (section, t);
 
@@ -1597,10 +1622,10 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	}
 
 	/* ISO speed */
-	gp_widget_new (GP_WIDGET_MENU, _("ISO speed"), &t);
+	gp_widget_new (GP_WIDGET_MENU, _("ISO Speed"), &t);
 	gp_widget_set_name (t, "iso");
 
-	/* Get the camera's current ISO speed setting */
+	/* Get the camera's current ISO Speed setting */
 	iso = -1;
 	if (camera->pl->cached_ready == 1) {
 		res = canon_int_get_release_params(camera, context);
@@ -1630,8 +1655,42 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	gp_widget_append (section, t);
 
 
+	/* Shooting mode */
+	gp_widget_new (GP_WIDGET_MENU, _("Shooting mode"), &t);
+	gp_widget_set_name (t, "shootingmode");
+
+	/* Get the camera's current shooting mode setting */
+	shooting_mode = -1;
+	if (camera->pl->cached_ready == 1) {
+		res = canon_int_get_release_params(camera, context);
+		if (res == GP_OK)
+			iso = camera->pl->release_params[SHOOTING_MODE_INDEX];
+	}
+
+	/* Map it to the list of choices */
+	i = 0;
+	menuval = -1;
+	while (shootingModeStateArray[i].label) {
+		gp_widget_add_choice (t, _(shootingModeStateArray[i].label));
+		if (shooting_mode == (int)shootingModeStateArray[i].value) {
+			gp_widget_set_value (t, _(shootingModeStateArray[i].label));
+			menuval = i;
+		}
+		i++;
+	}
+
+	/* Set an unknown shooting mode value if the
+	 * camera is set to something weird */
+	if (menuval == -1) {
+		gp_widget_add_choice (t, _("Unknown"));
+		gp_widget_set_value (t, _("Unknown"));
+	};
+
+	gp_widget_append (section, t);
+
+
 	/* Shutter speed */
-	gp_widget_new (GP_WIDGET_MENU, _("Shutter speed"), &t);
+	gp_widget_new (GP_WIDGET_MENU, _("Shutter Speed"), &t);
 	gp_widget_set_name (t, "shutterspeed");
 
 	/* Get the camera's current shutter speed setting */
@@ -1666,21 +1725,13 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 
 
 	/* Zoom level */
-	gp_widget_new (GP_WIDGET_MENU, _("Zoom"), &t);
+	gp_widget_new (GP_WIDGET_RANGE, _("Zoom"), &t);
 	gp_widget_set_name (t, "zoom");
-
-	i = 0;
-	while (zoomLevelStateArray[i].label) {
-		gp_widget_add_choice (t, _(zoomLevelStateArray[i].label));
-		i++;
-	}
-
-	
+	gp_widget_set_range (t, 0, 255, 1);
 	/* Set an unknown zoom level (at the moment we don't read the
 	 * zoom level */
-	gp_widget_add_choice (t, _("Unknown"));
-	gp_widget_set_value (t, _("Unknown"));
-
+	float zoom = -1;
+	gp_widget_set_value (t, &zoom);
 	gp_widget_append (section, t);
 
 
@@ -1718,11 +1769,11 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 
 	gp_widget_append (section, t);
 
-	/* Exposure Bias */
-	gp_widget_new (GP_WIDGET_MENU, _("Exposure Bias"), &t);
-	gp_widget_set_name (t, "exposurebias");
+	/* Exposure Compensation */
+	gp_widget_new (GP_WIDGET_MENU, _("Exposure Compensation"), &t);
+	gp_widget_set_name (t, "exposurecompensation");
 
-	/* Get the camera's current exposure bias setting */
+	/* Get the camera's current exposure compensation setting */
 	expbias = -1;
 	if (camera->pl->cached_ready == 1) {
 		res = canon_int_get_release_params(camera, context);
@@ -1751,36 +1802,36 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	gp_widget_append (section, t);
 
 
-	/* Resolution */
-	gp_widget_new (GP_WIDGET_MENU, _("Resolution"), &t);
-	gp_widget_set_name (t, "resolution");
+	/* Image Format */
+	gp_widget_new (GP_WIDGET_MENU, _("Image Format"), &t);
+	gp_widget_set_name (t, "imageformat");
 
-	/* Get the camera's current resolution setting */
+	/* Get the camera's current image format setting */
 	res_byte1 = res_byte2 = res_byte3 = -1;
 	if (camera->pl->cached_ready == 1) {
 		res = canon_int_get_release_params (camera, context);
 		if (res == GP_OK) {
-			res_byte1 = camera->pl->release_params[RESOLUTION_1_INDEX];
-			res_byte2 = camera->pl->release_params[RESOLUTION_2_INDEX];
-			res_byte3 = camera->pl->release_params[RESOLUTION_3_INDEX];
+			res_byte1 = camera->pl->release_params[IMAGE_FORMAT_1_INDEX];
+			res_byte2 = camera->pl->release_params[IMAGE_FORMAT_2_INDEX];
+			res_byte3 = camera->pl->release_params[IMAGE_FORMAT_3_INDEX];
 		}
 	}
 
 	/* Map it to the list of choices */
 	i = 0;
 	menuval = -1;
-	while (resolutionStateArray[i].label) {
-		gp_widget_add_choice (t, _(resolutionStateArray[i].label));
-		if (res_byte1 == resolutionStateArray[i].res_byte1 && 
-		    res_byte2 == resolutionStateArray[i].res_byte2 && 
-		    res_byte3 == resolutionStateArray[i].res_byte3) {
-			gp_widget_set_value (t, _(resolutionStateArray[i].label));
+	while (imageFormatStateArray[i].label) {
+		gp_widget_add_choice (t, _(imageFormatStateArray[i].label));
+		if (res_byte1 == imageFormatStateArray[i].res_byte1 &&
+			res_byte2 == imageFormatStateArray[i].res_byte2 &&
+			res_byte3 == imageFormatStateArray[i].res_byte3) {
+			gp_widget_set_value (t, _(imageFormatStateArray[i].label));
 			menuval = i;
 		}
 		i++;
 	}
 	
-	/* Set an unknown resolution value if the 
+	/* Set an unknown imageFormat value if the
 	 * camera is set to something weird */
 	if (menuval == -1) {
 		gp_widget_add_choice (t, _("Unknown"));
@@ -1790,8 +1841,8 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	gp_widget_append (section, t);
 
 
-	/* Focus mode */
-	gp_widget_new (GP_WIDGET_MENU, _("Focus mode"), &t);
+	/* Focus Mode */
+	gp_widget_new (GP_WIDGET_MENU, _("Focus Mode"), &t);
 	gp_widget_set_name (t, "focusmode");
 
 	/* Get the camera's current focus mode setting */
@@ -1824,8 +1875,8 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	gp_widget_append (section, t);
 
 
-	/* Flash mode */
-	gp_widget_new (GP_WIDGET_MENU, _("Flash mode"), &t);
+	/* Flash Mode */
+	gp_widget_new (GP_WIDGET_MENU, _("Flash Mode"), &t);
 	gp_widget_set_name (t, "flashmode");
 
 	/* Get the camera's current flash mode setting */
@@ -1894,7 +1945,29 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 
 	/************************ end release params ************************/
 
-	gp_widget_new (GP_WIDGET_TEXT, _("Date and Time (readonly)"), &t);
+	/* *** Actions */
+
+	gp_widget_new (GP_WIDGET_SECTION, _("Camera Actions"), &section);
+	gp_widget_set_name (section, "actions");
+	gp_widget_append (*window, section);
+
+	gp_widget_new (GP_WIDGET_TOGGLE, _("Synchronize camera date and time with PC"), &t);
+	gp_widget_set_name (t, "syncdatetime");
+	gp_widget_append (section, t);
+
+
+	/* *** Status */
+
+	gp_widget_new (GP_WIDGET_SECTION, _("Camera Status Information"), &section);
+	gp_widget_set_name (section, "status");
+	gp_widget_append (*window, section);
+
+	gp_widget_new (GP_WIDGET_TEXT, _("Camera Model"), &t);
+	gp_widget_set_name (t, "model");
+	gp_widget_set_value (t, camera->pl->ident);
+	gp_widget_append (section, t);
+
+	gp_widget_new (GP_WIDGET_TEXT, _("Date and Time"), &t);
 	gp_widget_set_name (t, "datetime");
 	if (camera->pl->cached_ready == 1) {
 		res = canon_int_get_time (camera, &camtime, context);
@@ -1910,11 +1983,7 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	}
 	gp_widget_append (section, t);
 
-	gp_widget_new (GP_WIDGET_TOGGLE, _("Set camera date to PC date"), &t);
-	gp_widget_set_name (t, "setcameratime");
-	gp_widget_append (section, t);
-
-	gp_widget_new (GP_WIDGET_TEXT, _("Firmware revision (readonly)"), &t);
+	gp_widget_new (GP_WIDGET_TEXT, _("Firmware Version"), &t);
 	gp_widget_set_name (t, "firmwareversion");
 	sprintf (firm, "%i.%i.%i.%i", camera->pl->firmwrev[3], camera->pl->firmwrev[2],
 		 camera->pl->firmwrev[1], camera->pl->firmwrev[0]);
@@ -1939,10 +2008,13 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 		power_str[sizeof (power_str) - 1] = 0;
 	}
 
-	gp_widget_new (GP_WIDGET_TEXT, _("Power (readonly)"), &t);
+	gp_widget_new (GP_WIDGET_TEXT, _("Power"), &t);
 	gp_widget_set_name (t, "power");
 	gp_widget_set_value (t, power_str);
 	gp_widget_append (section, t);
+
+
+	/* *** Driver */
 
 	gp_widget_new (GP_WIDGET_SECTION, _("Driver"), &section);
 	gp_widget_set_name (t, "driver");
@@ -1971,12 +2043,12 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 	char *wvalue;
 	int i, val;
 	int res;
-	unsigned char iso, shutter_speed, aperture, focus_mode, flash_mode, beep, zoom;
+	unsigned char iso, shutter_speed, aperture, focus_mode, flash_mode, beep, shooting_mode;
 	char str[16];
 
 	GP_DEBUG ("camera_set_config()");
 
-	gp_widget_get_child_by_label (window, _("Owner name"), &w);
+	gp_widget_get_child_by_label (window, _("Owner Name"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 		if (!check_readiness (camera, context)) {
@@ -1989,7 +2061,7 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 		}
 	}
 
-	gp_widget_get_child_by_label (window, _("Capture size class"), &w);
+	gp_widget_get_child_by_label (window, _("Capture Size Class"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 
@@ -2015,7 +2087,7 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 			return -1;
 	}
 
-	gp_widget_get_child_by_label (window, _("ISO speed"), &w);
+	gp_widget_get_child_by_label (window, _("ISO Speed"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 		if (!check_readiness (camera, context)) {
@@ -2043,7 +2115,37 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 		}
 	}
 
-	gp_widget_get_child_by_label (window, _("Shutter speed"), &w);
+
+	gp_widget_get_child_by_label (window, _("Shooting mode"), &w);
+	if (gp_widget_changed (w)) {
+		gp_widget_get_value (w, &wvalue);
+		if (!check_readiness (camera, context)) {
+			gp_context_status (context, _("Camera unavailable"));
+		} else {
+
+			/* Map the menu option setting to the camera binary value */
+			i = 0;
+			while (shootingModeStateArray[i].label) {
+				if (strcmp (shootingModeStateArray[i].label, wvalue) == 0) {
+					shooting_mode = shootingModeStateArray[i].value;
+					break;
+				}
+				i++;
+			}
+
+			if (!shootingModeStateArray[i].label) {
+				gp_context_status (context, _("Invalid shooting mode setting"));
+			} else {
+				if (canon_int_set_shooting_mode (camera, shooting_mode, context) == GP_OK)
+					gp_context_status (context, _("Shooting mode changed"));
+				else
+					gp_context_status (context, _("Could not change shooting mode"));
+			}
+		}
+	}
+
+
+	gp_widget_get_child_by_label (window, _("Shutter Speed"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 		if (!check_readiness (camera, context)) {
@@ -2098,7 +2200,7 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 			}
 		}
 	}
-	gp_widget_get_child_by_label (window, _("Exposure Bias"), &w);
+	gp_widget_get_child_by_label (window, _("Exposure Compensation"), &w);
 	if (gp_widget_changed (w)) {
 		unsigned char expbias;
 		gp_widget_get_value (w, &wvalue);
@@ -2117,17 +2219,17 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 			}
 
 			if (!exposureBiasStateArray[i].label) {
-				gp_context_status (context, _("Invalid exposure bias setting"));
+				gp_context_status (context, _("Invalid exposure compensation setting"));
 			} else {
 				if (canon_int_set_exposurebias (camera, expbias, context) == GP_OK)
-					gp_context_status (context, _("Exposure bias changed"));
+					gp_context_status (context, _("Exposure compensation changed"));
 				else
-					gp_context_status (context, _("Could not change exposure bias"));
+					gp_context_status (context, _("Could not change exposure compensation"));
 			}
 		}
 	}
 
-	gp_widget_get_child_by_label (window, _("Resolution"), &w);
+	gp_widget_get_child_by_label (window, _("Image Format"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 		if (!check_readiness (camera, context)) {
@@ -2136,26 +2238,26 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 
 			/* Map the menu option setting to the camera binary value */
 			i = 0;
-			while (resolutionStateArray[i].label) {
-				if (strcmp (resolutionStateArray[i].label, wvalue) == 0)
+			while (imageFormatStateArray[i].label) {
+				if (strcmp (imageFormatStateArray[i].label, wvalue) == 0)
 					break;
 				
 				i++;
 			}
 
-			if (!resolutionStateArray[i].label) {
-				gp_context_status (context, _("Invalid resolution setting"));
+			if (!imageFormatStateArray[i].label) {
+				gp_context_status (context, _("Invalid image format setting"));
 			} else {
-				if (canon_int_set_resolution (camera, resolutionStateArray[i].res_byte1, resolutionStateArray[i].res_byte2, 
-							      resolutionStateArray[i].res_byte3, context) == GP_OK)
-					gp_context_status (context, _("Resolution changed"));
+				if (canon_int_set_image_format (camera, imageFormatStateArray[i].res_byte1, imageFormatStateArray[i].res_byte2,
+								  imageFormatStateArray[i].res_byte3, context) == GP_OK)
+					gp_context_status (context, _("Image format changed"));
 				else
-					gp_context_status (context, _("Could not change resolution"));
+					gp_context_status (context, _("Could not change image format"));
 			}
 		}
 	}
 
-	gp_widget_get_child_by_label (window, _("Focus mode"), &w);
+	gp_widget_get_child_by_label (window, _("Focus Mode"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 		if (!check_readiness (camera, context)) {
@@ -2216,31 +2318,18 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 	/* Zoom */
 	gp_widget_get_child_by_label (window, _("Zoom"), &w);
 	if (gp_widget_changed (w)) {
-		gp_widget_get_value (w, &wvalue);
+		float zoom;
+		gp_widget_get_value (w, &zoom);
 		if (!check_readiness (camera, context)) {
 			gp_context_status (context, _("Camera unavailable"));
 		} else {
-
-			/* Map the menu option setting to the camera binary value */
-			i = 0;
-			while (zoomLevelStateArray[i].label) {
-				if (strcmp (_(zoomLevelStateArray[i].label), wvalue) == 0) {
-					zoom = zoomLevelStateArray[i].value;
-					break;
-				}
-				i++;
-			}
-
-			if (!zoomLevelStateArray[i].label) {
-				gp_context_status (context, _("Invalid zoom level"));
-			} else {
 				if (canon_int_set_zoom (camera, zoom, context) == GP_OK)
 					gp_context_status (context, _("Zoom level changed"));
 				else
 					gp_context_status (context, _("Could not change zoom level"));
 			}		
 		}
-	}
+
 
 	/* Aperture */
 	gp_widget_get_child_by_label (window, _("Aperture"), &w);
@@ -2272,7 +2361,7 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 	}
 
 	/* Flash mode */
-	gp_widget_get_child_by_label (window, _("Flash mode"), &w);
+	gp_widget_get_child_by_label (window, _("Flash Mode"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 		if (!check_readiness (camera, context)) {
@@ -2301,7 +2390,7 @@ camera_set_config (Camera *camera, CameraWidget *window, GPContext *context)
 	}
 
 
-	gp_widget_get_child_by_label (window, _("Set camera date to PC date"), &w);
+	gp_widget_get_child_by_label (window, _("Synchronize camera date and time with PC"), &w);
 	if (gp_widget_changed (w)) {
 		gp_widget_get_value (w, &wvalue);
 		if (!check_readiness (camera, context)) {

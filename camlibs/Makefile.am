@@ -59,6 +59,7 @@ camlib_libadd = $(top_builddir)/libgphoto2/libgphoto2.la
 include adc65/Makefile-files
 include agfa-cl20/Makefile-files
 include aox/Makefile-files
+include ax203/Makefile-files
 include barbie/Makefile-files
 include canon/Makefile-files
 include casio/Makefile-files
@@ -107,6 +108,7 @@ include sonydscf55/Makefile-files
 include soundvision/Makefile-files
 include spca50x/Makefile-files
 include sq905/Makefile-files
+include st2205/Makefile-files
 include stv0674/Makefile-files
 include stv0680/Makefile-files
 include sx330z/Makefile-files

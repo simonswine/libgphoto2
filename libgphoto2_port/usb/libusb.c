@@ -66,6 +66,8 @@ struct _GPPortPrivateLibrary {
 	int config;
 	int interface;
 	int altsetting;
+
+	int detached;
 };
 
 GPPortType
@@ -84,10 +86,6 @@ gp_port_library_list (GPPortInfoList *list)
 
 	/* default port first */
 	info.type = GP_PORT_USB;
-	strcpy (info.name, "Universal Serial Bus");
-	strcpy (info.path, "usb:");
-	CHECK (gp_port_info_list_append (list, info));
-
 	/* generic matcher. This will catch passed XXX,YYY entries for instance. */
 	memset (info.name, 0, sizeof(info.name));
 	strcpy (info.path, "^usb:");
@@ -140,11 +138,14 @@ gp_port_library_list (GPPortInfoList *list)
 		bus = bus->next;
 	}
 
+#if 0
+	/* Do not filter out usb:XXX,YYY, we want it for consistency... */
 	/* If we already added usb:, and have 0 or 1 devices we have nothing to do.
 	 * This should be the standard use case.
 	 */
 	if (nrofdevices <= 1) 
 		return (GP_OK);
+#endif
 
 	/* Redo the same bus/device walk, but now add the ports with usb:x,y notation,
 	 * so we can address all USB devices.
@@ -190,6 +191,13 @@ gp_port_library_list (GPPortInfoList *list)
 			CHECK (gp_port_info_list_append (list, info));
 		}
 		bus = bus->next;
+	}
+	/* This will only be added if no other device was ever added.
+	 * Users doing "usb:" usage will enter the regular expression matcher case. */
+	if (nrofdevices == 0) {
+		strcpy (info.name, "Universal Serial Bus");
+		strcpy (info.path, "usb:");
+		CHECK (gp_port_info_list_append (list, info));
 	}
 	return (GP_OK);
 }
@@ -258,6 +266,8 @@ gp_port_usb_open (GPPort *port)
 		ret = usb_detach_kernel_driver_np (port->pl->dh, port->settings.usb.interface);
 		if (ret < 0)
 			gp_port_set_error (port, _("Could not detach kernel driver '%s' of camera device."),name);
+		else
+			port->pl->detached = 1;
 	} else {
 		if (errno != ENODATA) /* ENODATA - just no driver there */
 			gp_port_set_error (port, _("Could not query kernel driver of device."));
@@ -304,6 +314,27 @@ gp_port_usb_close (GPPort *port)
 		}
 	}
 #endif
+#if defined(LIBUSB_HAS_GET_DRIVER_NP) && defined(LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP) && defined(USBDEVFS_CONNECT)
+	if (port->pl->detached) {
+		char filename[PATH_MAX + 1];
+		int fd;
+
+		/* FIXME shouldn't be a fixed path to usb root */
+		snprintf(filename, sizeof(filename) - 1, "%s/%s/%s", "/dev/bus/usb", port->pl->d->bus->dirname, port->pl->d->filename);
+		fd = open(filename, O_RDWR);
+
+		if (fd >= 0) {
+			struct usbdevfs_ioctl command;
+			command.ifno = 0;
+			command.ioctl_code = USBDEVFS_CONNECT;
+			command.data = NULL;
+			if (ioctl(fd, USBDEVFS_IOCTL, &command))
+				gp_log (GP_LOG_DEBUG,"libusb","reattach kernel driver failed");
+			close(fd);
+		}
+	}
+#endif
+
 	if (usb_close (port->pl->dh) < 0) {
 		gp_port_set_error (port, _("Could not close USB port (%m)."));
 		return (GP_ERROR_IO);
@@ -757,9 +788,11 @@ gp_port_usb_find_device_lib(GPPort *port, int idvendor, int idproduct)
 		}
 	}
 
+#if 0
 	gp_port_set_error (port, _("Could not find USB device "
 		"(vendor 0x%x, product 0x%x). Make sure this device "
 		"is connected to the computer."), idvendor, idproduct);
+#endif
 	return GP_ERROR_IO_USB_FIND;
 }
 
@@ -784,6 +817,35 @@ gp_port_usb_match_mtp_device(struct usb_device *dev,int *configno, int *interfac
 	devh = usb_open (dev);
 	if (!devh)
 		return 0;
+
+	/*
+	 * Loop over the device configurations and interfaces. Nokia MTP-capable 
+	 * handsets (possibly others) typically have the string "MTP" in their 
+	 * MTP interface descriptions, that's how they can be detected, before
+	 * we try the more esoteric "OS descriptors" (below).
+	 */
+	for (i = 0; i < dev->descriptor.bNumConfigurations; i++) {
+		unsigned int j;
+		for (j = 0; j < dev->config[i].bNumInterfaces; j++) {
+			int k;
+			for (k = 0; k < dev->config[i].interface[j].num_altsetting; k++) {
+				buf[0] = '\0';
+				ret = usb_get_string_simple(devh, 
+					dev->config[i].interface[j].altsetting[k].iInterface, 
+					(char *) buf, 
+					1024);
+				if (ret < 3)
+					continue;
+				if (strcmp((char *) buf, "MTP") == 0) {
+					gp_log (GP_LOG_DEBUG, "mtp matcher", "Configuration %d, interface %d, altsetting %d:\n", i, j, k);
+					gp_log (GP_LOG_DEBUG, "mtp matcher", "   Interface description contains the string \"MTP\"\n");
+					gp_log (GP_LOG_DEBUG, "mtp matcher", "   Device recognized as MTP, no further probing.\n");
+					goto found;
+				}
+			}
+		}
+	}
+
 	/* get string descriptor at 0xEE */
 	ret = usb_get_descriptor (devh, 0x03, 0xee, buf, sizeof(buf));
 	if (ret > 0) gp_log_data("get_MS_OSD",buf, ret);
@@ -816,6 +878,8 @@ gp_port_usb_match_mtp_device(struct usb_device *dev,int *configno, int *interfac
 		gp_log (GP_LOG_ERROR, "mtp matcher", "buf at 0x12 is %02x%02x%02x\n", buf[0x12], buf[0x13], buf[0x14]);
 		goto errout;
 	}
+
+found:
 	usb_close (devh);
 
 	/* Now chose a nice interface for us to use ... Just take the first. */
@@ -988,10 +1052,11 @@ gp_port_usb_find_device_by_class_lib(GPPort *port, int class, int subclass, int 
 			return GP_OK;
 		}
 	}
-
+#if 0
 	gp_port_set_error (port, _("Could not find USB device "
 		"(class 0x%x, subclass 0x%x, protocol 0x%x). Make sure this device "
 		"is connected to the computer."), class, subclass, protocol);
+#endif
 	return GP_ERROR_IO_USB_FIND;
 }
 

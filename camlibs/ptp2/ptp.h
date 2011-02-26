@@ -39,6 +39,11 @@ extern "C" {
 #define PTP_DL_BE			0xF0
 #define	PTP_DL_LE			0x0F
 
+/* USB interface class */
+#ifndef USB_CLASS_PTP
+#define USB_CLASS_PTP			6
+#endif
+
 /* PTP request/response/event general PTP container (transport independent) */
 
 struct _PTPContainer {
@@ -156,6 +161,11 @@ typedef struct _PTPIPHeader PTPIPHeader;
 #define PTP_VENDOR_STMICROELECTRONICS	0x00000009
 #define PTP_VENDOR_NIKON		0x0000000A
 #define PTP_VENDOR_CANON		0x0000000B
+#define PTP_VENDOR_FOTONATION		0x0000000C
+#define PTP_VENDOR_PENTAX		0x0000000D
+#define PTP_VENDOR_FUJI			0x0000000E
+/* Vendor extension ID used for MTP (occasionaly, usualy 6 is used) */
+#define PTP_VENDOR_MTP			0xffffffff  
 
 /* Operation Codes */
 
@@ -353,8 +363,12 @@ typedef struct _PTPIPHeader PTPIPHeader;
 #define PTP_OC_CANON_EOS_BulbStart		0x9125
 #define PTP_OC_CANON_EOS_BulbEnd		0x9126
 #define PTP_OC_CANON_EOS_RequestDevicePropValue	0x9127
+
+/* 0x9128 args (0x1/0x2, 0x0), no data, no resp args */
 #define PTP_OC_CANON_EOS_RemoteReleaseOn	0x9128
+/* 0x9129 args (0x1/0x2), no data, no resp args */
 #define PTP_OC_CANON_EOS_RemoteReleaseOff	0x9129
+
 #define PTP_OC_CANON_EOS_InitiateViewfinder	0x9151
 #define PTP_OC_CANON_EOS_TerminateViewfinder	0x9152
 #define PTP_OC_CANON_EOS_GetViewFinderData	0x9153
@@ -552,7 +566,13 @@ typedef struct _PTPIPHeader PTPIPHeader;
 #define PTP_RC_NIKON_AdvancedTransferCancel	0xA022
 
 /* Canon specific response codes */
-#define PTP_RC_CANON_A009		0xA009
+#define PTP_RC_CANON_UNKNOWN_COMMAND		0xA001
+#define PTP_RC_CANON_OPERATION_REFUSED		0xA005
+#define PTP_RC_CANON_LENS_COVER			0xA006
+#define PTP_RC_CANON_BATTERY_LOW		0xA101
+#define PTP_RC_CANON_NOT_READY			0xA102
+
+#define PTP_RC_CANON_A009			0xA009
 
 /* Microsoft/MTP specific codes */
 #define PTP_RC_MTP_Undefined			0xA800
@@ -582,6 +602,7 @@ typedef struct _PTPIPHeader PTPIPHeader;
 #define PTP_ERROR_RESP_EXPECTED		0x02FD
 #define PTP_ERROR_BADPARAM		0x02FC
 #define PTP_ERROR_CANCEL		0x02FB
+#define PTP_ERROR_TIMEOUT		0x02FA
 
 /* PTP Event Codes */
 
@@ -785,6 +806,9 @@ typedef struct _PTPObjectInfo PTPObjectInfo;
 /* Canon extension */
 #define PTP_OFC_CANON_CRW			0xb101
 #define PTP_OFC_CANON_CRW3			0xb103
+#define PTP_OFC_CANON_MOV			0xb104
+/* CHDK specific raw mode */
+#define PTP_OFC_CANON_CHDK_CRW			0xb1ff
 /* MTP extensions */
 #define PTP_OFC_MTP_MediaCard			0xb211
 #define PTP_OFC_MTP_MediaCardGroup		0xb212
@@ -800,6 +824,7 @@ typedef struct _PTPObjectInfo PTPObjectInfo;
 #define PTP_OFC_MTP_AAC				0xb903
 #define PTP_OFC_MTP_AudibleCodec		0xb904
 #define PTP_OFC_MTP_FLAC			0xb906
+#define PTP_OFC_MTP_SamsungPlaylist		0xb909
 #define PTP_OFC_MTP_UndefinedVideo		0xb980
 #define PTP_OFC_MTP_WMV				0xb981
 #define PTP_OFC_MTP_MP4				0xb982
@@ -1044,11 +1069,14 @@ struct _PTPNIKONWifiProfile {
 
 typedef struct _PTPNIKONWifiProfile PTPNIKONWifiProfile;
 
-#define PTP_CANON_EOS_CHANGES_TYPE_UNKNOWN	0
-#define PTP_CANON_EOS_CHANGES_TYPE_OBJECTINFO	1
+#define PTP_CANON_EOS_CHANGES_TYPE_UNKNOWN		0
+#define PTP_CANON_EOS_CHANGES_TYPE_OBJECTINFO		1
+#define PTP_CANON_EOS_CHANGES_TYPE_OBJECTTRANSFER	2
+#define PTP_CANON_EOS_CHANGES_TYPE_PROPERTY		3
+#define PTP_CANON_EOS_CHANGES_TYPE_CAMERASTATUS		4
 
 struct _PTPCanon_New_Object {
-	uint32_t		oid;
+	uint32_t	oid;
 	PTPObjectInfo	oi;
 };
 
@@ -1056,6 +1084,9 @@ struct _PTPCanon_changes_entry {
 	int	type;
 	union {
 		struct _PTPCanon_New_Object	object;	/* TYPE_OBJECTINFO */
+		char				*info;
+		uint16_t			propid;
+		int				status; /* 1 or 0 */
 	} u;
 };
 typedef struct _PTPCanon_changes_entry PTPCanon_changes_entry;
@@ -1285,6 +1316,7 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_CANON_EOS_PTPExtensionVersion	0xD119
 #define PTP_DPC_CANON_EOS_DPOFVersion		0xD11A
 #define PTP_DPC_CANON_EOS_AvailableShots	0xD11B
+#define PTP_CANON_EOS_CAPTUREDEST_HD		4
 #define PTP_DPC_CANON_EOS_CaptureDestination	0xD11C
 #define PTP_DPC_CANON_EOS_BracketMode		0xD11D
 #define PTP_DPC_CANON_EOS_CurrentStorage	0xD11E
@@ -1410,10 +1442,12 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_ToneCompensation			0xD02B
 #define PTP_DPC_NIKON_ColorModel			0xD02C
 #define PTP_DPC_NIKON_HueAdjustment			0xD02D
-#define PTP_DPC_NIKON_NonCPULensDataFocalLength		0xD02E
-#define PTP_DPC_NIKON_NonCPULensDataMaximumAperture	0xD02F
+#define PTP_DPC_NIKON_NonCPULensDataFocalLength		0xD02E	/* Set FMM Manual */
+#define PTP_DPC_NIKON_NonCPULensDataMaximumAperture	0xD02F	/* Set F0 Manual */
+#define PTP_DPC_NIKON_ShootingMode			0xD030
 #define PTP_DPC_NIKON_JPEG_Compression_Policy		0xD031
 #define PTP_DPC_NIKON_ColorSpace			0xD032
+#define PTP_DPC_NIKON_AutoDXCrop			0xD033
 #define PTP_DPC_NIKON_CSMMenuBankSelect			0xD040
 #define PTP_DPC_NIKON_MenuBankNameA			0xD041
 #define PTP_DPC_NIKON_MenuBankNameB			0xD042
@@ -1424,37 +1458,44 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_A2AFSModePriority			0xD049
 #define PTP_DPC_NIKON_A3GroupDynamicAF			0xD04A
 #define PTP_DPC_NIKON_A4AFActivation			0xD04B
-#define PTP_DPC_NIKON_A5FocusAreaIllumManualFocus	0xD04C
+#define PTP_DPC_NIKON_FocusAreaIllumManualFocus		0xD04C
 #define PTP_DPC_NIKON_FocusAreaIllumContinuous		0xD04D
 #define PTP_DPC_NIKON_FocusAreaIllumWhenSelected 	0xD04E
-#define PTP_DPC_NIKON_FocusAreaWrap			0xD04F
-#define PTP_DPC_NIKON_A7VerticalAFON			0xD050
+#define PTP_DPC_NIKON_FocusAreaWrap			0xD04F /* area sel */
+#define PTP_DPC_NIKON_VerticalAFON			0xD050
 #define PTP_DPC_NIKON_AFLockOn				0xD051
 #define PTP_DPC_NIKON_FocusAreaZone			0xD052
+#define PTP_DPC_NIKON_EnableCopyright			0xD053
 #define PTP_DPC_NIKON_ISOAuto				0xD054
-#define PTP_DPC_NIKON_B2ISOStep				0xD055 /* EV Step ISO */
+#define PTP_DPC_NIKON_EVISOStep				0xD055
 #define PTP_DPC_NIKON_EVStep				0xD056 /* EV Step SS FN */
-#define PTP_DPC_NIKON_B4ExposureCompEv			0xD057 /* EV Step Exposure Compensation */
+#define PTP_DPC_NIKON_EVStepExposureComp		0xD057
 #define PTP_DPC_NIKON_ExposureCompensation		0xD058
 #define PTP_DPC_NIKON_CenterWeightArea			0xD059
 #define PTP_DPC_NIKON_ExposureBaseMatrix		0xD05A
 #define PTP_DPC_NIKON_ExposureBaseCenter		0xD05B
 #define PTP_DPC_NIKON_ExposureBaseSpot			0xD05C
+#define PTP_DPC_NIKON_LiveViewAF			0xD05D
 #define PTP_DPC_NIKON_AELockMode			0xD05E
 #define PTP_DPC_NIKON_AELAFLMode			0xD05F
 #define PTP_DPC_NIKON_MeterOff				0xD062
 #define PTP_DPC_NIKON_SelfTimer				0xD063
 #define PTP_DPC_NIKON_MonitorOff			0xD064
-#define PTP_DPC_NIKON_D1ShootingSpeed			0xD068
+#define PTP_DPC_NIKON_ImgConfTime			0xD065
+#define PTP_DPC_NIKON_AngleLevel			0xD067
+#define PTP_DPC_NIKON_D1ShootingSpeed			0xD068 /* continous speed low */
 #define PTP_DPC_NIKON_D2MaximumShots			0xD069
-#define PTP_DPC_NIKON_D3ExpDelayMode			0xD06A
+#define PTP_DPC_NIKON_ExposureDelayMode			0xD06A
 #define PTP_DPC_NIKON_LongExposureNoiseReduction	0xD06B
 #define PTP_DPC_NIKON_FileNumberSequence		0xD06C
-#define PTP_DPC_NIKON_D6ControlPanelFinderRearControl	0xD06D
+#define PTP_DPC_NIKON_ControlPanelFinderRearControl	0xD06D
 #define PTP_DPC_NIKON_ControlPanelFinderViewfinder	0xD06E
 #define PTP_DPC_NIKON_D7Illumination			0xD06F
 #define PTP_DPC_NIKON_NrHighISO				0xD070
-#define PTP_DPC_NIKON_E1FlashSyncSpeed			0xD074
+#define PTP_DPC_NIKON_SHSET_CH_GUID_DISP		0xD071
+#define PTP_DPC_NIKON_ArtistName			0xD072
+#define PTP_DPC_NIKON_CopyrightInfo			0xD073
+#define PTP_DPC_NIKON_FlashSyncSpeed			0xD074
 #define PTP_DPC_NIKON_FlashShutterSpeed			0xD075	/* SB Low Limit */
 #define PTP_DPC_NIKON_E3AAFlashMode			0xD076
 #define PTP_DPC_NIKON_E4ModelingFlash			0xD077
@@ -1471,13 +1512,19 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_F5CustomizeCommDials		0xD085  /* CMD Dial Change */
 #define PTP_DPC_NIKON_ReverseCommandDial		0xD086  /* CMD Dial FN Set */
 #define PTP_DPC_NIKON_ApertureSetting			0xD087  /* CMD Dial Active */
-#define PTP_DPC_NIKON_MenusAndPlayback			0xD088  /* Universal Mode */
-#define PTP_DPC_NIKON_F6ButtonsAndDials			0xD089  /* Enable Shutter */
-#define PTP_DPC_NIKON_NoCFCard				0xD08A
+#define PTP_DPC_NIKON_MenusAndPlayback			0xD088  /* CMD Dial Active */
+#define PTP_DPC_NIKON_F6ButtonsAndDials			0xD089  /* Universal Mode? */
+#define PTP_DPC_NIKON_NoCFCard				0xD08A	/* Enable Shutter? */
 #define PTP_DPC_NIKON_CenterButtonZoomRatio		0xD08B
+#define PTP_DPC_NIKON_FunctionButton2			0xD08C
+#define PTP_DPC_NIKON_AFAreaPoint			0xD08D
+#define PTP_DPC_NIKON_NormalAFOn			0xD08E
 #define PTP_DPC_NIKON_ImageCommentString		0xD090
 #define PTP_DPC_NIKON_ImageCommentEnable		0xD091
 #define PTP_DPC_NIKON_ImageRotation			0xD092
+#define PTP_DPC_NIKON_ManualSetLensNo			0xD093
+#define PTP_DPC_NIKON_MovScreenSize			0xD0A0
+#define PTP_DPC_NIKON_MovVoice				0xD0A1
 #define PTP_DPC_NIKON_Bracketing			0xD0C0
 #define PTP_DPC_NIKON_AutoExposureBracketStep		0xD0C1
 #define PTP_DPC_NIKON_AutoExposureBracketProgram	0xD0C2
@@ -1491,7 +1538,13 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_FocalLengthMax			0xD0E4
 #define PTP_DPC_NIKON_MaxApAtMinFocalLength		0xD0E5
 #define PTP_DPC_NIKON_MaxApAtMaxFocalLength		0xD0E6
-#define PTP_DPC_NIKON_ExposureTime			0xD100
+#define PTP_DPC_NIKON_FinderISODisp			0xD0F0
+#define PTP_DPC_NIKON_AutoOffPhoto			0xD0F2
+#define PTP_DPC_NIKON_AutoOffMenu			0xD0F3
+#define PTP_DPC_NIKON_AutoOffInfo			0xD0F4
+#define PTP_DPC_NIKON_SelfTimerShootNum			0xD0F5
+#define PTP_DPC_NIKON_VignetteCtrl			0xD0F7
+#define PTP_DPC_NIKON_ExposureTime			0xD100	/* Shutter Speed */
 #define PTP_DPC_NIKON_ACPower				0xD101
 #define PTP_DPC_NIKON_WarningStatus			0xD102
 #define PTP_DPC_NIKON_MaximumShots			0xD103 /* remain shots (in RAM buffer?) */
@@ -1507,10 +1560,16 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_CCDNumber				0xD10D
 #define PTP_DPC_NIKON_CameraOrientation			0xD10E
 #define PTP_DPC_NIKON_GroupPtnType			0xD10F
-#define PTP_DPC_NIKON_ExposureApertureLock		0xD111
+#define PTP_DPC_NIKON_FNumberLock			0xD110
+#define PTP_DPC_NIKON_ExposureApertureLock		0xD111	/* shutterspeed lock*/
+#define PTP_DPC_NIKON_TVLockSetting			0xD112
+#define PTP_DPC_NIKON_AVLockSetting			0xD113
+#define PTP_DPC_NIKON_IllumSetting			0xD114
+#define PTP_DPC_NIKON_FocusPointBright			0xD115
 #define PTP_DPC_NIKON_ExternalFlashAttached		0xD120
 #define PTP_DPC_NIKON_ExternalFlashStatus		0xD121
 #define PTP_DPC_NIKON_ExternalFlashSort			0xD122
+#define PTP_DPC_NIKON_ExternalFlashMode			0xD123
 #define PTP_DPC_NIKON_ExternalFlashCompensation		0xD124
 #define PTP_DPC_NIKON_NewExternalFlashMode		0xD125
 #define PTP_DPC_NIKON_FlashExposureCompensation		0xD126
@@ -1520,6 +1579,16 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_BW_Sharpness			0xD144
 #define PTP_DPC_NIKON_BW_Contrast			0xD145
 #define PTP_DPC_NIKON_BW_Setting_Type			0xD146
+#define PTP_DPC_NIKON_Slot2SaveMode			0xD148
+#define PTP_DPC_NIKON_RawBitMode			0xD149
+#define PTP_DPC_NIKON_ISOAutoTime			0xD14E
+#define PTP_DPC_NIKON_FlourescentType			0xD14F
+#define PTP_DPC_NIKON_TuneColourTemperature		0xD150
+#define PTP_DPC_NIKON_TunePreset0			0xD151
+#define PTP_DPC_NIKON_TunePreset1			0xD152
+#define PTP_DPC_NIKON_TunePreset2			0xD153
+#define PTP_DPC_NIKON_TunePreset3			0xD154
+#define PTP_DPC_NIKON_TunePreset4			0xD155
 #define PTP_DPC_NIKON_BeepOff				0xD160
 #define PTP_DPC_NIKON_AutofocusMode			0xD161
 #define PTP_DPC_NIKON_AFAssist				0xD163
@@ -1539,12 +1608,23 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_WarningDisplay			0xD181
 #define PTP_DPC_NIKON_BatteryCellKind			0xD182
 #define PTP_DPC_NIKON_ISOAutoHiLimit			0xD183
+#define PTP_DPC_NIKON_DynamicAFArea			0xD184
+#define PTP_DPC_NIKON_ContinuousSpeedHigh		0xD186
+#define PTP_DPC_NIKON_InfoDispSetting			0xD187
+#define PTP_DPC_NIKON_PreviewButton			0xD189
+#define PTP_DPC_NIKON_PreviewButton2			0xD18A
+#define PTP_DPC_NIKON_AEAFLockButton2			0xD18B
+#define PTP_DPC_NIKON_IndicatorDisp			0xD18D
+#define PTP_DPC_NIKON_CellKindPriority			0xD18E
 #define PTP_DPC_NIKON_BracketingFramesAndSteps		0xD190
+#define PTP_DPC_NIKON_LiveViewMode			0xD1A0
+#define PTP_DPC_NIKON_LiveViewDriveMode			0xD1A1
 #define PTP_DPC_NIKON_LiveViewStatus			0xD1A2
 #define PTP_DPC_NIKON_LiveViewImageZoomRatio		0xD1A3
 #define PTP_DPC_NIKON_LiveViewProhibitCondition		0xD1A4
 #define PTP_DPC_NIKON_ExposureDisplayStatus		0xD1B0
 #define PTP_DPC_NIKON_ExposureIndicateStatus		0xD1B1
+#define PTP_DPC_NIKON_InfoDispErrStatus			0xD1B2
 #define PTP_DPC_NIKON_ExposureIndicateLightup		0xD1B3
 #define PTP_DPC_NIKON_FlashOpen				0xD1C0
 #define PTP_DPC_NIKON_FlashCharged			0xD1C1
@@ -1563,6 +1643,15 @@ typedef struct _PTPCanonEOSDeviceInfo {
 #define PTP_DPC_NIKON_FlashCommandBValue		0xD1DC
 #define PTP_DPC_NIKON_ActivePicCtrlItem			0xD200
 #define PTP_DPC_NIKON_ChangePicCtrlItem			0xD201
+
+/* Fuji specific */
+#define PTP_DPC_FUJI_ColorTemperature			0xD017
+#define PTP_DPC_FUJI_Quality				0xD018
+#define PTP_DPC_FUJI_ReleaseMode			0xD201
+#define PTP_DPC_FUJI_FocusAreas				0xD206
+#define PTP_DPC_FUJI_AELock				0xD213
+#define PTP_DPC_FUJI_Aperture				0xD218
+#define PTP_DPC_FUJI_ShutterSpeed			0xD219
 
 /* Microsoft/MTP specific */
 #define PTP_DPC_MTP_SecureTime				0xD101
@@ -1780,17 +1869,17 @@ typedef struct _PTPCanonEOSDeviceInfo {
 typedef struct _PTPParams PTPParams;
 
 
-typedef uint16_t (* PTPDataGetFunc)	(PTPParams* params, void* private,
+typedef uint16_t (* PTPDataGetFunc)	(PTPParams* params, void*priv,
 					unsigned long wantlen,
 	                                unsigned char *data, unsigned long *gotlen);
 
-typedef uint16_t (* PTPDataPutFunc)	(PTPParams* params, void* private,
+typedef uint16_t (* PTPDataPutFunc)	(PTPParams* params, void*priv,
 					unsigned long sendlen,
 	                                unsigned char *data, unsigned long *putlen);
 typedef struct _PTPDataHandler {
 	PTPDataGetFunc		getfunc;
 	PTPDataPutFunc		putfunc;
-	void			*private;
+	void			*priv;
 } PTPDataHandler;
 
 /*
@@ -1864,11 +1953,13 @@ struct _PTPParams {
 	uint32_t		*canon_flags; /* size(handles.n) */
 	PTPCanon_Property	*canon_props;
 	int			nrofcanon_props;
+	int			canon_viewfinder_on;
 
 	/* PTP: Canon EOS event queue */
 	PTPCanon_changes_entry	*backlogentries;
 	int			nrofbacklogentries;
 	int			eos_captureenabled;
+	int			eos_viewfinderenabled;
 
 	/* PTP: Wifi profiles */
 	uint8_t 	wifi_profiles_version;
@@ -1922,14 +2013,43 @@ uint16_t ptp_ptpip_event_check	(PTPParams* params, PTPContainer* event);
 
 uint16_t ptp_getdeviceinfo	(PTPParams* params, PTPDeviceInfo* deviceinfo);
 
-uint16_t ptp_opensession	(PTPParams *params, uint32_t session);
-uint16_t ptp_closesession	(PTPParams *params);
+uint16_t ptp_generic_no_data	(PTPParams* params, uint16_t opcode, unsigned int cnt, ...);
 
-uint16_t ptp_resetdevice	(PTPParams* params);
+uint16_t ptp_opensession	(PTPParams *params, uint32_t session);
+
+/**
+ * ptp_closesession:
+ * params:      PTPParams*
+ *
+ * Closes session.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+#define ptp_closesession(params) ptp_generic_no_data(params,PTP_OC_CloseSession,0)
+/**
+ * ptp_resetdevice:
+ * params:      PTPParams*
+ *              
+ * Uses the built-in function to reset the device
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ */
+#define ptp_resetdevice(params) ptp_generic_no_data(params,PTP_OC_ResetDevice,0)
+
 uint16_t ptp_getstorageids	(PTPParams* params, PTPStorageIDs* storageids);
 uint16_t ptp_getstorageinfo 	(PTPParams* params, uint32_t storageid,
 				PTPStorageInfo* storageinfo);
-uint16_t ptp_formatstore        (PTPParams* params, uint32_t storageid);
+/**
+ * ptp_formatstore:
+ * params:      PTPParams*
+ *              storageid               - StorageID
+ *
+ * Formats the storage on the device.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+#define ptp_formatstore(params,storageid) ptp_generic_no_data(params,PTP_OC_FormatStore,1,storageid)
 
 uint16_t ptp_getobjecthandles 	(PTPParams* params, uint32_t storage,
 				uint32_t objectformatcode,
@@ -1949,7 +2069,8 @@ uint16_t ptp_getobject		(PTPParams *params, uint32_t handle,
 uint16_t ptp_getobject_tofd     (PTPParams* params, uint32_t handle, int fd);
 uint16_t ptp_getobject_to_handler (PTPParams* params, uint32_t handle, PTPDataHandler*);
 uint16_t ptp_getpartialobject	(PTPParams* params, uint32_t handle, uint32_t offset,
-				uint32_t maxbytes, unsigned char** object);
+				uint32_t maxbytes, unsigned char** object,
+				uint32_t *len);
 uint16_t ptp_getthumb		(PTPParams *params, uint32_t handle,
 				unsigned char** object);
 
@@ -1959,14 +2080,36 @@ uint16_t ptp_deleteobject	(PTPParams* params, uint32_t handle,
 uint16_t ptp_sendobjectinfo	(PTPParams* params, uint32_t* store,
 				uint32_t* parenthandle, uint32_t* handle,
 				PTPObjectInfo* objectinfo);
-uint16_t ptp_setobjectprotection (PTPParams* params, uint32_t oid, uint16_t newprot);
+/**
+ * ptp_setobjectprotection:
+ * params:      PTPParams*
+ *              uint16_t newprot        - object protection flag
+ *              
+ * Set protection of object.
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ */
+#define ptp_setobjectprotection(params,oid,newprot) ptp_generic_no_data(params,PTP_OC_SetObjectProtection,2,oid,newprot)
 uint16_t ptp_sendobject		(PTPParams* params, unsigned char* object,
 				 uint32_t size);
 uint16_t ptp_sendobject_fromfd  (PTPParams* params, int fd, uint32_t size);
 uint16_t ptp_sendobject_from_handler  (PTPParams* params, PTPDataHandler*, uint32_t size);
-
-uint16_t ptp_initiatecapture	(PTPParams* params, uint32_t storageid,
-				uint32_t ofc);
+/**
+ * ptp_initiatecapture:
+ * params:      PTPParams*
+ *              storageid               - destination StorageID on Responder
+ *              ofc                     - object format code
+ * 
+ * Causes device to initiate the capture of one or more new data objects
+ * according to its current device properties, storing the data into store
+ * indicated by storageid. If storageid is 0x00000000, the object(s) will
+ * be stored in a store that is determined by the capturing device.
+ * The capturing of new data objects is an asynchronous operation.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+#define ptp_initiatecapture(params,storageid,ofc) ptp_generic_no_data(params,PTP_OC_InitiateCapture,2,storageid,ofc)
 
 uint16_t ptp_getdevicepropdesc	(PTPParams* params, uint16_t propcode,
 				PTPDevicePropDesc *devicepropertydesc);
@@ -2009,31 +2152,161 @@ uint16_t ptp_ek_sendfileobject_from_handler	(PTPParams* params, PTPDataHandler*,
 				uint32_t size);
 
 /* Canon PTP extensions */
-uint16_t ptp_canon_9012 (PTPParams* params);
+#define ptp_canon_9012(params) ptp_generic_no_data(params,0x9012,0)
 uint16_t ptp_canon_gettreeinfo (PTPParams* params, uint32_t* out);
 uint16_t ptp_canon_gettreesize (PTPParams* params, PTPCanon_directtransfer_entry**, unsigned int*cnt);
 uint16_t ptp_canon_getpartialobjectinfo (PTPParams* params, uint32_t handle,
 				uint32_t p2, uint32_t* size, uint32_t* rp2);
 
 uint16_t ptp_canon_get_mac_address (PTPParams* params, unsigned char **mac);
-uint16_t ptp_canon_startshootingmode (PTPParams* params);
-uint16_t ptp_canon_endshootingmode (PTPParams* params);
-
-uint16_t ptp_canon_viewfinderon (PTPParams* params);
-uint16_t ptp_canon_viewfinderoff (PTPParams* params);
-
+/**
+ * ptp_canon_startshootingmode:
+ * params:      PTPParams*
+ * 
+ * Starts shooting session. It emits a StorageInfoChanged
+ * event via the interrupt pipe and pushes the StorageInfoChanged
+ * and CANON_CameraModeChange events onto the event stack
+ * (see operation PTP_OC_CANON_CheckEvent).
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_startshootingmode(params) ptp_generic_no_data(params,PTP_OC_CANON_InitiateReleaseControl,0)
+/**
+ * ptp_canon_endshootingmode:
+ * params:      PTPParams*
+ * 
+ * This operation is observed after pressing the Disconnect 
+ * button on the Remote Capture app. It emits a StorageInfoChanged 
+ * event via the interrupt pipe and pushes the StorageInfoChanged
+ * and CANON_CameraModeChange events onto the event stack
+ * (see operation PTP_OC_CANON_CheckEvent).
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_endshootingmode(params) ptp_generic_no_data(params,PTP_OC_CANON_TerminateReleaseControl,0)
+/**
+ * ptp_canon_viewfinderon:
+ * params:      PTPParams*
+ * 
+ * Prior to start reading viewfinder images, one  must call this operation.
+ * Supposedly, this operation affects the value of the CANON_ViewfinderMode
+ * property.
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_viewfinderon(params) ptp_generic_no_data(params,PTP_OC_CANON_ViewfinderOn,0)
+/**
+ * ptp_canon_viewfinderoff:
+ * params:      PTPParams*
+ * 
+ * Before changing the shooting mode, or when one doesn't need to read
+ * viewfinder images any more, one must call this operation.
+ * Supposedly, this operation affects the value of the CANON_ViewfinderMode
+ * property.
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_viewfinderoff(params) ptp_generic_no_data(params,PTP_OC_CANON_ViewfinderOff,0)
+/**
+ * ptp_canon_reset_aeafawb:
+ * params:      PTPParams*
+ *              uint32_t flags  - what shall be reset.
+ *                      1 - autoexposure
+ *                      2 - autofocus
+ *                      4 - autowhitebalance
+ * 
+ * Called "Reset AeAfAwb" (auto exposure, focus, white balance)
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
 #define PTP_CANON_RESET_AE	0x1
 #define PTP_CANON_RESET_AF	0x2
 #define PTP_CANON_RESET_AWB	0x4
-uint16_t ptp_canon_reset_aeafawb (PTPParams* params, uint32_t flags);
+#define ptp_canon_reset_aeafawb(params,flags) ptp_generic_no_data(params,PTP_OC_CANON_DoAeAfAwb,1,flags)
 uint16_t ptp_canon_checkevent (PTPParams* params, 
 				PTPContainer* event, int* isevent);
-uint16_t ptp_canon_focuslock (PTPParams* params);
-uint16_t ptp_canon_focusunlock (PTPParams* params);
-uint16_t ptp_canon_keepdeviceon (PTPParams* params);
-uint16_t ptp_canon_eos_keepdeviceon (PTPParams* params);
-uint16_t ptp_canon_initiatecaptureinmemory (PTPParams* params);
-uint16_t ptp_canon_eos_capture (PTPParams* params);
+/**
+ * ptp_canon_focuslock:
+ *
+ * This operation locks the focus. It is followed by the CANON_GetChanges(?)
+ * operation in the log. 
+ * It affects the CANON_MacroMode property. 
+ *
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_focuslock(params) ptp_generic_no_data(params,PTP_OC_CANON_FocusLock,0)
+/**
+ * ptp_canon_focusunlock:
+ *
+ * This operation unlocks the focus. It is followed by the CANON_GetChanges(?)
+ * operation in the log. 
+ * It sets the CANON_MacroMode property value to 1 (where it occurs in the log).
+ * 
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_focusunlock(params) ptp_generic_no_data(params,PTP_OC_CANON_FocusUnlock,0)
+/**
+ * ptp_canon_keepdeviceon:
+ *
+ * This operation sends a "ping" style message to the camera.
+ * 
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_keepdeviceon(params) ptp_generic_no_data(params,PTP_OC_CANON_KeepDeviceOn,0)
+/**
+ * ptp_canon_eos_keepdeviceon:
+ *
+ * This operation sends a "ping" style message to the camera.
+ * 
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_keepdeviceon(params) ptp_generic_no_data(params,PTP_OC_CANON_EOS_KeepDeviceOn,0)
+/**
+ * ptp_canon_initiatecaptureinmemory:
+ * 
+ * This operation starts the image capture according to the current camera
+ * settings. When the capture has happened, the camera emits a CaptureComplete
+ * event via the interrupt pipe and pushes the CANON_RequestObjectTransfer,
+ * CANON_DeviceInfoChanged and CaptureComplete events onto the event stack
+ * (see operation CANON_CheckEvent). From the CANON_RequestObjectTransfer
+ * event's parameter one can learn the just captured image's ObjectHandle.
+ * The image is stored in the camera's own RAM.
+ * On the next capture the image will be overwritten!
+ *
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_initiatecaptureinmemory(params) ptp_generic_no_data(params,PTP_OC_CANON_InitiateCaptureInMemory,0)
+/**
+ * ptp_canon_eos_requestdevicepropvalue:
+ *
+ * This operation sends a "ping" style message to the camera.
+ * 
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_requestdevicepropvalue(params,prop) ptp_generic_no_data(params,PTP_OC_CANON_EOS_RequestDevicePropValue,1,prop)
+uint16_t ptp_canon_eos_capture (PTPParams* params, uint32_t *result);
 uint16_t ptp_canon_eos_getevent (PTPParams* params, PTPCanon_changes_entry **entries, int *nrofentries);
 uint16_t ptp_canon_getpartialobject (PTPParams* params, uint32_t handle, 
 				uint32_t offset, uint32_t size,
@@ -2049,26 +2322,90 @@ uint16_t ptp_canon_getobjectinfo (PTPParams* params, uint32_t store,
 				PTPCANONFolderEntry** entries,
 				uint32_t* entnum);
 uint16_t ptp_canon_eos_getdeviceinfo (PTPParams* params, PTPCanonEOSDeviceInfo*di);
-uint16_t ptp_canon_eos_setuilock (PTPParams* params);
-uint16_t ptp_canon_eos_resetuilock (PTPParams* params);
-uint16_t ptp_canon_eos_start_viewfinder (PTPParams* params);
-uint16_t ptp_canon_eos_end_viewfinder (PTPParams* params);
+/**
+ * ptp_canon_eos_setuilock:
+ *
+ * This command sets UI lock
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_setuilock(params) ptp_generic_no_data(params,PTP_OC_CANON_EOS_SetUILock,0)
+/**
+ * ptp_canon_eos_resetuilock:
+ *
+ * This command sets UI lock
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_resetuilock(params) ptp_generic_no_data(params,PTP_OC_CANON_EOS_ResetUILock,0)
+/**
+ * ptp_canon_eos_start_viewfinder:
+ *
+ * This command starts Viewfinder mode of newer Canon DSLRs.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_start_viewfinder(params) ptp_generic_no_data(params,PTP_OC_CANON_EOS_InitiateViewfinder,0)
+/**
+ * ptp_canon_eos_end_viewfinder:
+ *
+ * This command ends Viewfinder mode of newer Canon DSLRs.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_end_viewfinder(params) ptp_generic_no_data(params,PTP_OC_CANON_EOS_TerminateViewfinder,0)
 uint16_t ptp_canon_eos_get_viewfinder_image (PTPParams* params, unsigned char **data, unsigned int *size);
 uint16_t ptp_canon_get_objecthandle_by_name (PTPParams* params, char* name, uint32_t* objectid);
 uint16_t ptp_canon_get_directory (PTPParams* params, PTPObjectHandles *handles, PTPObjectInfo **oinfos, uint32_t **flags);
-uint16_t ptp_canon_setobjectarchive (PTPParams* params, uint32_t oid, uint32_t flags);
+/**
+ * ptp_canon_setobjectarchive:
+ *
+ * params:      PTPParams*
+ *              uint32_t        objectid
+ *              uint32_t        flags
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_setobjectarchive(params,oid,flags) ptp_generic_no_data(params,PTP_OC_CANON_SetObjectArchive,2,oid,flags)
 uint16_t ptp_canon_get_customize_data (PTPParams* params, uint32_t themenr,
 				unsigned char **data, unsigned int *size);
 uint16_t ptp_canon_getpairinginfo (PTPParams* params, uint32_t nr, unsigned char**, unsigned int*);
 
 uint16_t ptp_canon_eos_getstorageids (PTPParams* params, PTPStorageIDs* storageids);
-uint16_t ptp_canon_eos_getstorageinfo (PTPParams* params, uint32_t p1);
+uint16_t ptp_canon_eos_getstorageinfo (PTPParams* params, uint32_t p1, unsigned char**, unsigned int*);
 uint16_t ptp_canon_eos_getpartialobject (PTPParams* params, uint32_t oid, uint32_t off, uint32_t xsize, unsigned char**data);
 uint16_t ptp_canon_eos_setdevicepropvalueex (PTPParams* params, unsigned char* data, unsigned int size);
-uint16_t ptp_canon_eos_setremotemode (PTPParams* params, uint32_t p1);
-uint16_t ptp_canon_eos_seteventmode (PTPParams* params, uint32_t p1);
-uint16_t ptp_canon_eos_transfercomplete (PTPParams* params, uint32_t oid);
-uint16_t ptp_canon_eos_pchddcapacity (PTPParams* params, uint32_t p1, uint32_t p2, uint32_t p3);
+#define ptp_canon_eos_setremotemode(params,p1) ptp_generic_no_data(params,PTP_OC_CANON_EOS_SetRemoteMode,1,p1)
+#define ptp_canon_eos_seteventmode(params,p1) ptp_generic_no_data(params,PTP_OC_CANON_EOS_SetEventMode,1,p1)
+/**
+ * ptp_canon_eos_transfercomplete:
+ * 
+ * This ends a direct object transfer from an EOS camera.
+ *
+ * params:      PTPParams*
+ *              oid             Object ID
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ */
+#define ptp_canon_eos_transfercomplete(params,oid) ptp_generic_no_data(params,PTP_OC_CANON_EOS_TransferComplete,1,oid)
+/* inHDD = %d, inLength =%d, inReset = %d */
+#define ptp_canon_eos_pchddcapacity(params,p1,p2,p3) ptp_generic_no_data(params,PTP_OC_CANON_EOS_PCHDDCapacity,3,p1,p2,p3)
+uint16_t ptp_canon_eos_bulbstart (PTPParams* params);
+uint16_t ptp_canon_eos_bulbend (PTPParams* params);
 uint16_t ptp_canon_eos_getdevicepropdesc (PTPParams* params, uint16_t propcode,
 				PTPDevicePropDesc *devicepropertydesc);
 uint16_t ptp_canon_eos_setdevicepropvalue (PTPParams* params, uint16_t propcode,
@@ -2079,20 +2416,165 @@ uint16_t ptp_nikon_curve_download (PTPParams* params,
 uint16_t ptp_nikon_getptpipinfo (PTPParams* params, unsigned char **data, unsigned int *size);
 uint16_t ptp_nikon_getwifiprofilelist (PTPParams* params);
 uint16_t ptp_nikon_writewifiprofile (PTPParams* params, PTPNIKONWifiProfile* profile);
-uint16_t ptp_nikon_deletewifiprofile (PTPParams* params, uint32_t profilenr);
-uint16_t ptp_nikon_setcontrolmode (PTPParams* params, uint32_t mode);
-uint16_t ptp_nikon_afdrive (PTPParams* params);
-uint16_t ptp_nikon_mfdrive (PTPParams* params, uint32_t flag, uint16_t amount);
-uint16_t ptp_nikon_capture (PTPParams* params, uint32_t x);
-uint16_t ptp_nikon_capture_sdram (PTPParams* params);
-uint16_t ptp_nikon_start_liveview (PTPParams* params);
+/**
+ * ptp_nikon_deletewifiprofile:
+ *
+ * This command deletes a wifi profile.
+ *  
+ * params:      PTPParams*
+ *      unsigned int profilenr  - profile number
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_deletewifiprofile(params,profilenr) ptp_generic_no_data(params,PTP_OC_NIKON_DeleteProfile,1,profilenr)
+/**
+ * ptp_nikon_setcontrolmode:
+ *
+ * This command can switch the camera to full PC control mode.
+ *  
+ * params:      PTPParams*
+ *      uint32_t mode - mode
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_setcontrolmode(params,mode) ptp_generic_no_data(params,PTP_OC_NIKON_SetControlMode,1,mode)
+/**
+ * ptp_nikon_afdrive:
+ *
+ * This command runs (drives) the lens autofocus.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_afdrive(params) ptp_generic_no_data(params,PTP_OC_NIKON_AfDrive,0)
+/**
+ * ptp_canon_eos_afdrive:
+ *
+ * This command runs (drives) the lens autofocus.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_afdrive(params) ptp_generic_no_data(params,PTP_OC_CANON_EOS_DoAf,0)
+/**
+ * ptp_canon_eos_zoom:
+ *
+ * This command runs (drives) the lens autofocus.
+ *  
+ * params:      PTPParams*
+ * params:      arg1 unknown
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_zoom(params,x) ptp_generic_no_data(params,PTP_OC_CANON_EOS_Zoom,1,x)
+#define ptp_canon_eos_zoomposition(params,x,y) ptp_generic_no_data(params,PTP_OC_CANON_EOS_ZoomPosition,2,x,y)
+/**
+ * ptp_nikon_mfdrive:
+ *
+ * This command runs (drives) the lens focus manually.
+ *  
+ * params:      PTPParams*
+ * flag:        0x1 for (no limit - closest), 0x2 for (closest - no limit)
+ * amount:      amount of steps
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_mfdrive(params,flag,amount) ptp_generic_no_data(params,PTP_OC_NIKON_MfDrive,2,flag,amount)
+
+/**
+ * ptp_canon_eos_drivelens:
+ *
+ * This command runs (drives) the lens focus manually.
+ *  
+ * params:      PTPParams*
+ * amount:      0x1-0x3 for near range, 0x8001-0x8003 for far range.
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_canon_eos_drivelens(params,amount) ptp_generic_no_data(params,PTP_OC_CANON_EOS_DriveLens,1,amount)
+/**
+ * ptp_nikon_capture:
+ *
+ * This command captures a picture on the Nikon.
+ *  
+ * params:      PTPParams*
+ *      uint32_t x - unknown parameter. seen to be -1.
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_capture(params,x) ptp_generic_no_data(params,PTP_OC_NIKON_Capture,1,x)
+/**
+ * ptp_nikon_capture_sdram:
+ *
+ * This command captures a picture on the Nikon.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_capture_sdram(params) ptp_generic_no_data(params,PTP_OC_NIKON_AfCaptureSDRAM,0)
+/**
+ * ptp_nikon_delete_sdram_image:
+ *
+ * This command deletes the current SDRAM image
+ *  
+ * params:      PTPParams*
+ * uint32_t	oid
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_delete_sdram_image(params,oid) ptp_generic_no_data(params,PTP_OC_NIKON_DelImageSDRAM,1,oid)
+/**
+ * ptp_nikon_start_liveview:
+ *
+ * This command starts LiveView mode of newer Nikons DSLRs.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_start_liveview(params) ptp_generic_no_data(params,PTP_OC_NIKON_StartLiveView,0)
 uint16_t ptp_nikon_get_liveview_image (PTPParams* params, unsigned char**,unsigned int*);
 uint16_t ptp_nikon_get_preview_image (PTPParams* params, unsigned char**, unsigned int*, uint32_t*);
-uint16_t ptp_nikon_end_liveview (PTPParams* params);
+/**
+ * ptp_nikon_end_liveview:
+ *
+ * This command ends LiveView mode of newer Nikons DSLRs.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_end_liveview(params) ptp_generic_no_data(params,PTP_OC_NIKON_EndLiveView,0)
 uint16_t ptp_nikon_check_event (PTPParams* params, PTPContainer **evt, int *evtcnt);
 uint16_t ptp_nikon_getfileinfoinblock (PTPParams* params, uint32_t p1, uint32_t p2, uint32_t p3,
 					unsigned char **data, unsigned int *size);
-uint16_t ptp_nikon_device_ready (PTPParams* params);
+/**
+ * ptp_nikon_device_ready:
+ *
+ * This command checks if the device is ready. Used after
+ * a capture.
+ *  
+ * params:      PTPParams*
+ *
+ * Return values: Some PTP_RC_* code.
+ *
+ **/
+#define ptp_nikon_device_ready(params) ptp_generic_no_data (params, PTP_OC_NIKON_DeviceReady, 0)
 uint16_t ptp_mtp_getobjectpropssupported (PTPParams* params, uint16_t ofc, uint32_t *propnum, uint16_t **props);
 
 /* Non PTP protocol functions */

@@ -117,7 +117,7 @@ static struct {
 
 	{"Nikon", "CoolPix 4300 (Sierra Mode)", SIERRA_MODEL_CAM_DESC, 0x04b0, 0x010e,
 						SIERRA_WRAP_USB_NIKON | SIERRA_NO_51,
-							&cp880_cam_desc},
+							&cp4300_cam_desc},
 	{"Nikon", "CoolPix 3500 (Sierra Mode)", SIERRA_MODEL_CAM_DESC, 0x04b0, 0x0110,
 						SIERRA_WRAP_USB_NIKON | SIERRA_NO_51,
 							&cp880_cam_desc},
@@ -205,11 +205,16 @@ static struct {
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
 	{"Olympus", "fe-200", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x109,
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
+	{"Olympus", "E-520", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x110,
+				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
 
 	{"Panasonic", "Coolshot NV-DCF5E", SIERRA_MODEL_DEFAULT, 0, 0, 0, NULL },
 
 	{"Pentax", "Optio 450", SIERRA_MODEL_DEFAULT, 0x0a17,0x0007, SIERRA_WRAP_USB_PENTAX, NULL },
 	{"Pentax", "Optio 33WR", SIERRA_MODEL_DEFAULT, 0x0a17,0x0009, SIERRA_WRAP_USB_PENTAX, NULL },
+	/* has only very bare reactions
+	{"Pentax", "Optio W90 (Sierra Mode)", SIERRA_MODEL_DEFAULT, 0x0a17,0x00f6, SIERRA_WRAP_USB_PENTAX, NULL },
+	 */
 
 	{"Polaroid", "PDC 640", 	SIERRA_MODEL_DEFAULT,	0, 0, 0, NULL },
 	{"Polaroid", "PDC 2300Z", SIERRA_MODEL_DEFAULT, 0x0546, 0x0daf,

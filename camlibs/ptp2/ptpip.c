@@ -35,7 +35,9 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -43,6 +45,9 @@
 #include <gphoto2/gphoto2-library.h>
 #include <gphoto2/gphoto2-port-log.h>
 #include <gphoto2/gphoto2-setting.h>
+
+#include "ptp.h"
+#include "ptp-private.h"
 
 #define PTPIP_VERSION_MAJOR 0x0001
 #define PTPIP_VERSION_MINOR 0x0000
@@ -136,7 +141,7 @@ ptp_ptpip_generic_read (PTPParams *params, int fd, PTPIPHeader *hdr, unsigned ch
 			return PTP_RC_GeneralError;
 		}
 		gp_log_data ( "ptpip/generic_read", (char*)xhdr+curread, ret);
-		curread += len;
+		curread += ret;
 		if (ret == 0) {
 			gp_log (GP_LOG_ERROR, "ptpip", "End of stream after reading %d bytes of ptpipheader", ret);
 			return PTP_RC_GeneralError;
@@ -208,6 +213,7 @@ ptp_ptpip_check_event (PTPParams* params) {
 
 #define ptpip_startdata_transid		0
 #define ptpip_startdata_totallen	4
+#define ptpip_startdata_unknown		8
 #define ptpip_data_transid		0
 #define ptpip_data_payload		4
 
@@ -216,7 +222,7 @@ uint16_t
 ptp_ptpip_senddata (PTPParams* params, PTPContainer* ptp,
 		unsigned long size, PTPDataHandler *handler
 ) {
-	unsigned char	request[16];
+	unsigned char	request[0x14];
 	int		ret, curwrite, towrite;
 	unsigned char*	xdata;
 
@@ -224,6 +230,7 @@ ptp_ptpip_senddata (PTPParams* params, PTPContainer* ptp,
 	htod32a(&request[ptpip_len],sizeof(request));
 	htod32a(&request[ptpip_startdata_transid  + 8],ptp->Transaction_ID);
 	htod32a(&request[ptpip_startdata_totallen + 8],size);
+	htod32a(&request[ptpip_startdata_unknown  + 8],0);
 	gp_log_data ( "ptpip/senddata", (char*)request, sizeof(request));
 	ret = write (params->cmdfd, request, sizeof(request));
 	if (ret == -1)
@@ -247,7 +254,7 @@ ptp_ptpip_senddata (PTPParams* params, PTPContainer* ptp,
 		} else {
 			type	= PTPIP_END_DATA_PACKET;
 		}
-		ret = handler->getfunc (params, handler->private, towrite, &xdata[ptpip_data_payload+8], &xtowrite);
+		ret = handler->getfunc (params, handler->priv, towrite, &xdata[ptpip_data_payload+8], &xtowrite);
 		if (ret == -1) {
 			perror ("getfunc in senddata failed");
 			free (xdata);
@@ -311,7 +318,7 @@ ptp_ptpip_getdata (PTPParams* params, PTPContainer* ptp, PTPDataHandler *handler
 				);
 				break;
 			}
-			xret = handler->putfunc (params, handler->private,
+			xret = handler->putfunc (params, handler->priv,
 				datalen, xdata+ptpip_data_payload, &written
 			);
 			if (xret == -1) {
@@ -333,7 +340,7 @@ ptp_ptpip_getdata (PTPParams* params, PTPContainer* ptp, PTPDataHandler *handler
 				);
 				break;
 			}
-			xret = handler->putfunc (params, handler->private,
+			xret = handler->putfunc (params, handler->priv,
 				datalen, xdata+ptpip_data_payload, &written
 			);
 			if (xret == -1) {
@@ -649,10 +656,10 @@ ptp_ptpip_connect (PTPParams* params, const char *address) {
 	}
 	ret = ptp_ptpip_init_command_request (params);
 	if (ret != PTP_RC_OK)
-		return GP_ERROR_IO;
+		return translate_ptp_result (ret);
 	ret = ptp_ptpip_init_command_ack (params);
 	if (ret != PTP_RC_OK)
-		return GP_ERROR_IO;
+		return translate_ptp_result (ret);
 	if (-1 == connect (params->evtfd, (struct sockaddr*)&saddr, sizeof(struct sockaddr_in))) {
 		perror ("connect evt");
 		close (params->cmdfd);
@@ -661,10 +668,10 @@ ptp_ptpip_connect (PTPParams* params, const char *address) {
 	}
 	ret = ptp_ptpip_init_event_request (params);
 	if (ret != PTP_RC_OK)
-		return GP_ERROR_IO;
+		return translate_ptp_result (ret);
 	ret = ptp_ptpip_init_event_ack (params);
 	if (ret != PTP_RC_OK)
-		return GP_ERROR_IO;
+		return translate_ptp_result (ret);
 	gp_log (GP_LOG_DEBUG, "ptpip/connect", "ptpip connected!");
 	return GP_OK;
 }
