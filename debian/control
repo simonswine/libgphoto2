@@ -84,6 +84,7 @@ Depends:
  , ${misc:Depends}
  , adduser
 Recommends: ${udev-hotplug}
+ , libgphoto2-l10n
 Suggests: gphoto2 (>= 2.1.1)
 Description: gphoto2 digital camera library
  The gphoto2 library can be used by applications to access various
@@ -94,3 +95,16 @@ Description: gphoto2 digital camera library
  .
  The gphoto2 command-line frontend is shipped separately, in the gphoto2
  package.
+
+Package: libgphoto2-l10n
+Section: localization
+Architecture: all
+Breaks: libgphoto2-2 (<= 2.4.10.1-4)
+Replaces: libgphoto2-2 (<= 2.4.10.1-4)
+Depends: ${misc:Depends}
+Description: gphoto2 digital camera library - localized messages
+ The gphoto2 library can be used by applications to access various
+ digital camera models, via standard protocols such as USB Mass Storage
+ and PTP, or vendor-specific protocols.
+ .
+ This package contains the localized messages for the library.
