@@ -85,19 +85,3 @@ Description: gphoto2 digital camera library
  .
  The gphoto2 command-line frontend is shipped separately, in the gphoto2
  package.
-
-Package: libgphoto2-doc
-Architecture: all
-Section: doc
-Depends: ${misc:Depends}
-Breaks: libgphoto2-2 (<= 2.4.10.1-3)
-Replaces: libgphoto2-2 (<= 2.4.10.1-3)
-Description: gphoto2 digital camera library - documentation
- The gphoto2 library can be used by applications to access various
- digital camera models, via standard protocols such as USB Mass Storage
- and PTP, or vendor-specific protocols.
- .
- This package contains the library documentation.
- .
- The gphoto2 command-line frontend is shipped separately, in the gphoto2
- package.

@@ -2,8 +2,9 @@ libgphoto2 (2.4.10.1-5) UNRELEASED; urgency=low
 
   * Add missing package relationships for the package split
   * Install development documentation into more appropriate place
+  * Merge libgphoto2-doc back into libgphoto2-2
 
- -- David Paleino <dapal@debian.org>  Sun, 27 Feb 2011 09:33:47 +0100
+ -- David Paleino <dapal@debian.org>  Sun, 27 Feb 2011 16:35:57 +0100
 
 libgphoto2 (2.4.10.1-4) unstable; urgency=low
 
