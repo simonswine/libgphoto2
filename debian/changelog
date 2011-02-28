@@ -11,8 +11,11 @@ libgphoto2 (2.4.10.1-5) UNRELEASED; urgency=low
     Thanks Andreas Metzler for discussing this on pkg-phototools' list.
     Also, this didn't touch anyone, since -4 was REJECTED, and has
     never been public.
+  * Drop useless Provides/Replaces/Conflicts/Breaks from libgphoto2-2-dev:
+    those packages were present in 2004, so no need to still keep those
+    relationships there.
 
- -- David Paleino <dapal@debian.org>  Mon, 28 Feb 2011 16:42:16 +0100
+ -- David Paleino <dapal@debian.org>  Mon, 28 Feb 2011 16:45:50 +0100
 
 libgphoto2 (2.4.10.1-4) unstable; urgency=low
 

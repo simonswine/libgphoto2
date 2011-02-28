@@ -27,14 +27,6 @@ Homepage: http://www.gphoto.org/proj/libgphoto2/
 Package: libgphoto2-2-dev
 Section: libdevel
 Architecture: any
-Provides:
- libgphoto2port-dev
- , libgphoto2-dev
-Replaces:
- libgphoto2port-dev
- , libgphoto2-dev
-Conflicts: libgphoto2port-dev
-Breaks: gphoto2-dev (<= 2.1.1)
 Depends:
  libgphoto2-2 (= ${binary:Version})
  , libexif-dev
