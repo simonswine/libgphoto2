@@ -45,6 +45,8 @@ Package: libgphoto2-dev-doc
 Section: doc
 Architecture: all
 Depends: ${misc:Depends}
+Replaces: libgphoto2-2-dev (<= 2.4.10.1-3)
+Breaks: libgphoto2-2-dev (<= 2.4.10.1-3)
 Description: gphoto2 digital camera library (development documentation)
  The gphoto2 library can be used by applications to access various
  digital camera models, via standard protocols such as USB Mass Storage
