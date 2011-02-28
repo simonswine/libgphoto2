@@ -24,19 +24,17 @@ Vcs-Browser: http://git.debian.org/?p=pkg-phototools/libgphoto2.git
 Vcs-Git: git://git.debian.org/git/pkg-phototools/libgphoto2.git
 Homepage: http://www.gphoto.org/proj/libgphoto2/
 
-Package: libgphoto2-dev
+Package: libgphoto2-2-dev
 Section: libdevel
 Architecture: any
 Provides:
  libgphoto2port-dev
- , libgphoto2-2-dev
+ , libgphoto2-dev
 Replaces:
  libgphoto2port-dev
- , libgphoto2-2-dev
+ , libgphoto2-dev
 Conflicts: libgphoto2port-dev
-Breaks:
- gphoto2-dev (<= 2.1.1)
- , libgphoto2-2-dev (<= 2.4.10.1-3)
+Breaks: gphoto2-dev (<= 2.1.1)
 Depends:
  libgphoto2-2 (= ${binary:Version})
  , libexif-dev

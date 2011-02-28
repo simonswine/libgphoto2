@@ -5,8 +5,14 @@ libgphoto2 (2.4.10.1-5) UNRELEASED; urgency=low
   * Merge libgphoto2-doc back into libgphoto2-2
   * Add a new libgphoto2-l10n package, recommended by libgphoto2-2,
     to move the localized messages in a Arch:all package
+  * Rename libgphoto2-dev back to libgphoto2-2-dev: I'm not really
+    in the mood of breaking everything right now :) -- jokes aside,
+    it makes more sense to do this when the first SONAME bump happens.
+    Thanks Andreas Metzler for discussing this on pkg-phototools' list.
+    Also, this didn't touch anyone, since -4 was REJECTED, and has
+    never been public.
 
- -- David Paleino <dapal@debian.org>  Sun, 27 Feb 2011 16:44:24 +0100
+ -- David Paleino <dapal@debian.org>  Mon, 28 Feb 2011 16:42:16 +0100
 
 libgphoto2 (2.4.10.1-4) unstable; urgency=low
 
