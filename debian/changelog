@@ -6,13 +6,16 @@ libgphoto2 (2.4.10.1-6) UNRELEASED; urgency=low
   * Fix unset permissions with the generic PTP rule
     (00-fix_generic_PTP_permissions.patch) (Closes: #616648,
     #620941)
+  * debian/libgphoto2-2.{preinst,postinst,postrm}: properly
+    remove old configuration files using dpkg-maintscript-helper
+    (Closes: #622569)
 
   [ Andreas Metzler ]
   * Stop shipping libtool la files in development package.
     http://wiki.debian.org/ReleaseGoals/LAFileRemoval
     (Closes: #621619)
 
- -- David Paleino <dapal@debian.org>  Wed, 13 Apr 2011 11:36:49 +0200
+ -- David Paleino <dapal@debian.org>  Wed, 13 Apr 2011 11:41:26 +0200
 
 libgphoto2 (2.4.10.1-5) unstable; urgency=low
 
