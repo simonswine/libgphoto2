@@ -1,6 +1,7 @@
-libgphoto2 (2.4.10.1-6) UNRELEASED; urgency=low
+libgphoto2 (2.4.11-1) UNRELEASED; urgency=low
 
   [ David Paleino ]
+  * New upstream release
   * Fix README.Debian regarding the new udev rules location
     (Closes: #620937)
   * Fix unset permissions with the generic PTP rule
@@ -15,7 +16,7 @@ libgphoto2 (2.4.10.1-6) UNRELEASED; urgency=low
     http://wiki.debian.org/ReleaseGoals/LAFileRemoval
     (Closes: #621619)
 
- -- David Paleino <dapal@debian.org>  Wed, 13 Apr 2011 11:41:26 +0200
+ -- David Paleino <dapal@debian.org>  Mon, 18 Apr 2011 17:29:37 +0200
 
 libgphoto2 (2.4.10.1-5) unstable; urgency=low
 
