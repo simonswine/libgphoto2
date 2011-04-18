@@ -8,10 +8,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.9\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-08-08 22:53+0200\n"
+"POT-Creation-Date: 2011-03-13 23:34+0100\n"
 "PO-Revision-Date: 2010-05-09 20:44-0300\n"
 "Last-Translator: Fabrício Godoy <skarllot@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <ldp-br@bazar.conectiva.com.br>\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -322,8 +323,8 @@ msgstr "Limpar desligamento..."
 #, c-format
 msgid "Writing message (request=0x%x value=0x%x index=0x%x size=%i=0x%x)..."
 msgstr ""
-"Escrevendo mensagem (requisição=0x%x valor=0x%x índice=0x%x tamanho=%i=0x%"
-"x)..."
+"Escrevendo mensagem (requisição=0x%x valor=0x%x índice=0x%x tamanho=%i=0x"
+"%x)..."
 
 #: libgphoto2_port/gphoto2-port.c:893
 #, c-format
@@ -375,12 +376,12 @@ msgstr "O dispositivo \"%s\" não pôde ser destravado (dev_unlock retornou %d)"
 msgid "Serial Port %i"
 msgstr "Porta serial %i"
 
-#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:280
+#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
 #, c-format
 msgid "Failed to open '%s' (%m)."
 msgstr "Falhou ao abrir \"%s\" (%m)."
 
-#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:294
+#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
 #, c-format
 msgid "Could not close '%s' (%m)."
 msgstr "Não foi possível fechar \"%s\" (%m)."
@@ -505,10 +506,10 @@ msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
 "is connected to the computer."
 msgstr ""
-"Não foi possível localizar o dispositivo USB (fabricante 0x%x, produto 0x%"
-"x). Tenha certeza de que esse dispositivo está conectado ao computador."
+"Não foi possível localizar o dispositivo USB (fabricante 0x%x, produto 0x"
+"%x). Tenha certeza de que esse dispositivo está conectado ao computador."
 
-#: usb/libusb.c:1056
+#: usb/libusb.c:1090
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -548,12 +549,12 @@ msgstr "Não foi possível escrever para \"%s\" (%m)."
 msgid "Could not read from '%s' (%m)."
 msgstr "Não foi possível ler de \"%s\" (%m)."
 
-#: usbscsi/linux.c:225
+#: usbscsi/linux.c:232
 #, c-format
 msgid "USB Mass Storage raw SCSI"
 msgstr "Armazenamento em massa USB bruto SCSI"
 
-#: usbscsi/linux.c:335
+#: usbscsi/linux.c:345
 #, c-format
 msgid "Could not send scsi command to: '%s' (%m)."
 msgstr "Não foi possível enviar um comando SCSI para \"%s\" (%m)."

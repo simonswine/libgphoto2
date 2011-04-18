@@ -7,10 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.3.0\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-08-08 22:53+0200\n"
+"POT-Creation-Date: 2011-03-13 23:34+0100\n"
 "PO-Revision-Date: 2007-01-04 13:20+0300\n"
 "Last-Translator: Maxim V. Dziumanenko <dziumanenko@gmail.com>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
+"Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -365,20 +366,20 @@ msgstr ""
 #, c-format
 msgid "Device '%s' could not be unlocked (dev_unlock returned %d)"
 msgstr ""
-"пристрій '%s' неможливо розблокувати (функція dev_unlock повернула значення %"
-"d)"
+"пристрій '%s' неможливо розблокувати (функція dev_unlock повернула значення "
+"%d)"
 
 #: serial/unix.c:385
 #, c-format
 msgid "Serial Port %i"
 msgstr "Послідовний порт %i"
 
-#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:280
+#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
 #, c-format
 msgid "Failed to open '%s' (%m)."
 msgstr "Не вдається відкрити '%s' (%m)."
 
-#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:294
+#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
 #, c-format
 msgid "Could not close '%s' (%m)."
 msgstr "Не вдається закрити '%s' (%m)."
@@ -504,7 +505,7 @@ msgstr ""
 "Не вдається знайти пристрій USB (виробник 0x%x, продукт 0x%x). Перевірте, що "
 "пристрій з'єднаний з комп'ютером."
 
-#: usb/libusb.c:1056
+#: usb/libusb.c:1090
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -543,12 +544,12 @@ msgstr "Не вдається записати у порт (%m)"
 msgid "Could not read from '%s' (%m)."
 msgstr "Не вдається закрити '%s' (%m)."
 
-#: usbscsi/linux.c:225
+#: usbscsi/linux.c:232
 #, c-format
 msgid "USB Mass Storage raw SCSI"
 msgstr ""
 
-#: usbscsi/linux.c:335
+#: usbscsi/linux.c:345
 #, fuzzy, c-format
 msgid "Could not send scsi command to: '%s' (%m)."
 msgstr "Не вдається закрити '%s' (%m)."

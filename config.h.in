@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
+
 /* Whether we have flex and bison for GP2DDB */
 #undef ENABLED_GP2DDB
 
@@ -111,16 +114,16 @@
 /* Define to 1 if you have the `strncpy' function. */
 #undef HAVE_STRNCPY
 
-/* Define to 1 if `f_bavail' is member of `struct statfs'. */
+/* Define to 1 if `f_bavail' is a member of `struct statfs'. */
 #undef HAVE_STRUCT_STATFS_F_BAVAIL
 
-/* Define to 1 if `f_bfree' is member of `struct statfs'. */
+/* Define to 1 if `f_bfree' is a member of `struct statfs'. */
 #undef HAVE_STRUCT_STATFS_F_BFREE
 
-/* Define to 1 if `f_favail' is member of `struct statfs'. */
+/* Define to 1 if `f_favail' is a member of `struct statfs'. */
 #undef HAVE_STRUCT_STATFS_F_FAVAIL
 
-/* Define to 1 if `f_blocks' is member of `struct statvfs'. */
+/* Define to 1 if `f_blocks' is a member of `struct statvfs'. */
 #undef HAVE_STRUCT_STATVFS_F_BLOCKS
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
@@ -170,6 +173,10 @@
 /* Define as const if the declaration of iconv() needs const. */
 #undef ICONV_CONST
 
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
 /* gphoto development mailing list */
 #undef MAIL_GPHOTO_DEVEL
 
@@ -196,6 +203,9 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
@@ -224,9 +234,17 @@
 /* Version number of package */
 #undef VERSION
 
-/* Define to 1 if your processor stores words with the most significant byte
-   first (like Motorola and SPARC, unlike Intel and VAX). */
-#undef WORDS_BIGENDIAN
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS

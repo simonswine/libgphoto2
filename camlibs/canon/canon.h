@@ -224,6 +224,7 @@ struct canonShootingModeStateStruct {
 };
 
 typedef enum {
+	APERTURE_F1_2 = 0x0d,
 	APERTURE_F1_4 = 0x10,
 	APERTURE_F1_6 = 0x13,
 	APERTURE_F1_8 = 0x15,
@@ -687,6 +688,7 @@ int canon_int_list_directory (Camera *camera, const char *folder, CameraList *li
 int canon_int_get_file(Camera *camera, const char *name, unsigned char **data, unsigned int *length, GPContext *context);
 int canon_int_get_thumbnail(Camera *camera, const char *name, unsigned char **retdata, unsigned int *length, GPContext *context);
 int canon_int_put_file(Camera *camera, CameraFile *file, char *destname, char *destpath, GPContext *context);
+int canon_int_wait_for_event (Camera *camera, int timeout, CameraEventType *eventtype, void **eventdata, GPContext *context);
 int canon_int_set_file_attributes(Camera *camera, const char *file, const char *dir, canonDirentAttributeBits attrs, GPContext *context);
 int canon_int_delete_file(Camera *camera, const char *name, const char *dir, GPContext *context);
 int canon_int_set_shutter_speed(Camera *camera, canonShutterSpeedState shutter_speed, GPContext *context);
@@ -712,6 +714,8 @@ int canon_int_set_zoom(Camera *camera, unsigned char zoom_level, GPContext *cont
  * introduced for capturing
  */
 int canon_int_get_release_params (Camera *camera, GPContext *context);
+
+void canon_int_find_new_image ( Camera *camera, unsigned char *initial_state, unsigned char *final_state, CameraFilePath *path );
 
 
 /* path conversion - needs drive letter, and therefore cannot be moved

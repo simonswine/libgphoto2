@@ -336,7 +336,7 @@ ptp_unpack_DI (PTPParams *params, unsigned char* data, PTPDeviceInfo *di, unsign
 		&len);
 }
 
-static void
+static void inline
 ptp_free_DI (PTPDeviceInfo *di) {
 	if (di->SerialNumber) free (di->SerialNumber);
 	if (di->DeviceVersion) free (di->DeviceVersion);
@@ -564,6 +564,7 @@ ptp_unpack_PTPTIME (const char *str) {
 	strncpy (tmp, ptpdate + 13, 2);
 	tmp[2] = 0;
 	tm.tm_sec = atoi (tmp);
+	tm.tm_isdst = -1;
 	return mktime (&tm);
 }
 
@@ -1642,11 +1643,17 @@ ptp_unpack_CANON_changes (PTPParams *params, unsigned char* data, int datasize, 
 		case PTP_EC_CANON_EOS_CameraStatusChanged:
 			(*ce)[i].type = PTP_CANON_EOS_CHANGES_TYPE_CAMERASTATUS;
 			(*ce)[i].u.status = dtoh32a(curdata+8);
+			params->eos_camerastatus = dtoh32a(curdata+8);
 			break;
 		case 0: /* end marker */
 			if (size == 8) /* no output */
 				break;
 			ptp_debug (params, "event %d: EOS event 0, but size %d", i, size);
+			break;
+		case PTP_EC_CANON_EOS_BulbExposureTime:
+			(*ce)[i].type = PTP_CANON_EOS_CHANGES_TYPE_UNKNOWN;
+			(*ce)[i].u.info = malloc(strlen("BulbExposureTime 123456789"));
+			sprintf ((*ce)[i].u.info, "BulbExposureTime %d",  dtoh32a(curdata+8));
 			break;
 		default:
 			switch (type) {

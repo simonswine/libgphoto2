@@ -7,10 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port-2.4.9\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-08-08 22:53+0200\n"
+"POT-Creation-Date: 2011-03-13 23:34+0100\n"
 "PO-Revision-Date: 2010-05-04 13:09+0100\n"
 "Last-Translator: Dimitri Duc <dimitri.duc@gmail.com>\n"
 "Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -386,12 +387,12 @@ msgstr ""
 msgid "Serial Port %i"
 msgstr "Port série %i"
 
-#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:280
+#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
 #, c-format
 msgid "Failed to open '%s' (%m)."
 msgstr "Impossible d'ouvrir '%s' (%m)."
 
-#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:294
+#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
 #, c-format
 msgid "Could not close '%s' (%m)."
 msgstr "Impossible de fermer '%s' (%m)."
@@ -509,8 +510,8 @@ msgid ""
 "not function with gphoto2. Reference: %s"
 msgstr ""
 "Le périphérique USB (fabricant 0x%x, produit 0x%x) est un périphérique de "
-"stockage de masse, et peut ne peut pas fonctionner avec gphoto2. Référence: %"
-"s"
+"stockage de masse, et peut ne peut pas fonctionner avec gphoto2. Référence: "
+"%s"
 
 #: usb/libusb.c:792
 #, c-format
@@ -521,7 +522,7 @@ msgstr ""
 "Impossible de trouver le périphérique USB (fabricant 0x%x, produit 0x%x). "
 "Assurez-vous qu'il est bien connecté à l'ordinateur."
 
-#: usb/libusb.c:1056
+#: usb/libusb.c:1090
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -561,20 +562,20 @@ msgstr "Impossible d'écrire dans  '%s' (%m)."
 msgid "Could not read from '%s' (%m)."
 msgstr "Impossible de lire dans '%s' (%m)."
 
-#: usbscsi/linux.c:225
+#: usbscsi/linux.c:232
 #, c-format
 msgid "USB Mass Storage raw SCSI"
 msgstr "Stockage de masse USB contenant des données brutes SCSI "
 
-#: usbscsi/linux.c:335
+#: usbscsi/linux.c:345
 #, c-format
 msgid "Could not send scsi command to: '%s' (%m)."
 msgstr "Impossible d'envoyer des commandes scsi à: '%s' (%m)."
 
 #~ msgid "Could not load any io-library because '%s' could not be opened (%m)"
 #~ msgstr ""
-#~ "Ne peut charger aucune bibliothèque d'E/S car '%s' ne peut être ouvert (%"
-#~ "m)"
+#~ "Ne peut charger aucune bibliothèque d'E/S car '%s' ne peut être ouvert "
+#~ "(%m)"
 
 #, fuzzy
 #~ msgid "Could not find some functions in '%s' (%s)"
