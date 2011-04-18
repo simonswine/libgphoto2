@@ -7,10 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port-2.4.2\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-08-08 22:53+0200\n"
+"POT-Creation-Date: 2011-03-13 23:34+0100\n"
 "PO-Revision-Date: 2008-07-25 23:06+0200\n"
 "Last-Translator: Benno Schulenberg <benno@vertaalt.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
+"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -373,12 +374,12 @@ msgstr "Apparaat '%s' kan niet worden ontgrendeld (dev_unlock gaf %d terug)"
 msgid "Serial Port %i"
 msgstr "Seriële poort %i"
 
-#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:280
+#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
 #, c-format
 msgid "Failed to open '%s' (%m)."
 msgstr "Kan '%s' niet openen (%m)."
 
-#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:294
+#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
 #, c-format
 msgid "Could not close '%s' (%m)."
 msgstr "Kan '%s' niet sluiten (%m)."
@@ -506,7 +507,7 @@ msgstr ""
 "Kan USB-apparaat (leverancier 0x%x, product 0x%x) niet vinden.  Zorg ervoor "
 "dat het apparaat aan de computer aangesloten is."
 
-#: usb/libusb.c:1056
+#: usb/libusb.c:1090
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -545,12 +546,12 @@ msgstr "Kan niet naar poort schrijven (%m)"
 msgid "Could not read from '%s' (%m)."
 msgstr "Kan '%s' niet sluiten (%m)."
 
-#: usbscsi/linux.c:225
+#: usbscsi/linux.c:232
 #, c-format
 msgid "USB Mass Storage raw SCSI"
 msgstr ""
 
-#: usbscsi/linux.c:335
+#: usbscsi/linux.c:345
 #, fuzzy, c-format
 msgid "Could not send scsi command to: '%s' (%m)."
 msgstr "Kan 'alt'-instelling niet wijzigen van %d naar %d (%m)"

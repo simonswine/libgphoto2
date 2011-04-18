@@ -179,6 +179,7 @@ static const struct canonShutterSpeedStateStruct shutterSpeedStateArray[] = {
 };
 
 static const struct canonApertureStateStruct apertureStateArray[] = {
+	{APERTURE_F1_2, "1.2"},
 	{APERTURE_F1_4, "1.4"},
 	{APERTURE_F1_6, "1.6"},
 	{APERTURE_F1_8, "1.8"},
@@ -279,7 +280,7 @@ static const struct canonShootingModeStateStruct shootingModeStateArray[] = {
 	{0x73,N_("Flash off")},
 	{0x74,N_("Long shutter")},
 	{0x75,N_("Super macro")},
-	{0x76,N_("Foilage")},
+	{0x76,N_("Foliage")},
 	{0x77,N_("Indoor")},
 	{0x78,N_("Fireworks")},
 	{0x79,N_("Beach")},
@@ -1312,7 +1313,6 @@ convert_filename_to_8_3(const char* filename, char* dest)
     }
 }
 
-
 /* XXX This function should be merged with the other one of the same name */
 static int
 put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file, void *data,
@@ -1557,6 +1557,14 @@ put_file_func (CameraFilesystem __unused__ *fs, const char __unused__ *folder,
 
 /****************************************************************************/
 
+/* Wait for an event */
+static int
+camera_wait_for_event (Camera *camera, int timeout, CameraEventType *eventtype, void **eventdata, GPContext *context) 
+{
+	return canon_int_wait_for_event (camera, timeout, eventtype, eventdata, context);
+}
+
+
 /* Get configuration into screen widgets for display. */
 
 static int
@@ -1571,6 +1579,7 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	unsigned int expbias;
 	time_t camtime;
 	char formatted_camera_time[30];
+	float zoom;
 
 	GP_DEBUG ("camera_get_config()");
 
@@ -1730,7 +1739,7 @@ camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 	gp_widget_set_range (t, 0, 255, 1);
 	/* Set an unknown zoom level (at the moment we don't read the
 	 * zoom level */
-	float zoom = -1;
+	zoom = -1;
 	gp_widget_set_value (t, &zoom);
 	gp_widget_append (section, t);
 
@@ -2590,6 +2599,7 @@ camera_init (Camera *camera, GPContext *context)
 	camera->functions->summary = camera_summary;
 	camera->functions->manual = camera_manual;
 	camera->functions->about = camera_about;
+	camera->functions->wait_for_event = camera_wait_for_event;
 
 	/* Set up the CameraFilesystem */
 	gp_filesystem_set_funcs (camera->fs, &fsfuncs, camera);

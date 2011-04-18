@@ -7,10 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.9\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-08-08 22:53+0200\n"
+"POT-Creation-Date: 2011-03-13 23:34+0100\n"
 "PO-Revision-Date: 2010-04-16 19:09+0200\n"
 "Last-Translator: Jakub Bogusz <qboosh@pld-linux.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-2\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -359,8 +360,8 @@ msgstr "Urz±dzenie '%s' nie mo¿e zostaæ odblokowane."
 #, c-format
 msgid "Device '%s' could not be unlocked as it is locked by pid %d."
 msgstr ""
-"Urz±dzenie '%s' nie mo¿e zostaæ odblokowane, bo jest zablokowane przez pid %"
-"d."
+"Urz±dzenie '%s' nie mo¿e zostaæ odblokowane, bo jest zablokowane przez pid "
+"%d."
 
 #: serial/unix.c:304 usbdiskdirect/linux.c:130 usbscsi/linux.c:131
 #, c-format
@@ -372,12 +373,12 @@ msgstr "Urz±dzenie '%s' nie mo¿e zostaæ odblokowane (dev_unlock zwróci³o %d)"
 msgid "Serial Port %i"
 msgstr "Port szeregowy %i"
 
-#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:280
+#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
 #, c-format
 msgid "Failed to open '%s' (%m)."
 msgstr "Nie uda³o siê otworzyæ '%s' (%m)."
 
-#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:294
+#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
 #, c-format
 msgid "Could not close '%s' (%m)."
 msgstr "Nie uda³o siê zamkn±æ '%s' (%m)."
@@ -504,7 +505,7 @@ msgstr ""
 "Nie uda³o siê odnale¼æ urz±dzenia USB (producent 0x%x, produkt 0x%x). Nale¿y "
 "upewniæ siê, ¿e to urz±dzenie jest pod³±czone do komputera."
 
-#: usb/libusb.c:1056
+#: usb/libusb.c:1090
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -543,12 +544,12 @@ msgstr "Nie uda³ siê zapis do '%s' (%m)."
 msgid "Could not read from '%s' (%m)."
 msgstr "Nie uda³ siê odczyt z '%s' (%m)."
 
-#: usbscsi/linux.c:225
+#: usbscsi/linux.c:232
 #, c-format
 msgid "USB Mass Storage raw SCSI"
 msgstr "Bezpo¶rednie operacje SCSI urz±dzeñ USB Mass Storage"
 
-#: usbscsi/linux.c:335
+#: usbscsi/linux.c:345
 #, c-format
 msgid "Could not send scsi command to: '%s' (%m)."
 msgstr "Nie uda³o siê wys³aæ polecenia SCSI do '%s' (%m)."

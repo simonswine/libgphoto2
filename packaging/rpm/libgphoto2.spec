@@ -14,14 +14,14 @@
 ####################################
 Summary: Software for accessing digital cameras
 Name: libgphoto2
-Version: 2.4.10.1
+Version: 2.4.11
 Release: 2
 License: LGPL
 Group: Applications/Multimedia
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 # sources only available from sf.net - but not wgettable.
-# Source: http://www.gphoto.org/dist/libgphoto2-2.4.10.1.tar.gz
-Source: http://prdownloads.sourceforge.net/gphoto/libgphoto2-2.4.10.1.tar.gz
+# Source: http://www.gphoto.org/dist/libgphoto2-2.4.11.tar.gz
+Source: http://prdownloads.sourceforge.net/gphoto/libgphoto2-2.4.11.tar.gz
 Url: http://www.gphoto.org/
 ExcludeArch: s390 s390x
 Provides: libgphoto2

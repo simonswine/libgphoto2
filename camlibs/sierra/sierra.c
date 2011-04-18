@@ -195,6 +195,8 @@ static struct {
 					SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
 	{"Olympus", "C-5050Z", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x105,
 					SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
+
+	/* probably speaking PTP over UMS too */
 	{"Olympus", "SP-500UZ", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x109,
 				SIERRA_WRAP_USB_OLYMPUS, &olysp500uz_cam_desc},
 	{"Olympus", "C-370Z", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x109,
@@ -205,9 +207,12 @@ static struct {
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
 	{"Olympus", "fe-200", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x109,
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
+
+#if 0
+	/* Speaks PTP over UMS */
 	{"Olympus", "E-520", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x110,
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
-
+#endif
 	{"Panasonic", "Coolshot NV-DCF5E", SIERRA_MODEL_DEFAULT, 0, 0, 0, NULL },
 
 	{"Pentax", "Optio 450", SIERRA_MODEL_DEFAULT, 0x0a17,0x0007, SIERRA_WRAP_USB_PENTAX, NULL },
@@ -274,8 +279,12 @@ int camera_abilities (CameraAbilitiesList *list)
 		a.status = GP_DRIVER_STATUS_PRODUCTION;
 		a.port     = GP_PORT_SERIAL;
 		if ((sierra_cameras[x].usb_vendor  > 0) &&
-		    (sierra_cameras[x].usb_product > 0))
-			a.port |= GP_PORT_USB;
+		    (sierra_cameras[x].usb_product > 0)) {
+			if (sierra_cameras[x].flags & (SIERRA_WRAP_USB_OLYMPUS|SIERRA_WRAP_USB_PENTAX|SIERRA_WRAP_USB_NIKON))
+			    a.port |= GP_PORT_USB_SCSI;
+                        else
+			    a.port |= GP_PORT_USB;
+		}
 		a.speed[0] = 9600;
 		a.speed[1] = 19200;
 		a.speed[2] = 38400;
@@ -482,6 +491,7 @@ camera_start (Camera *camera, GPContext *context)
 		break;
 
 	case GP_PORT_USB:
+	case GP_PORT_USB_SCSI:
 		CHECK (gp_port_set_timeout (camera->port, 5000));
 		break;
 	default:
@@ -2235,6 +2245,7 @@ camera_init (Camera *camera, GPContext *context)
                 break;
 
         case GP_PORT_USB:
+        case GP_PORT_USB_SCSI:
 
                 /* Test if we have usb information */
                 if (vendor == 0) {

@@ -29,6 +29,7 @@
 #include <iconv.h>
 #endif
 #include "gphoto2-endian.h"
+#include "device-flags.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -498,6 +499,23 @@ typedef struct _PTPIPHeader PTPIPHeader;
 
 /* WiFi Provisioning MTP Extension Codes (microsoft.com/WPDWCN: 1.0) */
 #define PTP_OC_MTP_WPDWCN_ProcessWFCObject		0x9122
+
+
+/* Olympus E series commands */
+#define PTP_OC_OLYMPUS_Capture				0x9101
+#define PTP_OC_OLYMPUS_SelfCleaning			0x9103
+#define PTP_OC_OLYMPUS_SetRGBGain			0x9106
+#define PTP_OC_OLYMPUS_SetPresetMode			0x9107
+#define PTP_OC_OLYMPUS_SetWBBiasAll			0x9108
+#define PTP_OC_OLYMPUS_GetCameraControlMode		0x910a
+#define PTP_OC_OLYMPUS_SetCameraControlMode		0x910b
+#define PTP_OC_OLYMPUS_SetWBRGBGain			0x910c
+#define PTP_OC_OLYMPUS_GetDeviceInfo			0x9301
+#define PTP_OC_OLYMPUS_Init1				0x9302
+#define PTP_OC_OLYMPUS_SetDateTime			0x9402
+#define PTP_OC_OLYMPUS_GetDateTime			0x9482
+#define PTP_OC_OLYMPUS_SetCameraID			0x9501
+#define PTP_OC_OLYMPUS_GetCameraID			0x9581
 
 /* Proprietary vendor extension operations mask */
 #define PTP_OC_EXTENSION_MASK           0xF000
@@ -1064,7 +1082,7 @@ struct _PTPNIKONWifiProfile {
 	uint8_t   encryption; /* 0 - None, 1 - WEP 64bit, 2 - WEP 128bit (not supported: 3 - TKIP) */
 	uint8_t   key[64];
 	uint8_t   key_nr;
-//	char      guid[16];
+/*	char      guid[16]; */
 };
 
 typedef struct _PTPNIKONWifiProfile PTPNIKONWifiProfile;
@@ -1086,7 +1104,7 @@ struct _PTPCanon_changes_entry {
 		struct _PTPCanon_New_Object	object;	/* TYPE_OBJECTINFO */
 		char				*info;
 		uint16_t			propid;
-		int				status; /* 1 or 0 */
+		int				status;
 	} u;
 };
 typedef struct _PTPCanon_changes_entry PTPCanon_changes_entry;
@@ -1672,6 +1690,91 @@ typedef struct _PTPCanonEOSDeviceInfo {
 /* Zune specific property codes */
 #define PTP_DPC_MTP_Zune_UnknownVersion			0xD181
 
+/* Olympus */
+#define PTP_DPC_OLYMPUS_ResolutionMode			0xD102
+#define PTP_DPC_OLYMPUS_FocusPriority			0xD103
+#define PTP_DPC_OLYMPUS_DriveMode			0xD104
+#define PTP_DPC_OLYMPUS_DateTimeFormat			0xD105
+#define PTP_DPC_OLYMPUS_ExposureBiasStep		0xD106
+#define PTP_DPC_OLYMPUS_WBMode				0xD107
+#define PTP_DPC_OLYMPUS_OneTouchWB			0xD108
+#define PTP_DPC_OLYMPUS_ManualWB			0xD109
+#define PTP_DPC_OLYMPUS_ManualWBRBBias			0xD10A
+#define PTP_DPC_OLYMPUS_CustomWB			0xD10B
+#define PTP_DPC_OLYMPUS_CustomWBValue			0xD10C
+#define PTP_DPC_OLYMPUS_ExposureTimeEx			0xD10D
+#define PTP_DPC_OLYMPUS_BulbMode			0xD10E
+#define PTP_DPC_OLYMPUS_AntiMirrorMode			0xD10F
+#define PTP_DPC_OLYMPUS_AEBracketingFrame		0xD110
+#define PTP_DPC_OLYMPUS_AEBracketingStep		0xD111
+#define PTP_DPC_OLYMPUS_WBBracketingFrame		0xD112
+#define PTP_DPC_OLYMPUS_WBBracketingRBFrame		0xD112 /* dup ? */
+#define PTP_DPC_OLYMPUS_WBBracketingRBRange		0xD113
+#define PTP_DPC_OLYMPUS_WBBracketingGMFrame		0xD114
+#define PTP_DPC_OLYMPUS_WBBracketingGMRange		0xD115
+#define PTP_DPC_OLYMPUS_FLBracketingFrame		0xD118
+#define PTP_DPC_OLYMPUS_FLBracketingStep		0xD119
+#define PTP_DPC_OLYMPUS_FlashBiasCompensation		0xD11A
+#define PTP_DPC_OLYMPUS_ManualFocusMode			0xD11B
+#define PTP_DPC_OLYMPUS_RawSaveMode			0xD11D
+#define PTP_DPC_OLYMPUS_AUXLightMode			0xD11E
+#define PTP_DPC_OLYMPUS_LensSinkMode			0xD11F
+#define PTP_DPC_OLYMPUS_BeepStatus			0xD120
+#define PTP_DPC_OLYMPUS_ColorSpace			0xD122
+#define PTP_DPC_OLYMPUS_ColorMatching			0xD123
+#define PTP_DPC_OLYMPUS_Saturation			0xD124
+#define PTP_DPC_OLYMPUS_NoiseReductionPattern		0xD126
+#define PTP_DPC_OLYMPUS_NoiseReductionRandom		0xD127
+#define PTP_DPC_OLYMPUS_ShadingMode			0xD129
+#define PTP_DPC_OLYMPUS_ISOBoostMode			0xD12A
+#define PTP_DPC_OLYMPUS_ExposureIndexBiasStep		0xD12B
+#define PTP_DPC_OLYMPUS_FilterEffect			0xD12C
+#define PTP_DPC_OLYMPUS_ColorTune			0xD12D
+#define PTP_DPC_OLYMPUS_Language			0xD12E
+#define PTP_DPC_OLYMPUS_LanguageCode			0xD12F
+#define PTP_DPC_OLYMPUS_RecviewMode			0xD130
+#define PTP_DPC_OLYMPUS_SleepTime			0xD131
+#define PTP_DPC_OLYMPUS_ManualWBGMBias			0xD132
+#define PTP_DPC_OLYMPUS_AELAFLMode			0xD135
+#define PTP_DPC_OLYMPUS_AELButtonStatus			0xD136
+#define PTP_DPC_OLYMPUS_CompressionSettingEx		0xD137
+#define PTP_DPC_OLYMPUS_ToneMode			0xD139
+#define PTP_DPC_OLYMPUS_GradationMode			0xD13A
+#define PTP_DPC_OLYMPUS_DevelopMode			0xD13B
+#define PTP_DPC_OLYMPUS_ExtendInnerFlashMode		0xD13C
+#define PTP_DPC_OLYMPUS_OutputDeviceMode		0xD13D
+#define PTP_DPC_OLYMPUS_LiveViewMode			0xD13E
+#define PTP_DPC_OLYMPUS_LCDBacklight			0xD140
+#define PTP_DPC_OLYMPUS_CustomDevelop			0xD141
+#define PTP_DPC_OLYMPUS_GradationAutoBias		0xD142
+#define PTP_DPC_OLYMPUS_FlashRCMode			0xD143
+#define PTP_DPC_OLYMPUS_FlashRCGroupValue		0xD144
+#define PTP_DPC_OLYMPUS_FlashRCChannelValue		0xD145
+#define PTP_DPC_OLYMPUS_FlashRCFPMode			0xD146
+#define PTP_DPC_OLYMPUS_FlashRCPhotoChromicMode		0xD147
+#define PTP_DPC_OLYMPUS_FlashRCPhotoChromicBias		0xD148
+#define PTP_DPC_OLYMPUS_FlashRCPhotoChromicManualBias	0xD149
+#define PTP_DPC_OLYMPUS_FlashRCQuantityLightLevel	0xD14A
+#define PTP_DPC_OLYMPUS_FocusMeteringValue		0xD14B
+#define PTP_DPC_OLYMPUS_ISOBracketingFrame		0xD14C
+#define PTP_DPC_OLYMPUS_ISOBracketingStep		0xD14D
+#define PTP_DPC_OLYMPUS_BulbMFMode			0xD14E
+#define PTP_DPC_OLYMPUS_BurstFPSValue			0xD14F
+#define PTP_DPC_OLYMPUS_ISOAutoBaseValue		0xD150
+#define PTP_DPC_OLYMPUS_ISOAutoMaxValue			0xD151
+#define PTP_DPC_OLYMPUS_BulbLimiterValue		0xD152
+#define PTP_DPC_OLYMPUS_DPIMode				0xD153
+#define PTP_DPC_OLYMPUS_DPICustomValue			0xD154
+#define PTP_DPC_OLYMPUS_ResolutionValueSetting		0xD155
+#define PTP_DPC_OLYMPUS_AFTargetSize			0xD157
+#define PTP_DPC_OLYMPUS_LightSensorMode			0xD158
+#define PTP_DPC_OLYMPUS_AEBracket			0xD159
+#define PTP_DPC_OLYMPUS_WBRBBracket			0xD15A
+#define PTP_DPC_OLYMPUS_WBGMBracket			0xD15B
+#define PTP_DPC_OLYMPUS_FlashBracket			0xD15C
+#define PTP_DPC_OLYMPUS_ISOBracket			0xD15D
+#define PTP_DPC_OLYMPUS_MyModeStatus			0xD15E
+
 /* MTP specific Object Properties */
 #define PTP_OPC_StorageID				0xDC01
 #define PTP_OPC_ObjectFormat				0xDC02
@@ -1960,6 +2063,7 @@ struct _PTPParams {
 	int			nrofbacklogentries;
 	int			eos_captureenabled;
 	int			eos_viewfinderenabled;
+	int			eos_camerastatus;
 
 	/* PTP: Wifi profiles */
 	uint8_t 	wifi_profiles_version;
@@ -1971,6 +2075,11 @@ struct _PTPParams {
 	uint8_t		cameraguid[16];
 	uint32_t	eventpipeid;
 	char		*cameraname;
+
+	/* Olympus UMS wrapping related data */
+	PTPDeviceInfo	outer_deviceinfo;
+	char		*olympus_cmd;
+	char		*olympus_reply;
 
 #ifdef HAVE_ICONV
 	/* PTP: iconv converters */
@@ -2475,6 +2584,9 @@ uint16_t ptp_nikon_writewifiprofile (PTPParams* params, PTPNIKONWifiProfile* pro
  **/
 #define ptp_canon_eos_zoom(params,x) ptp_generic_no_data(params,PTP_OC_CANON_EOS_Zoom,1,x)
 #define ptp_canon_eos_zoomposition(params,x,y) ptp_generic_no_data(params,PTP_OC_CANON_EOS_ZoomPosition,2,x,y)
+
+#define ptp_canon_eos_remotereleaseon(params,x) ptp_generic_no_data(params,PTP_OC_CANON_EOS_RemoteReleaseOn,1,x)
+#define ptp_canon_eos_remotereleaseoff(params,x) ptp_generic_no_data(params,PTP_OC_CANON_EOS_RemoteReleaseOff,1,x)
 /**
  * ptp_nikon_mfdrive:
  *
@@ -2578,9 +2690,23 @@ uint16_t ptp_nikon_getfileinfoinblock (PTPParams* params, uint32_t p1, uint32_t 
 uint16_t ptp_mtp_getobjectpropssupported (PTPParams* params, uint16_t ofc, uint32_t *propnum, uint16_t **props);
 
 /* Non PTP protocol functions */
-int ptp_operation_issupported	(PTPParams* params, uint16_t operation);
+static inline int
+ptp_operation_issupported(PTPParams* params, uint16_t operation)
+{
+	int i=0;
+
+	for (;i<params->deviceinfo.OperationsSupported_len;i++) {
+		if (params->deviceinfo.OperationsSupported[i]==operation)
+			return 1;
+	}
+	return 0;
+}
+
 int ptp_event_issupported	(PTPParams* params, uint16_t event);
 int ptp_property_issupported	(PTPParams* params, uint16_t property);
+
+uint16_t ptp_check_eos_events (PTPParams *params);
+int ptp_get_one_eos_event (PTPParams *params, PTPCanon_changes_entry *entry);
 
 void ptp_free_devicepropdesc	(PTPDevicePropDesc* dpd);
 void ptp_free_devicepropvalue	(uint16_t dt, PTPPropertyValue* dpd);
@@ -2588,8 +2714,15 @@ void ptp_free_objectpropdesc	(PTPObjectPropDesc* dpd);
 void ptp_free_params		(PTPParams *params);
 void ptp_free_objectinfo	(PTPObjectInfo *oi);
 
+uint16_t
+ptp_transaction (PTPParams* params, PTPContainer* ptp,
+                uint16_t flags, unsigned int sendlen,
+                unsigned char **data, unsigned int *recvlen);
+
 
 void ptp_perror			(PTPParams* params, uint16_t error);
+void ptp_debug                  (PTPParams *params, const char *format, ...);
+void ptp_error                  (PTPParams *params, const char *format, ...);
 
 const char*
 ptp_get_property_description(PTPParams* params, uint16_t dpc);
@@ -2609,6 +2742,66 @@ uint16_t ptp_add_object_to_cache(PTPParams *params, uint32_t handle);
 
 /* ptpip.c */
 void ptp_nikon_getptpipguid (unsigned char* guid);
+
+enum PTP_CHDK_Command {
+  PTP_CHDK_Shutdown = 0,    /* param2 is 0 (hard), 1 (soft), 2 (reboot) or 3 (reboot fw update)
+                               if param2 == 3, then filename of fw update is send as data (empty for default) */
+  PTP_CHDK_GetMemory,       /* param2 is base address (or 0 for live image buffer, 1 for bitmap buffer)
+                               param3 is size (in bytes)
+                               return data is memory block */
+  PTP_CHDK_SetMemoryLong,   /* param2 is address
+                               param3 is value */
+  PTP_CHDK_CallFunction,    /* data is array of function pointer and (long) arguments  (max: 10 args)
+                               return param1 is return value */
+  PTP_CHDK_GetPropCase,     /* param2 is base id
+                               param3 is number of properties
+                               return data is array of longs */
+  PTP_CHDK_GetParamData,    /* param2 is base id
+                               param3 is number of parameters
+                               return data is sequence of strings prefixed by their length (as long) */
+  PTP_CHDK_TempData,        /* data is data to be stored for later */
+  PTP_CHDK_UploadFile,      /* data is 4-byte length of filename, followed by filename and contents */
+  PTP_CHDK_DownloadFile,    /* preceded by PTP_CHDK_TempData with filename
+                               return data are file contents */
+  PTP_CHDK_SwitchMode,      /* param2 is 0 (playback) or 1 (record) */
+  PTP_CHDK_ExecuteLUA,      /* data is script to be executed */
+  PTP_CHDK_GetVideoSettings,
+  PTP_CHDK_GetScriptOutput, /* return script output in ASCIIZ */
+  PTP_CHDK_OpenDir,         /* open directory listing, data is directory name */
+  PTP_CHDK_ReadDir,         /* return data is next file info */
+  PTP_CHDK_CloseDir,        /* close directory listing */
+  PTP_CHDK_GetShootingModesList, /* not used */
+  PTP_CHDK_StartDownloadFile,
+  PTP_CHDK_ResumeDownloadFile,
+  PTP_CHDK_EndDownloadFile,
+};
+
+#define PTP_OC_CHDK	0x9999
+typedef struct tagptp_chdk_videosettings {
+	long live_image_buffer_width;
+	long live_image_width;
+	long live_image_height;
+	long bitmap_buffer_width;
+	long bitmap_width;
+	long bitmap_height;
+	unsigned palette[16]; 
+} ptp_chdk_videosettings;
+
+#define ptp_chdk_shutdown_hard(params) ptp_generic_no_data(params,PTP_OC_CHDK,2,PTP_CHDK_Shutdown,0)
+#define ptp_chdk_shutdown_soft(params) ptp_generic_no_data(params,PTP_OC_CHDK,2,PTP_CHDK_Shutdown,1)
+#define ptp_chdk_reboot(params) ptp_generic_no_data(params,PTP_OC_CHDK,2,PTP_CHDK_Shutdown,2)
+#define ptp_chdk_reboot_fw_update(params) ptp_generic_no_data(params,PTP_OC_CHDK,2,PTP_CHDK_Shutdown,3)
+uint16_t ptp_chdk_get_memory(PTPParams* params, int start, int num, unsigned char**);
+#define ptp_chdk_set_memory_long(params,addr,val) ptp_generic_no_data(params,PTP_OC_CHDK,3,PTP_CHDK_SetMemoryLong,addr,val)
+uint16_t ptp_chdk_call(PTPParams* params, int *args, int size, int *ret);
+uint16_t ptp_chdk_get_propcase(PTPParams* params, int start, int num, int* ints);
+uint16_t ptp_chdk_get_paramdata(PTPParams* params, int start, int num, unsigned char** x);
+#define ptp_chdk_switch_mode(params,mode) ptp_generic_no_data(params,PTP_OC_CHDK,2,PTP_CHDK_SwitchMode,mode)
+uint16_t ptp_chdk_exec_lua(PTPParams *params, char *script, uint32_t* ret);
+uint16_t ptp_chdk_get_script_output(PTPParams* params, char **output );
+uint16_t ptp_chdk_get_video_settings(PTPParams* params, ptp_chdk_videosettings* vsettings);
+
+uint16_t ptp_olympus_getdeviceinfo (PTPParams* params, PTPDeviceInfo *di);
 
 #ifdef __cplusplus
 }

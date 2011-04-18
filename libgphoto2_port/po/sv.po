@@ -9,10 +9,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.0\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2010-08-08 22:53+0200\n"
+"POT-Creation-Date: 2011-03-13 23:34+0100\n"
 "PO-Revision-Date: 2007-08-09 00:44+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -374,12 +375,12 @@ msgstr "Enheten \"%s\" kunde inte låsas upp (dev_lock returnerade %d)"
 msgid "Serial Port %i"
 msgstr "Serieport %i"
 
-#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:280
+#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
 #, c-format
 msgid "Failed to open '%s' (%m)."
 msgstr "Misslyckades med att öppna \"%s\" (%m)."
 
-#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:294
+#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
 #, c-format
 msgid "Could not close '%s' (%m)."
 msgstr "Kunde inte stänga \"%s\" (%m)."
@@ -507,7 +508,7 @@ msgstr ""
 "Kunde inte finna USB-enheten (tillverkare 0x%x, produkt 0x%x). Kontrollera "
 "att enheten är ansluten till datorn."
 
-#: usb/libusb.c:1056
+#: usb/libusb.c:1090
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -546,12 +547,12 @@ msgstr "Kunde inte skriva till porten (%m)"
 msgid "Could not read from '%s' (%m)."
 msgstr "Kunde inte stänga \"%s\" (%m)."
 
-#: usbscsi/linux.c:225
+#: usbscsi/linux.c:232
 #, c-format
 msgid "USB Mass Storage raw SCSI"
 msgstr ""
 
-#: usbscsi/linux.c:335
+#: usbscsi/linux.c:345
 #, fuzzy, c-format
 msgid "Could not send scsi command to: '%s' (%m)."
 msgstr "Kunde inte ställa in alternativinställning %d till %d (%m)"

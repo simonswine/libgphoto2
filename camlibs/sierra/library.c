@@ -338,7 +338,7 @@ sierra_get_memory_left (Camera *camera, int *memory, GPContext *context)
 static int
 sierra_check_connection (Camera *camera, GPContext *context)
 {
-	int r = 0, timeout;
+	int r = 0, ret, timeout;
 	unsigned char c;
 
 	/* Only serial cameras close the connection after some timeout. */
@@ -354,9 +354,9 @@ sierra_check_connection (Camera *camera, GPContext *context)
 		 */
 		CHECK (gp_port_get_timeout (camera->port, &timeout));
 		CHECK (gp_port_set_timeout (camera->port, 20));
-		r = gp_port_read (camera->port, &c, 1);
+		ret = gp_port_read (camera->port, &c, 1);
 		CHECK (gp_port_set_timeout (camera->port, timeout));
-		switch (r) {
+		switch (ret) {
 		case GP_ERROR_TIMEOUT:
 		case GP_ERROR_IO_READ:
 
@@ -372,7 +372,7 @@ sierra_check_connection (Camera *camera, GPContext *context)
 			 * If any error (except timeout) has occurred, 
 			 * report it.
 			 */
-			CHECK (r);
+			CHECK (ret);
 		}
 
 		/*
@@ -524,6 +524,7 @@ sierra_read_packet (Camera *camera, unsigned char *packet, GPContext *context)
 	GP_DEBUG ("Reading packet...");
 
 	switch (camera->port->type) {
+	case GP_PORT_USB_SCSI:
 	case GP_PORT_USB:
 		blocksize = SIERRA_PACKET_SIZE;
 		break;
@@ -535,17 +536,17 @@ sierra_read_packet (Camera *camera, unsigned char *packet, GPContext *context)
 	}
 
 	/* Try several times before leaving on error... */
+	/* Clear the USB bus
+	   (what about the SERIAL bus : do we need to flush it?) */
+	sierra_clear_usb_halt(camera);
 	while (1) {
 
-		/* Clear the USB bus
-		   (what about the SERIAL bus : do we need to flush it?) */
-		sierra_clear_usb_halt(camera);
 
 		/*
 		 * Read data through the bus. If an error occurred,
 		 * try again.
 		 */
-		if (camera->port->type == GP_PORT_USB && (camera->pl->flags & SIERRA_WRAP_USB_MASK))
+		if ((camera->port->type == GP_PORT_USB_SCSI) && (camera->pl->flags & SIERRA_WRAP_USB_MASK))
 			result = usb_wrap_read_packet (camera->port,
 					(camera->pl->flags & SIERRA_WRAP_USB_MASK),
 					packet, blocksize);
@@ -558,6 +559,16 @@ sierra_read_packet (Camera *camera, unsigned char *packet, GPContext *context)
 				sierra_clear_usb_halt(camera);
 				GP_DEBUG ("Giving up...");
 				return (result);
+			}
+			GP_DEBUG ("Retrying...");
+			continue;
+		}
+		if (result == 0) {
+			GP_DEBUG ("Read got 0 bytes.."); 
+			if (++r > 2) {
+				sierra_clear_usb_halt(camera);
+				GP_DEBUG ("Giving up...");
+				return GP_ERROR_IO_READ;
 			}
 			GP_DEBUG ("Retrying...");
 			continue;

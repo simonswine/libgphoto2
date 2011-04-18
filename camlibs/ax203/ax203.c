@@ -44,8 +44,8 @@ static const struct eeprom_info {
 	int mem_size;
 	int has_4k_sectors;
 } ax203_eeprom_info[] = {
-	{ "AMIC A25L040", 0x00133037,  524288, 1 },
-	{ "AMIC A25L080", 0x00143037, 1048576, 1 },
+	{ "AMIC A25L040", 0x37133037,  524288, 1 },
+	{ "AMIC A25L080", 0x37143037, 1048576, 1 },
 	{ "AMIC A25L40P", 0x1320377f,  524288, 0 },
 	{ "AMIC A25L80P", 0x1420377f, 1048576, 0 },
 	{ "AMIC A25L16P", 0x1520377f, 2097152, 0 },
@@ -71,6 +71,10 @@ static const struct eeprom_info {
 	{ "ESMT F25L008 (top)",    0x8c14208c, 1048576, 1 },
 	{ "ESMT F25L008 (bottom)", 0x8c14218c, 1048576, 1 },
 
+	{ "GigaDevice GD25Q40", 0xc81340c8,  524288, 1 },
+	{ "GigaDevice GD25Q80", 0xc81440c8, 1048576, 1 },
+	{ "GigaDevice GD25Q16", 0xc81540c8, 2097152, 1 },
+
 	{ "MXIC MX25L4005A", 0xc21320c2,  524288, 1 },
 	{ "MXIC MX25L8005A", 0xc21420c2, 1048576, 1 },
 	{ "MXIC MX25L1605A", 0xc21520c2, 2097152, 1 },
@@ -85,14 +89,23 @@ static const struct eeprom_info {
 	   instruction can only program a single byte at a time. Thus they
 	   are not supported */
 
+	{ "ST M25P08", 0x7f142020, 1048576, 0 },
+	{ "ST M25P16", 0x7f152020, 2097152, 0 },
+	{ "ST M25P32", 0x7f162020, 4194304, 0 },
+	{ "ST M25P64", 0x7f172020, 8388608, 0 },
+
 	{ "Winbond W25P80", 0x001420ef, 1048576, 0 },
-	{ "Winbond W25P16", 0x001420ef, 2097152, 0 },
+	{ "Winbond W25P16", 0x001520ef, 2097152, 0 },
 
 	{ "Winbond W25X40", 0x001330ef,  524288, 1 },
 	{ "Winbond W25X80", 0x001430ef, 1048576, 1 },
 	{ "Winbond W25X16", 0x001530ef, 2097152, 1 },
 	{ "Winbond W25X32", 0x001630ef, 4194304, 1 },
 	{ "Winbond W25X64", 0x001730ef, 8388608, 1 },
+
+	{ "Winbond W25Q80", 0x001440ef, 1048576, 1 },
+	{ "Winbond W25Q16", 0x001540ef, 2097152, 1 },
+	{ "Winbond W25Q32", 0x001640ef, 4194304, 1 },
 
 	{ }
 };
@@ -553,6 +566,7 @@ static int ax203_read_parameter_block(Camera *camera)
 		{  96,  64 },
 		{ 120, 160 },
 		{ 128, 128 },
+		{ 132, 132 },
 		{ 128, 160 },
 		{ 160, 120 },
 		{ 160, 128 },
@@ -694,15 +708,6 @@ verify_parameters:
 	GP_DEBUG ("lcd size %dx%d, compression ver: %d, fs-start: %x",
 		  camera->pl->width, camera->pl->height,
 		  camera->pl->compression_version, camera->pl->fs_start);
-
-	/* Set JPEG compression parameters based on the found resolution */
-	if (camera->pl->compression_version == AX206_COMPRESSION_JPEG &&
-	    (camera->pl->width % 16 || camera->pl->height % 16)) {
-		gp_log (GP_LOG_DEBUG, "ax203", "height or width not a "
-			"multiple of 16, forcing 1x subsampling");
-		camera->pl->jpeg_uv_subsample = 1;
-	} else
-		camera->pl->jpeg_uv_subsample = 2;
 
 	return GP_OK;
 }
@@ -1028,7 +1033,7 @@ ax203_decode_image(Camera *camera, char *src, int src_size, int **dest)
 {
 #ifdef HAVE_GD
 	int ret;
-	unsigned int x, y, width, height;
+	unsigned int x, y, width, height, row_skip = 0;
 	unsigned char *components[3];
 #ifdef HAVE_LIBJPEG
 	struct jpeg_decompress_struct dinfo;
@@ -1055,6 +1060,15 @@ ax203_decode_image(Camera *camera, char *src, int src_size, int **dest)
 			if (!camera->pl->jdec)
 				return GP_ERROR_NO_MEMORY;
 		}
+		
+		/* Hack for width / heights which are not a multiple of 16 */
+		if (camera->pl->width % 16 || camera->pl->height % 16) {
+			width  = (camera->pl->width  + 15) & ~15;
+			height = (camera->pl->height + 15) & ~15;
+			htobe16a(src,     width);
+			htobe16a(src + 2, height);
+			row_skip = (width - camera->pl->width) * 3;
+		}
 		ret = tinyjpeg_parse_header (camera->pl->jdec,
 					     (unsigned char *)src, src_size);
 		if (ret) {
@@ -1063,14 +1077,16 @@ ax203_decode_image(Camera *camera, char *src, int src_size, int **dest)
 				tinyjpeg_get_errorstring (camera->pl->jdec));
 			return GP_ERROR_CORRUPTED_DATA;
 		}
-		tinyjpeg_get_size (camera->pl->jdec, &width, &height);
-		if ((int)width  != camera->pl->width ||
-		    (int)height != camera->pl->height) {
-			gp_log (GP_LOG_ERROR, "ax203",
-				"Hdr dimensions %ux%u don't match lcd %dx%d",
-				width, height,
-				camera->pl->width, camera->pl->height);
-			return GP_ERROR_CORRUPTED_DATA;
+		if (!row_skip) {
+			tinyjpeg_get_size (camera->pl->jdec, &width, &height);
+			if ((int)width  != camera->pl->width ||
+			    (int)height != camera->pl->height) {
+				gp_log (GP_LOG_ERROR, "ax203",
+					"Hdr dimensions %ux%u don't match lcd %dx%d",
+					width, height,
+					camera->pl->width, camera->pl->height);
+				return GP_ERROR_CORRUPTED_DATA;
+			}
 		}
 		ret = tinyjpeg_decode (camera->pl->jdec);
 		if (ret) {
@@ -1080,13 +1096,14 @@ ax203_decode_image(Camera *camera, char *src, int src_size, int **dest)
 			return GP_ERROR_CORRUPTED_DATA;
 		}
 		tinyjpeg_get_components (camera->pl->jdec, components);
-		for (y = 0; y < height; y++) {
-			for (x = 0; x < width; x++) {
+		for (y = 0; y < camera->pl->height; y++) {
+			for (x = 0; x < camera->pl->width; x++) {
 				dest[y][x] = gdTrueColor (components[0][0],
 							  components[0][1],
 							  components[0][2]);
 				components[0] += 3;
 			}
+			components[0] += row_skip;
 		}
 		return GP_OK;
 	case AX3003_COMPRESSION_JPEG:
@@ -1127,6 +1144,7 @@ ax203_decode_image(Camera *camera, char *src, int src_size, int **dest)
 		break;
 	}
 #endif
+	gp_log(GP_LOG_ERROR,"ax203", "GD decompression not supported - no libGD present during build");
 	/* Never reached */
 	return GP_ERROR_NOT_SUPPORTED;
 }
@@ -1204,6 +1222,7 @@ ax203_encode_image(Camera *camera, int **src, char *dest, int dest_size)
 	}
 	/* Never reached */
 #endif
+	gp_log(GP_LOG_ERROR,"ax203", "GD decompression not supported - no libGD present during build");
 	return GP_ERROR_NOT_SUPPORTED;
 }
 
