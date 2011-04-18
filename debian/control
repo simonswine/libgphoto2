@@ -19,7 +19,7 @@ Build-Depends:
  , graphviz
  , libdbus-1-dev
 Build-Conflicts: liblockdev1-dev
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Vcs-Browser: http://git.debian.org/?p=pkg-phototools/libgphoto2.git
 Vcs-Git: git://git.debian.org/git/pkg-phototools/libgphoto2.git
 Homepage: http://www.gphoto.org/proj/libgphoto2/
