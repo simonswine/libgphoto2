@@ -1,6 +1,4 @@
 libgphoto2.so.2 libgphoto2-2 #MINVER#
- JPEG_MARKERNAMES@Base 2.4.11
- JPEG_MARKERS@Base 2.4.11
  gp_abilities_list_append@Base 2.4.10.1
  gp_abilities_list_count@Base 2.4.10.1
  gp_abilities_list_detect@Base 2.4.10.1
@@ -101,7 +99,6 @@ libgphoto2.so.2 libgphoto2-2 #MINVER#
  gp_filesystem_get_file@Base 2.4.10.1
  gp_filesystem_get_folder@Base 2.4.10.1
  gp_filesystem_get_info@Base 2.4.10.1
- gp_filesystem_get_storageinfo@Base 2.4.11
  gp_filesystem_list_files@Base 2.4.10.1
  gp_filesystem_list_folders@Base 2.4.10.1
  gp_filesystem_make_dir@Base 2.4.10.1
@@ -178,24 +175,11 @@ libgphoto2.so.2 libgphoto2-2 #MINVER#
  gpi_file_operation_map@Base 2.4.10.1
  gpi_folder_operation_map@Base 2.4.10.1
  gpi_gphoto_device_type_map@Base 2.4.10.1
- gpi_jpeg_add_chunk@Base 2.4.11
  gpi_jpeg_add_marker@Base 2.4.10.1
  gpi_jpeg_chunk_destroy@Base 2.4.10.1
  gpi_jpeg_chunk_new@Base 2.4.10.1
  gpi_jpeg_chunk_new_filled@Base 2.4.10.1
  gpi_jpeg_chunk_print@Base 2.4.10.1
  gpi_jpeg_destroy@Base 2.4.10.1
- gpi_jpeg_findactivemarker@Base 2.4.11
- gpi_jpeg_findff@Base 2.4.11
  gpi_jpeg_header@Base 2.4.10.1
- gpi_jpeg_makeSsSeAhAl@Base 2.4.11
- gpi_jpeg_make_SOFC@Base 2.4.11
- gpi_jpeg_make_quantization@Base 2.4.11
- gpi_jpeg_make_start@Base 2.4.11
- gpi_jpeg_markername@Base 2.4.11
- gpi_jpeg_new@Base 2.4.11
- gpi_jpeg_parse@Base 2.4.11
- gpi_jpeg_print@Base 2.4.11
- gpi_jpeg_print_quantization_table@Base 2.4.11
- gpi_jpeg_quantization2table@Base 2.4.11
  gpi_jpeg_write@Base 2.4.10.1
