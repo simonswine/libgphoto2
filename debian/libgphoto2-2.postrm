@@ -21,7 +21,7 @@ case "$1" in
 			/etc/udev/rules.d/025_$PACKAGE.rules \
 			/etc/udev/rules.d/020_libgphoto2_generic-ptp_support.rules
 		do
-			dpkg-maintscript-helper rm_conffile $f 2.4.10.1-5
+			dpkg-maintscript-helper rm_conffile $f 2.4.10.1-5 -- "$@"
 		done
 	;;
 

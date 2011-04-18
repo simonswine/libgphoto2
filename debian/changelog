@@ -1,3 +1,9 @@
+libgphoto2 (2.4.11-2) UNRELEASED; urgency=low
+
+  * Fix usage of dpkg-maintscript-helper
+
+ -- David Paleino <dapal@debian.org>  Mon, 18 Apr 2011 19:47:18 +0200
+
 libgphoto2 (2.4.11-1) unstable; urgency=low
 
   [ David Paleino ]
