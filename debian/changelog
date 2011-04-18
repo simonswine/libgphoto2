@@ -11,13 +11,14 @@ libgphoto2 (2.4.11-1) UNRELEASED; urgency=low
     (Closes: #622569)
   * Patch 80_avchd_support.patch removed, merged upstream
   * Standards-Version bump to 3.9.2, no changes needed
+  * Symbols file updated
 
   [ Andreas Metzler ]
   * Stop shipping libtool la files in development package.
     http://wiki.debian.org/ReleaseGoals/LAFileRemoval
     (Closes: #621619)
 
- -- David Paleino <dapal@debian.org>  Mon, 18 Apr 2011 17:35:13 +0200
+ -- David Paleino <dapal@debian.org>  Mon, 18 Apr 2011 17:45:16 +0200
 
 libgphoto2 (2.4.10.1-5) unstable; urgency=low
 
