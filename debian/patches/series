@@ -1,5 +1,3 @@
 #10_disable_cache
 #11_hurd_no_path_max_bsdsource
-00-fix_generic_PTP_permissions.patch
 70_increase_max_entries
-80_avchd_support.patch

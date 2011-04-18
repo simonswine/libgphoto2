@@ -2,21 +2,21 @@ libgphoto2 (2.4.11-1) UNRELEASED; urgency=low
 
   [ David Paleino ]
   * New upstream release
+    - Fix unset permissions with the generic PTP rule
+      (Closes: #616648, #620941)
   * Fix README.Debian regarding the new udev rules location
     (Closes: #620937)
-  * Fix unset permissions with the generic PTP rule
-    (00-fix_generic_PTP_permissions.patch) (Closes: #616648,
-    #620941)
   * debian/libgphoto2-2.{preinst,postinst,postrm}: properly
     remove old configuration files using dpkg-maintscript-helper
     (Closes: #622569)
+  * Patch 80_avchd_support.patch removed, merged upstream
 
   [ Andreas Metzler ]
   * Stop shipping libtool la files in development package.
     http://wiki.debian.org/ReleaseGoals/LAFileRemoval
     (Closes: #621619)
 
- -- David Paleino <dapal@debian.org>  Mon, 18 Apr 2011 17:29:37 +0200
+ -- David Paleino <dapal@debian.org>  Mon, 18 Apr 2011 17:33:43 +0200
 
 libgphoto2 (2.4.10.1-5) unstable; urgency=low
 
