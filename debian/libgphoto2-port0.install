@@ -3,4 +3,4 @@ usr/share/doc/libgphoto2_port/AUTHORS usr/share/doc/libgphoto2-port0
 usr/share/doc/libgphoto2_port/README  usr/share/doc/libgphoto2-port0
 usr/share/doc/libgphoto2_port/NEWS    usr/share/doc/libgphoto2-port0
 usr/lib/libgphoto2_port.so.*
-usr/lib/libgphoto2_port/*/{serial,usb,disk,ptpip}.so
+usr/lib/libgphoto2_port/*/*.so
