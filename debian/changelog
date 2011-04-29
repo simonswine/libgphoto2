@@ -1,3 +1,10 @@
+libgphoto2 (2.4.11-3) UNRELEASED; urgency=low
+
+  * Add support for GD, by Build-Depending on libgd2-noxpm-dev
+    (Closes: #609120)
+
+ -- David Paleino <dapal@debian.org>  Fri, 29 Apr 2011 21:00:45 +0200
+
 libgphoto2 (2.4.11-2) unstable; urgency=low
 
   * Fix usage of dpkg-maintscript-helper
