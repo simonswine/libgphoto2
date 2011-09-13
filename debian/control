@@ -14,7 +14,7 @@ Build-Depends:
  , libgpmg1-dev [linux-any]
  , pkg-config
  , libexif-dev (>= 0.5.9)
- , libjpeg62-dev
+ , libjpeg-dev
  , doxygen
  , graphviz
  , libdbus-1-dev
