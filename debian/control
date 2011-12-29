@@ -6,7 +6,7 @@ Uploaders: Frederic Peters <fpeters@debian.org>
  , David Paleino <dapal@debian.org>
  , Gürkan Sengün <gurkan@phys.ethz.ch>
 Build-Depends:
- debhelper (>= 7.0.50)
+ debhelper (>= 8.1.3~)
  , libtool
  , libltdl-dev
  , zlib1g-dev
@@ -55,10 +55,12 @@ Description: gphoto2 digital camera library (development documentation)
 
 Package: libgphoto2-port0
 Architecture: any
+Multi-Arch: same
 Provides: libgphoto2port
 Replaces: libgphoto2port
 Conflicts: libgphoto2port
 Breaks: gphoto2 (<= 2.1.1)
+Pre-Depends: ${misc:Pre-Depends}
 Depends:
  ${shlibs:Depends}
  , ${misc:Depends}
@@ -72,7 +74,9 @@ Description: gphoto2 digital camera port library
 
 Package: libgphoto2-2
 Architecture: any
+Multi-Arch: same
 Breaks: gphoto2 (<= 2.1.1)
+Pre-Depends: ${misc:Pre-Depends}
 Depends:
  ${shlibs:Depends}
  , ${misc:Depends}
@@ -93,6 +97,7 @@ Description: gphoto2 digital camera library
 Package: libgphoto2-l10n
 Section: localization
 Architecture: all
+Multi-Arch: foreign
 Breaks: libgphoto2-2 (<= 2.4.10.1-4)
 Replaces: libgphoto2-2 (<= 2.4.10.1-4)
 Depends: ${misc:Depends}
