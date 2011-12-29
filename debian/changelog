@@ -1,8 +1,9 @@
 libgphoto2 (2.4.11-4) UNRELEASED; urgency=low
 
   * Acknowledge NMU.
+  * Avoid -Wformat-security warnings, thanks to Kees Cook.
 
- -- David Paleino <dapal@debian.org>  Tue, 13 Sep 2011 16:22:01 +0200
+ -- David Paleino <dapal@debian.org>  Fri, 30 Dec 2011 00:50:18 +0100
 
 libgphoto2 (2.4.11-3.1) unstable; urgency=low
 
