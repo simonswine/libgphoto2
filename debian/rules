@@ -39,7 +39,7 @@ override_dh_installudev:
 	# No longer needed with current udev. But check with non-Linux architectures stuff:
 	# rm debian/libgphoto2-2/lib/udev/check-ptp-camera
 	# Generate the udev file, get it installed, and clean:
-	CAMLIBS=`ls -d debian/libgphoto2-$(major)/usr/lib/$(DEB_HOST_MULTIARCH)/libgphoto2/2*` ./packaging/generic/print-camera-list udev-rules version 136 mode 0664 group plugdev > debian/libgphoto2-$(major).udev
+	CAMLIBS=`ls -d debian/libgphoto2-$(major)/usr/lib/$(DEB_HOST_MULTIARCH)/libgphoto2/2*` ./packaging/generic/print-camera-list udev-rules version 175 mode 0664 group plugdev > debian/libgphoto2-$(major).udev
 	dh_installudev
 	rm debian/libgphoto2-$(major).udev
 endif
@@ -57,7 +57,7 @@ override_dh_shlibdeps:
 ifeq (linux,$(DEB_HOST_ARCH_OS))
 override_dh_gencontrol:
 	dh_gencontrol
-	dh_gencontrol -plibgphoto2-$(major) -- -Vudev-hotplug='udev (>= 0.136)'
+	dh_gencontrol -plibgphoto2-$(major) -- -Vudev-hotplug='udev (>= 0.175)'
 endif
 
 %:
