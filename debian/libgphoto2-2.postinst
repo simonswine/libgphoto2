@@ -11,6 +11,7 @@ case "$1" in
 	rm -f /usr/share/hal/fdi/information/10freedesktop/10-camera-$PACKAGE.fdi
 	rm -f /usr/share/hal/fdi/information/20thirdparty/$PACKAGE.fdi
 	rm -f /usr/share/hal/fdi/information/10freedesktop/10-camera-$PACKAGE-device.fdi
+	;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
         ;;
