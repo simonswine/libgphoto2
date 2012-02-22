@@ -1,8 +1,11 @@
 libgphoto2 (2.4.12-1) UNRELEASED; urgency=low
 
   * New upstream version
+  * Fix maintainer scripts with the help of dh_installdeb's .maintscript
+    support. *MANY* thanks to Colin Watson for the patch (and for
+    letting me know about .maintscript). (Closes: #659768)
 
- -- David Paleino <dapal@debian.org>  Wed, 22 Feb 2012 18:54:39 +0100
+ -- David Paleino <dapal@debian.org>  Wed, 22 Feb 2012 19:03:20 +0100
 
 libgphoto2 (2.4.11-4) unstable; urgency=low
 
