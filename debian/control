@@ -18,7 +18,7 @@ Build-Depends:
  , doxygen
  , graphviz
  , libdbus-1-dev
- , libgd2-noxpm-dev
+ , libgd2-xpm-dev
 Build-Conflicts: liblockdev1-dev
 Standards-Version: 3.9.2
 Vcs-Browser: http://git.debian.org/?p=pkg-phototools/libgphoto2.git
