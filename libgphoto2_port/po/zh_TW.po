@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.1.6\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2011-03-13 23:34+0100\n"
+"POT-Creation-Date: 2012-01-22 23:04+0100\n"
 "PO-Revision-Date: 2005-09-13 15:02+0800\n"
 "Last-Translator: Wei-Lun Chao <chaoweilun@pcmail.com.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -17,89 +17,92 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:213
+#: libgphoto2_port/gphoto2-port-info-list.c:214
 #, c-format
 msgid "Called for filename '%s'."
 msgstr "由名為「%s」的檔案所呼叫。"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:218
+#: libgphoto2_port/gphoto2-port-info-list.c:219
 #, c-format
 msgid "Could not load '%s': '%s'."
 msgstr "無法載入「%s」：「%s」。"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:226
+#: libgphoto2_port/gphoto2-port-info-list.c:227
 #, c-format
 msgid "Could not find some functions in '%s': '%s'."
 msgstr "無法在「%s」中找到某些功能：「%s」"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:238
+#: libgphoto2_port/gphoto2-port-info-list.c:239
 #, c-format
 msgid "'%s' already loaded"
 msgstr "「%s」已載入"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:247
+#: libgphoto2_port/gphoto2-port-info-list.c:248
 #, c-format
 msgid "Could not load port driver list: '%s'."
 msgstr "無法載入連接埠驅動程式清單：「%s」。"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:254
+#: libgphoto2_port/gphoto2-port-info-list.c:255
 #, c-format
 msgid "Loaded '%s' ('%s') from '%s'."
 msgstr "已載入的「%s」(「%s」)來自於「%s」。"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:286
+#: libgphoto2_port/gphoto2-port-info-list.c:287
 #, c-format
 msgid "Using ltdl to load io-drivers from '%s'..."
 msgstr "使用 ltdl 以從「%s」載入輸出入驅動程式 ..."
 
-#: libgphoto2_port/gphoto2-port-info-list.c:312
-#, c-format
-msgid "Counting entries (%i available)..."
-msgstr "計數條目 (%i 項可用)..."
+#: libgphoto2_port/gphoto2-port-info-list.c:314
+#, fuzzy, c-format
+msgid "Counting entry (%i available)..."
+msgid_plural "Counting entries (%i available)..."
+msgstr[0] "計數條目 (%i 項可用)..."
 
-#: libgphoto2_port/gphoto2-port-info-list.c:321
-#, c-format
-msgid "%i regular entries available."
-msgstr "%i 項正規條目可用。"
+#: libgphoto2_port/gphoto2-port-info-list.c:326
+#, fuzzy, c-format
+msgid "%i regular entry available."
+msgid_plural "%i regular entries available."
+msgstr[0] "%i 項正規條目可用。"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:351
-#, c-format
-msgid "Looking for path '%s' (%i entries available)..."
-msgstr "正在尋找路徑「%s」(%i 項條目可用)..."
+#: libgphoto2_port/gphoto2-port-info-list.c:359
+#, fuzzy, c-format
+msgid "Looking for path '%s' (%i entry available)..."
+msgid_plural "Looking for path '%s' (%i entries available)..."
+msgstr[0] "正在尋找路徑「%s」(%i 項條目可用)..."
 
-#: libgphoto2_port/gphoto2-port-info-list.c:363
+#: libgphoto2_port/gphoto2-port-info-list.c:373
 #, c-format
 msgid "Starting regex search for '%s'..."
 msgstr "開始以正規表示式尋找「%s」..."
 
-#: libgphoto2_port/gphoto2-port-info-list.c:371
+#: libgphoto2_port/gphoto2-port-info-list.c:381
 #, c-format
 msgid "Trying '%s'..."
 msgstr "正在嘗試「%s」..."
 
-#: libgphoto2_port/gphoto2-port-info-list.c:392
+#: libgphoto2_port/gphoto2-port-info-list.c:402
 msgid "regcomp failed"
 msgstr "正規表示式編譯失敗"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:403
+#: libgphoto2_port/gphoto2-port-info-list.c:413
 #, c-format
 msgid "re_match failed (%i)"
 msgstr "正規表示式匹配失敗 (%i)"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:411
+#: libgphoto2_port/gphoto2-port-info-list.c:421
 msgid "regexec failed"
 msgstr "正規表示式執行失敗"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:417
+#: libgphoto2_port/gphoto2-port-info-list.c:427
 msgid "Generic Port"
 msgstr "通用連接埠"
 
-#: libgphoto2_port/gphoto2-port-info-list.c:441
+#: libgphoto2_port/gphoto2-port-info-list.c:451
 #, c-format
 msgid "Looking up entry '%s'..."
 msgstr "正在尋找條目「%s」..."
 
-#: libgphoto2_port/gphoto2-port-info-list.c:471
+#: libgphoto2_port/gphoto2-port-info-list.c:481
 #, c-format
 msgid "Getting info of entry %i (%i available)..."
 msgstr "正在取得條目 %i 的資訊 (%i 項可用)..."
@@ -197,225 +200,230 @@ msgstr "無錯誤"
 msgid "Unknown error"
 msgstr "不明的錯誤"
 
-#: libgphoto2_port/gphoto2-port.c:55
+#: libgphoto2_port/gphoto2-port.c:56
 #, c-format
 msgid "The operation '%s' is not supported by this device"
 msgstr "這個裝置不支援「%s」操作"
 
-#: libgphoto2_port/gphoto2-port.c:56
+#: libgphoto2_port/gphoto2-port.c:57
 msgid "The port has not yet been initialized"
 msgstr "連接埠尚未初始化"
 
-#: libgphoto2_port/gphoto2-port.c:87
+#: libgphoto2_port/gphoto2-port.c:88
 msgid "Creating new device..."
 msgstr "建立新的裝置..."
 
-#: libgphoto2_port/gphoto2-port.c:165
+#: libgphoto2_port/gphoto2-port.c:166
 #, c-format
 msgid "Could not load '%s' ('%s')."
 msgstr "無法載入「%s」(「%s」)。"
 
-#: libgphoto2_port/gphoto2-port.c:175
+#: libgphoto2_port/gphoto2-port.c:176
 #, c-format
 msgid "Could not find 'gp_port_library_operations' in '%s' ('%s')"
 msgstr "無法在「%s」(「%s」) 之中找到「gp_port_library_operations」"
 
-#: libgphoto2_port/gphoto2-port.c:265
+#: libgphoto2_port/gphoto2-port.c:266
 #, c-format
 msgid "Opening %s port..."
 msgstr "正在開啟 %s 連接埠..."
 
-#: libgphoto2_port/gphoto2-port.c:287
+#: libgphoto2_port/gphoto2-port.c:288
 msgid "Closing port..."
 msgstr "正在關閉連接埠..."
 
-#: libgphoto2_port/gphoto2-port.c:309
+#: libgphoto2_port/gphoto2-port.c:310
 msgid "Freeing port..."
 msgstr "正在釋放連接埠..."
 
-#: libgphoto2_port/gphoto2-port.c:356
-#, c-format
-msgid "Writing %i=0x%x byte(s) to port..."
-msgstr "正在寫入 %i=0x%x 位元組到連接埠... "
+#: libgphoto2_port/gphoto2-port.c:358
+#, fuzzy, c-format
+msgid "Writing %i=0x%x byte to port..."
+msgid_plural "Writing %i=0x%x bytes to port..."
+msgstr[0] "正在寫入 %i=0x%x 位元組到連接埠... "
 
-#: libgphoto2_port/gphoto2-port.c:369
-#, c-format
-msgid "Could only write %i out of %i byte(s)"
-msgstr "只能夠寫入 %1$i 位元組之中的 %2$i"
+#: libgphoto2_port/gphoto2-port.c:373
+#, fuzzy, c-format
+msgid "Could only write %i out of %i byte"
+msgid_plural "Could only write %i out of %i bytes"
+msgstr[0] "只能夠寫入 %1$i 位元組之中的 %2$i"
 
-#: libgphoto2_port/gphoto2-port.c:392
-#, c-format
-msgid "Reading %i=0x%x bytes from port..."
-msgstr "正在從連接埠讀取 %i=0x%x 位元組..."
+#: libgphoto2_port/gphoto2-port.c:398
+#, fuzzy, c-format
+msgid "Reading %i=0x%x byte from port..."
+msgid_plural "Reading %i=0x%x bytes from port..."
+msgstr[0] "正在從連接埠讀取 %i=0x%x 位元組..."
 
-#: libgphoto2_port/gphoto2-port.c:403 libgphoto2_port/gphoto2-port.c:440
-#: libgphoto2_port/gphoto2-port.c:480 libgphoto2_port/gphoto2-port.c:905
-#, c-format
-msgid "Could only read %i out of %i byte(s)"
-msgstr "只能夠寫入 %1$i 位元組之中的 %2$i"
+#: libgphoto2_port/gphoto2-port.c:412 libgphoto2_port/gphoto2-port.c:453
+#: libgphoto2_port/gphoto2-port.c:493 libgphoto2_port/gphoto2-port.c:929
+#: libgphoto2_port/gphoto2-port.c:1012 libgphoto2_port/gphoto2-port.c:1097
+#, fuzzy, c-format
+msgid "Could only read %i out of %i byte"
+msgid_plural "Could only read %i out of %i bytes"
+msgstr[0] "只能夠寫入 %1$i 位元組之中的 %2$i"
 
-#: libgphoto2_port/gphoto2-port.c:429
-#, c-format
-msgid "Reading %i=0x%x bytes from interrupt endpoint..."
-msgstr "正在從中斷結束點讀取 %i=0x%x 位元組..."
+#: libgphoto2_port/gphoto2-port.c:439
+#, fuzzy, c-format
+msgid "Reading %i=0x%x byte from interrupt endpoint..."
+msgid_plural "Reading %i=0x%x bytes from interrupt endpoint..."
+msgstr[0] "正在從中斷結束點讀取 %i=0x%x 位元組..."
 
-#: libgphoto2_port/gphoto2-port.c:490
-#, c-format
-msgid "Reading %i=0x%x bytes from interrupt endpoint (fast)..."
-msgstr "正在從中斷結束點讀取 %i=0x%x 位元組 (快速)..."
+#: libgphoto2_port/gphoto2-port.c:505
+#, fuzzy, c-format
+msgid "Reading %i=0x%x byte from interrupt endpoint (fast)..."
+msgid_plural "Reading %i=0x%x bytes from interrupt endpoint (fast)..."
+msgstr[0] "正在從中斷結束點讀取 %i=0x%x 位元組 (快速)..."
 
-#: libgphoto2_port/gphoto2-port.c:515
-#, c-format
-msgid "Setting timeout to %i millisecond(s)..."
-msgstr "正在設定逾時為 %i 毫秒..."
+#: libgphoto2_port/gphoto2-port.c:533
+#, fuzzy, c-format
+msgid "Setting timeout to %i millisecond..."
+msgid_plural "Setting timeout to %i milliseconds..."
+msgstr[0] "正在設定逾時為 %i 毫秒..."
 
-#: libgphoto2_port/gphoto2-port.c:551
+#: libgphoto2_port/gphoto2-port.c:571
 msgid "Getting timeout..."
 msgstr "將要達到逾時..."
 
-#: libgphoto2_port/gphoto2-port.c:555
+#: libgphoto2_port/gphoto2-port.c:575
 #, c-format
 msgid "Current timeout: %i milliseconds"
 msgstr "目前逾時設定：%i 毫秒"
 
-#: libgphoto2_port/gphoto2-port.c:577
+#: libgphoto2_port/gphoto2-port.c:597
 msgid "Setting settings..."
 msgstr "正在做設定..."
 
-#: libgphoto2_port/gphoto2-port.c:638
+#: libgphoto2_port/gphoto2-port.c:658
 #, c-format
 msgid "Getting level of pin %i..."
 msgstr "正在擷取針腳 %i 的層級..."
 
-#: libgphoto2_port/gphoto2-port.c:647
+#: libgphoto2_port/gphoto2-port.c:667
 #, c-format
 msgid "Level of pin %i: %i"
 msgstr "針腳 %i 的層級：%i"
 
-#: libgphoto2_port/gphoto2-port.c:673
+#: libgphoto2_port/gphoto2-port.c:693
 msgid "low"
 msgstr "低"
 
-#: libgphoto2_port/gphoto2-port.c:674
+#: libgphoto2_port/gphoto2-port.c:694
 msgid "high"
 msgstr "高"
 
-#: libgphoto2_port/gphoto2-port.c:700
+#: libgphoto2_port/gphoto2-port.c:720
 #, c-format
 msgid "Setting pin %i (%s: '%s') to '%s'..."
 msgstr "正在設定針腳 %i (%s：「%s」) 為「%s」..."
 
-#: libgphoto2_port/gphoto2-port.c:727
-#, c-format
-msgid "Sending break (%i milliseconds)..."
-msgstr "正在傳送中斷 (%i 毫秒)..."
+#: libgphoto2_port/gphoto2-port.c:748
+#, fuzzy, c-format
+msgid "Sending break (%i millisecond)..."
+msgid_plural "Sending break (%i milliseconds)..."
+msgstr[0] "正在傳送中斷 (%i 毫秒)..."
 
-#: libgphoto2_port/gphoto2-port.c:753
+#: libgphoto2_port/gphoto2-port.c:776
 msgid "Flushing port..."
 msgstr "正在重新整理連接埠..."
 
-#: libgphoto2_port/gphoto2-port.c:827
+#: libgphoto2_port/gphoto2-port.c:850
 msgid "Clear halt..."
 msgstr "清除停止..."
 
-#: libgphoto2_port/gphoto2-port.c:858
+#: libgphoto2_port/gphoto2-port.c:881
 #, c-format
 msgid "Writing message (request=0x%x value=0x%x index=0x%x size=%i=0x%x)..."
 msgstr "正在寫入訊息 (要求=0x%x 值=0x%x 索引=0x%x 大小=%i=0x%x)..."
 
-#: libgphoto2_port/gphoto2-port.c:893
+#: libgphoto2_port/gphoto2-port.c:916
 #, c-format
 msgid "Reading message (request=0x%x value=0x%x index=0x%x size=%i=0x%x)..."
 msgstr "正在讀取訊息 (要求=0x%x 值=0x%x 索引=0x%x 大小=%i=0x%x)..."
 
-#: libgphoto2_port/gphoto2-port.c:900
-msgid "msg_read"
-msgstr "msg_read"
-
-#: libgphoto2_port/gphoto2-port.c:1205
+#: libgphoto2_port/gphoto2-port.c:1231
 msgid "No error description available"
 msgstr "沒有可用的錯誤描述"
 
-#: serial/unix.c:241
+#: serial/unix.c:239
 #, c-format
 msgid "Could not lock device '%s'"
 msgstr "無法鎖定裝置「%s」"
 
-#: serial/unix.c:251 usbdiskdirect/linux.c:94 usbscsi/linux.c:95
+#: serial/unix.c:249 usbdiskdirect/linux.c:94 usbscsi/linux.c:95
 #, c-format
 msgid "Device '%s' is locked by pid %d"
 msgstr "裝置「%s」已經被行程編號為 %d 的行程鎖定"
 
-#: serial/unix.c:254 usbdiskdirect/linux.c:97 usbscsi/linux.c:98
+#: serial/unix.c:252 usbdiskdirect/linux.c:97 usbscsi/linux.c:98
 #, c-format
 msgid "Device '%s' could not be locked (dev_lock returned %d)"
 msgstr "無法鎖定裝置「%s」(dev_lock 回傳 %d)"
 
-#: serial/unix.c:288
+#: serial/unix.c:286
 #, c-format
 msgid "Device '%s' could not be unlocked."
 msgstr "無法解鎖裝置「%s」。"
 
-#: serial/unix.c:300 usbdiskdirect/linux.c:126 usbscsi/linux.c:127
+#: serial/unix.c:298 usbdiskdirect/linux.c:126 usbscsi/linux.c:127
 #, c-format
 msgid "Device '%s' could not be unlocked as it is locked by pid %d."
 msgstr "由於裝置「%s」已被行程編號為 %d 的行程鎖定，所以無法解鎖。"
 
-#: serial/unix.c:304 usbdiskdirect/linux.c:130 usbscsi/linux.c:131
+#: serial/unix.c:302 usbdiskdirect/linux.c:130 usbscsi/linux.c:131
 #, c-format
 msgid "Device '%s' could not be unlocked (dev_unlock returned %d)"
 msgstr "無法解鎖裝置「%s」(dev_unlock 回傳 %d)"
 
-#: serial/unix.c:385
+#: serial/unix.c:383
 #, c-format
 msgid "Serial Port %i"
 msgstr "序列埠 %i"
 
-#: serial/unix.c:476 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
+#: serial/unix.c:474 usbdiskdirect/linux.c:285 usbscsi/linux.c:287
 #, c-format
 msgid "Failed to open '%s' (%m)."
 msgstr "開啟「%s」(%m)失敗。"
 
-#: serial/unix.c:494 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
+#: serial/unix.c:492 usbdiskdirect/linux.c:299 usbscsi/linux.c:301
 #, c-format
 msgid "Could not close '%s' (%m)."
 msgstr "無法關閉「%s」(%m)。"
 
-#: serial/unix.c:548
+#: serial/unix.c:546
 #, c-format
 msgid "Could not write to port (%m)"
 msgstr "無法寫入連接埠 (%m)"
 
-#: serial/unix.c:625
+#: serial/unix.c:623
 msgid "Parity error."
 msgstr "奇偶檢查錯誤。"
 
-#: serial/unix.c:629
+#: serial/unix.c:627
 #, c-format
 msgid "Unexpected parity response sequence 0xff 0x%02x."
 msgstr "意外的奇偶應答序列 0xff 0x%02x。"
 
-#: serial/unix.c:672
+#: serial/unix.c:670
 #, c-format
 msgid "Unknown pin %i."
 msgstr "不明針腳 %i。"
 
-#: serial/unix.c:694
+#: serial/unix.c:692
 #, c-format
 msgid "Could not get level of pin %i (%m)."
 msgstr "無法獲取針腳 %i 的層級 (%m)。"
 
-#: serial/unix.c:729
+#: serial/unix.c:727
 #, c-format
 msgid "Could not set level of pin %i to %i (%m)."
 msgstr "無法將針腳 %i 的層級設定為 %i (%m)。"
 
-#: serial/unix.c:754
+#: serial/unix.c:752
 #, c-format
 msgid "Could not flush '%s' (%m)."
 msgstr "無法重新整理「%s」(%m)。"
 
-#: serial/unix.c:867
+#: serial/unix.c:865
 #, c-format
 msgid "Could not set the baudrate to %d"
 msgstr "無法將鮑率設定為 %d"
@@ -425,7 +433,7 @@ msgstr "無法將鮑率設定為 %d"
 msgid "Could not open USB device (%m)."
 msgstr "無法開啟 USB 裝置 (%m)。"
 
-#: usb/libusb.c:260
+#: usb/libusb.c:260 libusb1/libusb1.c:309
 msgid "Camera is already in use."
 msgstr "照相機正在使用。"
 
@@ -439,7 +447,7 @@ msgstr "裝置已附掛驅動程式「%s」，現在卸掛它。"
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr "無法卸掛照相機裝置的核心驅動程式「%s」。"
 
-#: usb/libusb.c:273
+#: usb/libusb.c:273 libusb1/libusb1.c:323
 msgid "Could not query kernel driver of device."
 msgstr "無法查詢裝置的核心驅動程式。"
 
@@ -478,12 +486,12 @@ msgstr "無法設定配置 %d/%d (%m)"
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "無法設定補充設定 %d/%d (%m)"
 
-#: usb/libusb.c:713
+#: usb/libusb.c:713 libusb1/libusb1.c:764
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "提供的廠商或產品 id (0x%x、0x%x) 不正確。"
 
-#: usb/libusb.c:749
+#: usb/libusb.c:749 libusb1/libusb1.c:806
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -492,14 +500,14 @@ msgstr ""
 "USB 裝置 (廠商 0x%x、產品 0x%x) 是個大量儲存裝置，而且也許無法與 gphoto2 一起"
 "作用。參考：%s"
 
-#: usb/libusb.c:792
+#: usb/libusb.c:792 libusb1/libusb1.c:838
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
 "is connected to the computer."
 msgstr "無法找到 USB 裝置 (廠商 0x%x、產品 0x%x)。請確認這個裝置已連接到電腦。"
 
-#: usb/libusb.c:1090
+#: usb/libusb.c:1090 libusb1/libusb1.c:1133
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -508,8 +516,58 @@ msgstr ""
 "無法找到 USB 裝置 (類別 0x%x、子類 0x%x、協定 0x%x)。請確認這個裝置已連接到電"
 "腦。"
 
-#: disk/disk.c:179 disk/disk.c:229 disk/disk.c:270 disk/disk.c:302
-#: disk/disk.c:325
+#: libusb1/libusb1.c:300
+#, fuzzy, c-format
+msgid "Could not open USB device (%s)."
+msgstr "無法開啟 USB 裝置 (%m)。"
+
+#: libusb1/libusb1.c:315
+#, fuzzy, c-format
+msgid "Device has a kernel driver attached (%d), detaching it now."
+msgstr "裝置已附掛驅動程式「%s」，現在卸掛它。"
+
+#: libusb1/libusb1.c:318
+#, fuzzy
+msgid "Could not detach kernel driver of camera device."
+msgstr "無法卸掛照相機裝置的核心驅動程式「%s」。"
+
+#: libusb1/libusb1.c:331
+#, fuzzy, c-format
+msgid ""
+"Could not claim interface %d (%s). Make sure no other program or kernel "
+"module (such as %s) is using the device and you have read/write access to "
+"the device."
+msgstr ""
+"無法請求介面 %d (%m)。請確認沒有其它程式或核心模組 (例如 %s) 正在使用這個裝"
+"置，並且您有對這個裝置的讀/寫權。"
+
+#: libusb1/libusb1.c:353
+#, fuzzy, c-format
+msgid "Could not release interface %d (%s)."
+msgstr "無法釋放介面 %d (%m)。"
+
+#: libusb1/libusb1.c:368
+#, fuzzy, c-format
+msgid "Could not reset USB port (%s)."
+msgstr "無法關閉 USB 連接埠 (%m)。"
+
+#: libusb1/libusb1.c:379
+#, fuzzy
+msgid "Could not reattach kernel driver of camera device."
+msgstr "無法卸掛照相機裝置的核心驅動程式「%s」。"
+
+#: libusb1/libusb1.c:628
+#, fuzzy, c-format
+msgid "Could not set config %d/%d (%s)"
+msgstr "無法設定配置 %d/%d (%m)"
+
+#: libusb1/libusb1.c:667
+#, fuzzy, c-format
+msgid "Could not set altsetting from %d to %d (%s)"
+msgstr "無法設定補充設定 %d/%d (%m)"
+
+#: disk/disk.c:179 disk/disk.c:237 disk/disk.c:286 disk/disk.c:318
+#: disk/disk.c:341
 #, c-format
 msgid "Media '%s'"
 msgstr ""
@@ -568,3 +626,6 @@ msgstr "無法關閉「%s」(%m)。"
 
 #~ msgid "Could not load '%s' ('%s')"
 #~ msgstr "無法載入「%s」(「%s」)"
+
+#~ msgid "msg_read"
+#~ msgstr "msg_read"

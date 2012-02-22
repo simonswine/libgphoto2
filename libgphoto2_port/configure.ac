@@ -224,7 +224,6 @@ dnl serial
 dnl ---------------------------------------------------------------------------
 serial_msg=yes
 have_serial=true
-try_baudboy_msg=true
 try_ttylock=true
 try_lockdev=true
 try_resmgr=true
@@ -235,7 +234,6 @@ AC_ARG_ENABLE([serial],
 	if test x$enableval = xno; then
 		have_serial=false
 		serial_msg=no
-		try_baudboy=false
 		try_ttylock=false
 		try_lockdev=false
 		try_resmgr=false
@@ -254,9 +252,8 @@ if $have_serial; then
 dnl -----------------------------------------
 dnl Serial port locking: We try to use either
 dnl  (1) resmgr support
-dnl  (2) baudboy.h
-dnl  (3) ttylock.h
-dnl  (4) lockdev.h
+dnl  (2) ttylock.h
+dnl  (3) lockdev.h
 dnl -----------------------------------------
 AC_DEFUN([GP_SERLOCK],[dnl
 # $0([$1])
@@ -269,7 +266,6 @@ AC_ARG_ENABLE([$1],
 	fi
 ])
 ])dnl
-GP_SERLOCK([baudboy])dnl
 GP_SERLOCK([ttylock])dnl
 GP_SERLOCK([lockdev])dnl
 GP_SERLOCK([resmgr])dnl
@@ -285,17 +281,6 @@ if $try_resmgr; then
 	])
 fi
 GP_CONFIG_MSG([resmgr locking],[${resmgr_msg}])
-
-baudboy_msg=no
-if $try_baudboy; then
-	AC_CHECK_HEADER(baudboy.h,[
-		baudboy_msg=yes
-		try_ttylock=false
-		try_lockdev=false
-		AC_DEFINE(HAVE_BAUDBOY,1,[Define if you have Baudboy serial locking.])
-	])
-fi
-GP_CONFIG_MSG([baudboy locking],[${baudboy_msg}])
 
 ttylock_msg=no
 if $try_ttylock; then
@@ -353,14 +338,30 @@ AC_CHECK_LIB(pthread, pthread_create)
 GP_CONFIG_MSG([USB ports])
 GP_CHECK_LIBRARY([LIBUSB],[libusb],[>= 0.1.5],
 		[usb.h],[usb_open],[
-	IOLIB_SUBDIRS="$IOLIB_SUBDIRS usb usbdiskdirect usbscsi"
-],[],
-		[disable-explicitly],
+			IOLIB_SUBDIRS="$IOLIB_SUBDIRS usb"
+		],[],
+		[default-on],
 		[http://libusb.sourceforge.net/]
 )
 
+dnl ---------------------------------------------------------------------------
+dnl libusb1
+dnl ---------------------------------------------------------------------------
+GP_CONFIG_MSG([USB ports])
+GP_CHECK_LIBRARY([LIBUSB1],[libusb-1.0],[>= 1.0.0],
+		[libusb.h],[libusb_init],[
+			IOLIB_SUBDIRS="$IOLIB_SUBDIRS libusb1"
+		],[],
+                [default-on],
+                [http://libusb.sourceforge.net/]
+)
+
+if test "x$have_LIBUSB" = "xyes" -o "x$have_LIBUSB1" = "xyes" ; then
+	IOLIB_SUBDIRS="$IOLIB_SUBDIRS usbdiskdirect usbscsi"
+fi
+
 dnl depends on libusb's availability
-GP_UDEV([test "x$have_LIBUSB" = xyes])
+GP_UDEV([test "x$have_LIBUSB" = xyes -o "x$have_LIBUSB1" = xyes])
 
 dnl ---------------------------------------------------------------------------
 dnl disk - hal and various stuff
@@ -490,6 +491,7 @@ libgphoto2_port/Makefile
 libgphoto2_port.pc
 libgphoto2_port-uninstalled.pc
 serial/Makefile
+libusb1/Makefile
 usb/Makefile
 usbdiskdirect/Makefile
 usbscsi/Makefile
