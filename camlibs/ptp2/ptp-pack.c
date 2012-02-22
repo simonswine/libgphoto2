@@ -126,8 +126,8 @@ ptp_unpack_string(PTPParams *params, unsigned char* data, uint16_t offset, uint8
 	destlen = sizeof(loclstr)-1;
 	nconv = (size_t)-1;
 #ifdef HAVE_ICONV
-	nconv = iconv(params->cd_ucs2_to_locale, &src, &srclen, 
-			&dest, &destlen);
+	if (params->cd_ucs2_to_locale != (iconv_t)-1)
+		nconv = iconv(params->cd_ucs2_to_locale, &src, &srclen, &dest, &destlen);
 #endif
 	if (nconv == (size_t) -1) { /* do it the hard way */
 		int i;
@@ -148,7 +148,7 @@ ptp_unpack_string(PTPParams *params, unsigned char* data, uint16_t offset, uint8
 static inline int
 ucs2strlen(uint16_t const * const unicstr)
 {
-	int length;
+	int length = 0;
 	
 	/* Unicode strings are terminated with 2 * 0x00 */
 	for(length = 0; unicstr[length] != 0x0000U; length ++);
@@ -159,7 +159,7 @@ ucs2strlen(uint16_t const * const unicstr)
 static inline void
 ptp_pack_string(PTPParams *params, char *string, unsigned char* data, uint16_t offset, uint8_t *len)
 {
-	int packedlen;
+	int packedlen = 0;
 	uint16_t ucs2str[PTP_MAXSTRLEN+1];
 	char *ucs2strp = (char *) ucs2str;
 	size_t convlen = strlen(string);
@@ -167,7 +167,7 @@ ptp_pack_string(PTPParams *params, char *string, unsigned char* data, uint16_t o
 	/* Cannot exceed 255 (PTP_MAXSTRLEN) since it is a single byte, duh ... */
 	memset(ucs2strp, 0, sizeof(ucs2str));  /* XXX: necessary? */
 #ifdef HAVE_ICONV
-	{ 
+	if (params->cd_locale_to_ucs2 != (iconv_t)-1) {
 		size_t nconv;
 		size_t convmax = PTP_MAXSTRLEN * 2; /* Includes the terminator */
 		char *stringp = string;
@@ -176,8 +176,8 @@ ptp_pack_string(PTPParams *params, char *string, unsigned char* data, uint16_t o
 			&ucs2strp, &convmax);
 		if (nconv == (size_t) -1)
 			ucs2str[0] = 0x0000U;
-	}
-#else
+	} else
+#endif
 	{
 		int i;
 		for (i=0;i<convlen;i++) {
@@ -185,7 +185,6 @@ ptp_pack_string(PTPParams *params, char *string, unsigned char* data, uint16_t o
 		}
 		ucs2str[convlen] = 0;
 	}
-#endif
 	/*
 	 * XXX: isn't packedlen just ( (uint16_t *)ucs2strp - ucs2str )?
 	 *      why do we need ucs2strlen()?
@@ -355,6 +354,8 @@ static inline void
 ptp_unpack_EOS_DI (PTPParams *params, unsigned char* data, PTPCanonEOSDeviceInfo *di, unsigned int datalen)
 {
 	int totallen = 4;
+
+	memset (di,0, sizeof(*di));
 	if (datalen < 8) return;
 
 	/* uint32_t struct len - ignore */

@@ -501,6 +501,8 @@ static struct {
 	{"Kodak:Z915",   0x040a, 0x05cf, 0},
 	/* rschweikert@novell.com */
 	{"Kodak:C183",   0x040a, 0x060b, 0},
+	/* ra4veiV6@lavabit.com */
+	{"Kodak:C1530",  0x040a, 0x0617, 0},
 
 	/* HP PTP cameras */
 #if 0
@@ -611,10 +613,16 @@ static struct {
 	{"Sony:DSC-U10 (PTP mode)",   0x054c, 0x004e, 0},
 	/* "Riccardo (C10uD)" <c10ud.dev@gmail.com> */
 	{"Sony:DSC-S730 (PTP mode)",  0x054c, 0x0296, 0},
+	/* Fernando Santoro <fernando.lopezjr@gmail.com> */
+	{"Sony:DSC-A100 (PTP mode)",  0x054c, 0x02c0, 0},
 	/* new id?! Reported by Ruediger Oertel. */
 	{"Sony:DSC-W200 (PTP mode)",  0x054c, 0x02f8, 0},
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=1946931&group_id=8874&atid=308874 */
 	{"Sony:DSC-W130 (PTP mode)",  0x054c, 0x0343, 0},
+	/* tux droid <gnutuxdroid@gmail.com> */
+	{"Sony:SLT-A55 (PTP mode)",   0x054c, 0x04a3, 0},
+	/* Rudi */
+	{"Sony:DSC-HX100V (PTP mode)",0x054c, 0x0543, 0},
 
 	/* Nikon Coolpix 2500: M. Meissner, 05 Oct 2003 */
 	{"Nikon:Coolpix 2500 (PTP mode)", 0x04b0, 0x0109, 0},
@@ -685,7 +693,7 @@ static struct {
 	/* https://sourceforge.net/tracker/index.php?func=detail&aid=2589245&group_id=8874&atid=108874 */
 	{"Nikon:Coolpix P50 (PTP mode)",  0x04b0, 0x0169, 0},
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=2951663&group_id=8874&atid=358874 */
-	{"Nikon:Coolpix P6000 (PTP mode)",0x04b0, 0x016f, 0},
+	{"Nikon:Coolpix P6000 (PTP mode)",0x04b0, 0x016f, PTP_CAP|PTP_NIKON_BROKEN_CAP},
 	/*   http://bugs.debian.org/520752 */
 	{"Nikon:Coolpix S60 (PTP mode)",  0x04b0, 0x0171, 0},
 	/* Mike Strickland <livinwell@georgianatives.net> */
@@ -697,13 +705,22 @@ static struct {
 
 	/* Ryan Nestor <ryan@monadnock.org> */
 	{"Nikon:Coolpix P100 (PTP mode)", 0x04b0, 0x017d, PTP_CAP|PTP_NO_CAPTURE_COMPLETE},
+	/* Štěpán Němec <stepnem@gmail.com> */
+	{"Nikon:Coolpix P7000 (PTP mode)",0x04b0, 0x017f, PTP_CAP|PTP_NO_CAPTURE_COMPLETE},
 
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=3019787&group_id=8874&atid=358874 */
 	/* probably no need for nikon_broken_Cap as it worked without this flag for the user */
 	{"Nikon:Coolpix L110 (PTP mode)", 0x04b0, 0x017e, PTP_CAP},
 
+	/* miguel@rozsas.eng.br */
+	{"Nikon:Coolpix P500 (PTP mode)", 0x04b0, 0x0184, 0},
+	/* Graeme Wyatt <graeme.wyatt@nookawarra.com> */
+	{"Nikon:Coolpix L120 (PTP mode)", 0x04b0, 0x0185, PTP_CAP},
 	/* Kévin Ottens <ervin@ipsquad.net> */
 	{"Nikon:Coolpix S9100 (PTP mode)",0x04b0, 0x0186, 0},
+
+	/* Dale Pontius <DEPontius@edgehp.net> */
+	{"Nikon:Coolpix P7100 (PTP mode)",0x04b0, 0x018b, PTP_CAP},
 
 	{"Nikon:Coolpix SQ (PTP mode)",   0x04b0, 0x0202, 0},
 	/* lars marowski bree, 16.8.2004 */
@@ -715,6 +732,8 @@ static struct {
 	{"Nikon:Coolpix P4 (PTP mode)",   0x04b0, 0x020c, PTP_CAP},
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=3135935&group_id=8874&atid=358874 */
 	{"Nikon:Coolpix S8000 (PTP mode)",0x04b0, 0x021f, 0},
+	/* Aleksej Serdjukov <deletesoftware@yandex.ru> */
+	{"Nikon:Coolpix S5100 (PTP mode)",0x04b0, 0x0220, 0},
 	/* Nikon Coolpix 2000 */
 	{"Nikon:Coolpix 2000 (PTP mode)", 0x04b0, 0x0302, 0},
 	/* From IRC reporter. */
@@ -733,6 +752,11 @@ static struct {
 	{"Nikon:Coolpix L19 (PTP mode)",  0x04b0, 0x0318, PTP_CAP|PTP_NIKON_BROKEN_CAP},
 	/* IRC reporter */
 	{"Nikon:Coolpix S3000 (PTP mode)",0x04b0, 0x031b, PTP_CAP},
+	/* christian.moll@tudor.lu */
+	{"Nikon:Coolpix S3100 (PTP mode)",0x04b0, 0x0320, PTP_CAP},
+	/* Fabio <ctrlaltca@gmail.com> */
+	{"Nikon:Coolpix L23 (PTP mode)",  0x04b0, 0x0324, PTP_CAP},
+
 	/* Nikon D100 has a PTP mode: westin 2002.10.16 */
 	{"Nikon:DSC D100 (PTP mode)",     0x04b0, 0x0402, 0},
 	/* D2H SLR in PTP mode from Steve Drew <stevedrew@gmail.com> */
@@ -742,6 +766,8 @@ static struct {
 	{"Nikon:D2X SLR (PTP mode)",      0x04b0, 0x0408, PTP_CAP},
 	/* Niclas Gustafsson (nulleman @ sf) */
 	{"Nikon:D50 (PTP mode)",          0x04b0, 0x040a, PTP_CAP}, /* no hidden props */
+	/* Didier Gasser-Morlay <didiergm@gmail.com> */
+	{"Nikon:D2Hs (PTP mode)",	  0x04b0, 0x040c, PTP_CAP},
 	{"Nikon:DSC D70s (PTP mode)",     0x04b0, 0x040e, PTP_CAP},
 	/* Jana Jaeger <jjaeger.suse.de> */
 	{"Nikon:DSC D200 (PTP mode)",     0x04b0, 0x0410, PTP_CAP},
@@ -770,10 +796,13 @@ static struct {
 	{"Nikon:DSC D300s (PTP mode)",    0x04b0, 0x0425, PTP_CAP|PTP_CAP_PREVIEW},
 	/* Matthias Blaicher <blaicher@googlemail.com> */
 	{"Nikon:DSC D3s (PTP mode)",      0x04b0, 0x0426, PTP_CAP|PTP_CAP_PREVIEW},
-	/* SWPLinux IRC reporter */
-	{"Nikon:DSC D3100 (PTP mode)",	  0x04b0, 0x0427, PTP_CAP|PTP_CAP_PREVIEW},
+	/* SWPLinux IRC reporter... does not have liveview -lowend model. */
+	{"Nikon:DSC D3100 (PTP mode)",	  0x04b0, 0x0427, PTP_CAP},
 	/* http://sourceforge.net/tracker/?func=detail&atid=358874&aid=3140014&group_id=8874 */
 	{"Nikon:DSC D7000 (PTP mode)",    0x04b0, 0x0428, PTP_CAP|PTP_CAP_PREVIEW},
+
+	/* IRC Reporter popolon */
+	{"Nikon:DSC D5100 (PTP mode)",    0x04b0, 0x0429, PTP_CAP|PTP_CAP_PREVIEW},
 
 #if 0
 	/* Thomas Luzat <thomas.luzat@gmx.net> */
@@ -799,6 +828,8 @@ static struct {
 	{"Panasonic:DMC-TZ15",		  0x04da, 0x2374, 0},
 	/* https://sourceforge.net/tracker/?func=detail&atid=358874&aid=2950529&group_id=8874 */
 	{"Panasonic:DMC-FS62",		  0x04da, 0x2374, 0},
+	{"Panasonic:DMC-TZ18",		  0x04da, 0x2374, 0},
+	{"Panasonic:DMC-TZ20",		  0x04da, 0x2374, 0},
 	/* Constantin B <klochto@gmail.com> */
 	{"Panasonic:DMC-GF1",             0x04da, 0x2374, 0},
 
@@ -893,6 +924,7 @@ static struct {
 	{"Canon:Digital IXUS 430 (PTP mode)",   0x04a9, 0x30ba, PTPBUG_DELETE_SENDS_EVENT|PTP_CAP|PTP_CAP_PREVIEW},
  	{"Canon:PowerShot S410 (PTP mode)",     0x04a9, 0x30ba, PTPBUG_DELETE_SENDS_EVENT|PTP_CAP|PTP_CAP_PREVIEW},
  	{"Canon:PowerShot A95 (PTP mode)",      0x04a9, 0x30bb, PTPBUG_DELETE_SENDS_EVENT|PTP_CAP|PTP_CAP_PREVIEW},
+ 	{"Canon:EOS 10D (PTP mode)",      	0x04a9, 0x30bc, PTPBUG_DELETE_SENDS_EVENT},
 	{"Canon:Digital IXUS 40 (PTP mode)",    0x04a9, 0x30bf, PTPBUG_DELETE_SENDS_EVENT},
  	{"Canon:PowerShot SD200 (PTP mode)",    0x04a9, 0x30c0, PTPBUG_DELETE_SENDS_EVENT|PTP_CAP|PTP_CAP_PREVIEW},
  	{"Canon:Digital IXUS 30 (PTP mode)",    0x04a9, 0x30c0, PTPBUG_DELETE_SENDS_EVENT|PTP_CAP|PTP_CAP_PREVIEW},
@@ -1048,6 +1080,8 @@ static struct {
 	/* Paul Tinsley */
 	{"Canon:PowerShot G10",			0x04a9, 0x318f, PTPBUG_DELETE_SENDS_EVENT|PTP_CAP|PTP_CAP_PREVIEW},
 
+	/* Nikolay Rysev <nrysev@gmail.com> */
+	{"Canon:PowerShot A2000 IS",		0x04a9, 0x3191, PTPBUG_DELETE_SENDS_EVENT},
 	/* Chris Rodley <chris@takeabreak.co.nz> */
 	{"Canon:PowerShot SX110 IS",		0x04a9, 0x3192, PTPBUG_DELETE_SENDS_EVENT|PTP_CAP|PTP_CAP_PREVIEW},
 
@@ -1099,6 +1133,10 @@ static struct {
 	{"Canon:EOS 500D",			0x04a9, 0x31cf, PTP_CAP|PTP_CAP_PREVIEW},
 	{"Canon:EOS Rebel T1i",			0x04a9, 0x31cf, PTP_CAP|PTP_CAP_PREVIEW},
 	{"Canon:EOS Kiss X3",			0x04a9, 0x31cf, PTP_CAP|PTP_CAP_PREVIEW},
+
+	/* Peter Lawrence <peter@pjlcentral.com> */
+	{"Canon:EOS 1D Mark IV",		0x04a9, 0x31d0, PTP_CAP|PTP_CAP_PREVIEW},
+
 	/* From: Franck GIRARDIN - OPTOCONCEPT <fgirardin@optoconcept.com> */
 	{"Canon:PowerShot G11",			0x04a9, 0x31df, 0},
 
@@ -1113,6 +1151,9 @@ static struct {
 	/* IRC reporter */
 	{"Canon:EOS 550D",			0x04a9, 0x31ea, PTP_CAP|PTP_CAP_PREVIEW},
 
+	/* ErVito on IRC */
+	{"Canon:PowerShot A3100 IS",		0x04a9, 0x31f1, PTPBUG_DELETE_SENDS_EVENT},
+
 	{"Canon:Digital IXUS 130",		0x04a9, 0x31f3, PTPBUG_DELETE_SENDS_EVENT},
 	/* Mark Voorhies <mvoorhie@yahoo.com> */
 	{"Canon:PowerShot SD1300 IS",		0x04a9, 0x31f4, PTPBUG_DELETE_SENDS_EVENT},
@@ -1122,6 +1163,10 @@ static struct {
 	{"Canon:PowerShot SX130 IS",		0x04a9, 0x3211, PTPBUG_DELETE_SENDS_EVENT},
 	/* IRC Reporter */
 	{"Canon:EOS 60D",			0x04a9, 0x3215, PTP_CAP|PTP_CAP_PREVIEW},
+	/* https://sourceforge.net/tracker/?func=detail&atid=358874&aid=3312353&group_id=8874 */
+	{"Canon:EOS 1100D",			0x04a9, 0x3217, PTP_CAP|PTP_CAP_PREVIEW},
+	/* https://sourceforge.net/tracker/?func=detail&atid=358874&aid=3310995&group_id=8874 */
+	{"Canon:EOS 600D",			0x04a9, 0x3218, PTP_CAP|PTP_CAP_PREVIEW},
 
 	/* Konica-Minolta PTP cameras */
 	{"Konica-Minolta:DiMAGE A2 (PTP mode)",        0x132b, 0x0001, 0},
@@ -1183,8 +1228,13 @@ static struct {
 	{"Fuji:FinePix Z35",			0x04cb, 0x0201, 0},
 	/* "Steven A. McIntosh" <mcintosh@cotterochan.co.uk> */
 	{"Fuji:FinePix S2500HD",		0x04cb, 0x0209, 0},
+	/* Erik Hahn <erik_hahn@gmx.de> */
+	{"Fuji:FinePix F80EXR",			0x04cb, 0x020e, 0},
 	/* salsaman <salsaman@gmail.com> */
 	{"Fuji:FinePix Z700EXR",		0x04cb, 0x020d, 0},
+	/* Luis Arias <kaaloo@gmail.com> */
+	{"Fuji:FinePix X10",			0x04cb, 0x0263, 0},
+
 
 	{"Ricoh:Caplio R5 (PTP mode)",          0x05ca, 0x0110, 0},
 	{"Ricoh:Caplio GX (PTP mode)",          0x05ca, 0x0325, 0},
@@ -1226,6 +1276,9 @@ static struct {
 
 	/* https://sourceforge.net/tracker/index.php?func=detail&aid=1680029&group_id=8874&atid=108874 */
 	{"Nokia:N73",				0x0421, 0x0488, 0},
+
+	/* IRC reporter */
+	{"Samsung:S5620",			0x04e8,	0x684a, 0},
 };
 
 #include "device-flags.h"
@@ -1496,8 +1549,8 @@ camera_exit (Camera *camera, GPContext *context)
 		SET_CONTEXT_P(params, context);
 #ifdef HAVE_ICONV
 		/* close iconv converters */
-		iconv_close(params->cd_ucs2_to_locale);
-		iconv_close(params->cd_locale_to_ucs2);
+		if (params->cd_ucs2_to_locale != (iconv_t)-1) iconv_close(params->cd_ucs2_to_locale);
+		if (params->cd_locale_to_ucs2 != (iconv_t)-1) iconv_close(params->cd_locale_to_ucs2);
 #endif
 		/* Disable EOS capture now, also end viewfinder mode. */
 		if (params->eos_captureenabled) {
@@ -1553,7 +1606,7 @@ camera_about (Camera *camera, CameraText *text, GPContext *context)
 	   "This driver supports cameras that support PTP or PictBridge(tm), and\n"
 	   "Media Players that support the Media Transfer Protocol (MTP).\n"
 	   "\n"
-	   "Enjoy!"), 2010);
+	   "Enjoy!"), 2012);
 	return (GP_OK);
 }
 
@@ -1633,6 +1686,12 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 		/* Canon PowerShot / IXUS preview mode */
 		if (ptp_operation_issupported(params, PTP_OC_CANON_ViewfinderOn)) {
 			SET_CONTEXT_P(params, context);
+			/* check if we need to prepare capture */
+			if (!params->canon_event_mode) {
+				ret = camera_prepare_capture (camera, context);
+				if (ret != GP_OK)
+					return ret;
+			}
 			if (!params->canon_viewfinder_on) { /* enable on demand, but just once */
 				ret = ptp_canon_viewfinderon (params);
 				if (ret != PTP_RC_OK) {
@@ -1660,7 +1719,9 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 		/* Canon EOS DSLR preview mode */
 		if (ptp_operation_issupported(params, PTP_OC_CANON_EOS_GetViewFinderData)) {
 			PTPPropertyValue	val;
-			int 			tries = 20;
+			/* FIXME: this might cause a focusing pass and take seconds. 20 was not
+			 * enough. */
+			int 			tries = 100;
 			PTPDevicePropDesc       dpd;
 
 			SET_CONTEXT_P(params, context);
@@ -1955,6 +2016,24 @@ camera_nikon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 		ret = ptp_getdevicepropvalue (params, PTP_DPC_NIKON_LiveViewStatus, &propval, PTP_DTC_UINT8);
 		if (ret == PTP_RC_OK)
 			inliveview = propval.u8;
+#if 0
+		if (inliveview) {
+			ret = ptp_nikon_end_liveview (params);
+			if (ret != PTP_RC_OK) {
+				gp_context_error (context, _("Nikon disable liveview failed: %x"), ret);
+				SET_CONTEXT_P(params, NULL);
+				//return GP_ERROR;
+			}
+#if 0
+			ret = ptp_check_event (params);
+			if (ret != PTP_RC_OK) {
+				gp_context_error (context, _("Nikon disable liveview ended: %x"), ret);
+				SET_CONTEXT_P(params, NULL);
+				return translate_ptp_result (ret);
+			}
+#endif
+		}
+#endif
 	}
 
 	if (!inliveview && ptp_operation_issupported(params,PTP_OC_NIKON_AfCaptureSDRAM)) {
@@ -2024,6 +2103,7 @@ camera_nikon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 			gp_log (GP_LOG_ERROR,"nikon_capture","deleteobject(%x) failed: %x", newobject, ret);
 		}
 	}
+	ptp_check_event (params);
 	return GP_OK;
 }
 
@@ -2100,7 +2180,7 @@ camera_canon_eos_capture (Camera *camera, CameraCaptureType type, CameraFilePath
 			gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "entry type %04x", entry.type);
 			if (entry.type == PTP_CANON_EOS_CHANGES_TYPE_UNKNOWN) {
 				free (entry.u.info);
-				break;
+				continue; /* in loop */
 			}
 			if (entry.type == PTP_CANON_EOS_CHANGES_TYPE_OBJECTTRANSFER) {
 				gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "Found new object! OID 0x%x, name %s", (unsigned int)entry.u.object.oid, entry.u.object.oi.Filename);
@@ -2207,7 +2287,7 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 {
 	static int 		capcnt = 0;
 	PTPObjectInfo		oi;
-	int			found, ret, isevent, timeout, sawcapturecomplete = 0, viewfinderwason = 0;
+	int			found, ret, timeout, sawcapturecomplete = 0, viewfinderwason = 0;
 	PTPParams		*params = &camera->pl->params;
 	uint32_t		newobject = 0x0;
 	PTPPropertyValue	propval;
@@ -2232,6 +2312,11 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 			_("Sorry, initializing your camera did not work. Please report this."));
 			return GP_ERROR_NOT_SUPPORTED;
 		}
+	}
+	if (!params->canon_event_mode) {
+		propval.u16 = 0;
+	        ret = ptp_getdevicepropvalue(params, PTP_DPC_CANON_EventEmulateMode, &propval, PTP_DTC_UINT16);
+		if (ret == PTP_RC_OK) params->canon_event_mode = propval.u16;
 	}
 
 	if (ptp_property_issupported(params, PTP_DPC_CANON_CaptureTransferMode)) {
@@ -2273,7 +2358,11 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 		viewfinderwason = 1;
 		params->canon_viewfinder_on = 0;
 	}
-	ptp_check_event (params);
+	ret = ptp_check_event (params);
+	if (ret != PTP_RC_OK) {
+		gp_context_error (context, _("Canon Capture failed: 0x%04x"), ret);
+		return translate_ptp_result (ret);
+	}
 
 #if 0
 	/* FIXME: For now, to avoid flash during debug */
@@ -2282,7 +2371,7 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 #endif
 	ret = ptp_canon_initiatecaptureinmemory (params);
 	if (ret != PTP_RC_OK) {
-		gp_context_error (context, _("Canon Capture failed: %x"), ret);
+		gp_context_error (context, _("Canon Capture failed: 0x%04x"), ret);
 		return translate_ptp_result (ret);
 	}
 	sawcapturecomplete = 0;
@@ -2293,23 +2382,20 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 	gp_port_get_timeout (camera->port, &timeout);
 	CR (gp_port_set_timeout (camera->port, capture_timeout));
 	while (!_timeout_passed(&event_start, capture_timeout)) {
+		/*usleep(100000);*/
 		gp_context_idle (context);
-		/* Make sure we do not poll USB interrupts after the capture complete event.
-		 * MacOS libusb 1 has non-timing out interrupts so we must avoid event reads that will not
-		 * result in anything.
-		 */
-		if (!sawcapturecomplete && (PTP_RC_OK == params->event_check (params, &event))) {
-			isevent = 1;
-		} else {
-			ret = ptp_canon_checkevent (params,&event,&isevent);
-			if (ret!=PTP_RC_OK)
-				continue;
+		ret = ptp_check_event (params);
+		if (ret != PTP_RC_OK) {
+			gp_context_error (context, _("Canon Capture failed: 0x%04x"), ret);
+			return translate_ptp_result (ret);
 		}
-		/* we sometimes get CaptureComplete only from ptp_canon_checkevent, but perhaps
-		 * also from regular USB events. Just make sure we write it down. */
-		if (!isevent)
+
+		if (!ptp_get_one_event (params, &event)) {
+			/* FIXME: wait a bit? */
+			usleep(20*1000);
 			continue;
-		gp_log (GP_LOG_DEBUG, "ptp","evdata: nparams=0x%X, code=0x%X, trans_id=0x%X, p1=0x%X, p2=0x%X, p3=0x%X", event.Nparam,event.Code,event.Transaction_ID, event.Param1, event.Param2, event.Param3);
+		}
+		gp_log (GP_LOG_DEBUG, "ptp","Event: nparams=0x%X, code=0x%X, trans_id=0x%X, p1=0x%X, p2=0x%X, p3=0x%X", event.Nparam,event.Code,event.Transaction_ID, event.Param1, event.Param2, event.Param3);
 		switch (event.Code) {
 		case PTP_EC_ObjectAdded: {
 			/* add newly created object to internal structures. this hopefully just is a new folder */
@@ -2338,16 +2424,17 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 
 			newobject = event.Param1;
 			gp_log (GP_LOG_DEBUG, "ptp", "PTP_EC_CANON_RequestObjectTransfer, object handle=0x%X.",newobject);
+
 			for (j=0;j<2;j++) {
-				isevent = 0;
-				ret=ptp_canon_checkevent(params,&event,&isevent);
-				if ((ret==PTP_RC_OK) && isevent)
+				ret = ptp_check_event (params);
+				while (ptp_get_one_event (params, &event) && !sawcapturecomplete) {
 					gp_log (GP_LOG_DEBUG, "ptp", "evdata: L=0x%X, C=0x%X, trans_id=0x%X, p1=0x%X, p2=0x%X, p3=0x%X", event.Nparam,event.Code,event.Transaction_ID, event.Param1, event.Param2, event.Param3);
-				if (isevent) {
-					gp_log (GP_LOG_DEBUG, "ptp", "Unhandled canon event: 0x%04x.", event.Code);
 					if (event.Code == PTP_EC_CaptureComplete)
 						sawcapturecomplete = 1;
 				}
+				if (sawcapturecomplete)
+					break;
+				usleep(20*1000);
 			}
 			/* Marcus: Not sure if we really needs this. This refocuses the camera.
 			   ret = ptp_canon_reset_aeafawb(params,7);
@@ -2364,15 +2451,22 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 			break;
 	}
 	CR (gp_port_set_timeout (camera->port, timeout));
-	/* Catch event, attempt  2 */
-	if (!sawcapturecomplete) {
-		if (PTP_RC_OK==params->event_wait (params, &event)) {
-			if (event.Code==PTP_EC_CaptureComplete)
-				gp_log (GP_LOG_DEBUG, "ptp", "Event: capture complete(2).");
-			else
-				gp_log (GP_LOG_DEBUG, "ptp", "Event: 0x%X (2)", event.Code);
-		} else
-			gp_log (GP_LOG_DEBUG, "ptp", "No expected capture complete event");
+	/* wait for capture complete */
+	gettimeofday (&event_start, NULL);
+	while (!sawcapturecomplete && !_timeout_passed(&event_start, capture_timeout)) {
+		ret = ptp_check_event (params);
+		if (ret != PTP_RC_OK)
+			break;
+		while (ptp_get_one_event (params, &event)) {
+			gp_log (GP_LOG_DEBUG, "ptp", "Event: 0x%X (2)", event.Code);
+			if (event.Code == PTP_EC_CaptureComplete) {
+				sawcapturecomplete = 1;
+				break;
+			}
+		}
+		if (sawcapturecomplete)
+			break;
+		usleep(20*1000);
 	}
 	if (!found) {
 	    gp_log (GP_LOG_DEBUG, "ptp","ERROR: Capture timed out!");
@@ -2640,11 +2734,6 @@ camera_wait_for_event (Camera *camera, int timeout,
 			int i;
 			PTPCanon_changes_entry	entry;
 
-			ret = ptp_check_eos_events (params);
-			if (ret != PTP_RC_OK) {
-				gp_context_error (context, _("Canon EOS Get Changes failed: 0x%04x"), ret);
-				return translate_ptp_result (ret);
-			}
 			while (ptp_get_one_eos_event (params, &entry)) {
 				sleepcnt = 1;
 				gp_log (GP_LOG_DEBUG, "ptp2/wait_for_eos_event", "entry type %04x", entry.type);
@@ -2751,6 +2840,11 @@ camera_wait_for_event (Camera *camera, int timeout,
 					break;
 				}
 			}
+			ret = ptp_check_eos_events (params);
+			if (ret != PTP_RC_OK) {
+				gp_context_error (context, _("Canon EOS Get Changes failed: 0x%04x"), ret);
+				return translate_ptp_result (ret);
+			}
 			if (_timeout_passed (&event_start, timeout))
 				break;
 			/* incremental backoff of polling ... but only if we do not pass the wait time */
@@ -2817,7 +2911,7 @@ camera_wait_for_event (Camera *camera, int timeout,
 			}
 			sleepcnt = 1;
 
-			gp_log (GP_LOG_DEBUG , "ptp/nikon_capture", "event.Code is %x / param %lx", event.Code, (unsigned long)event.Param1);
+			gp_log (GP_LOG_DEBUG , "ptp/wait_nikon_event", "event.Code is %x / param %lx", event.Code, (unsigned long)event.Param1);
 			switch (event.Code) {
 			case PTP_EC_ObjectAdded: {
 				int j, res;
@@ -4393,14 +4487,17 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	}
 	case	GP_FILE_TYPE_PREVIEW: {
 		unsigned char *ximage = NULL;
+		unsigned int xlen = 0;
 
 		/* If thumb size is 0 then there is no thumbnail at all... */
 		if((size=oi->ThumbCompressedSize)==0) return (GP_ERROR_NOT_SUPPORTED);
 		CPR (context, ptp_getthumb(params,
 			params->handles.Handler[object_id],
-			&ximage));
+			&ximage, &xlen));
+		if (xlen != size)
+			gp_log (GP_LOG_ERROR, "get_file_func/GP_FILE_TYPE_PREVIEW", "size mismatch %d vs %d", size, xlen);
 		set_mimetype (camera, file, params->deviceinfo.VendorExtensionID, oi->ThumbFormat);
-		CR (gp_file_set_data_and_size (file, (char*)ximage, size));
+		CR (gp_file_set_data_and_size (file, (char*)ximage, xlen));
 		break;
 	}
 	case	GP_FILE_TYPE_METADATA:
@@ -5611,7 +5708,8 @@ camera_init (Camera *camera, GPContext *context)
 	if ((params->cd_ucs2_to_locale == (iconv_t) -1) ||
 	    (params->cd_locale_to_ucs2 == (iconv_t) -1)) {
 		gp_log (GP_LOG_ERROR, "iconv", "Failed to create iconv converter.");
-		return (GP_ERROR_OS_FAILURE);
+		/* we can fallback */
+		/*return (GP_ERROR_OS_FAILURE);*/
 	}
 #endif
         for (i = 0; i<sizeof(models)/sizeof(models[0]); i++) {
@@ -5664,12 +5762,23 @@ camera_init (Camera *camera, GPContext *context)
 	sessionid = 1;
 	while (1) {
 		ret=ptp_opensession (params, sessionid);
-		while (ret==PTP_RC_InvalidTransactionID) {
+		if (ret==PTP_RC_InvalidTransactionID) {
 			sessionid++;
 			if (retried < 10) {
 				retried++;
 				continue;
 			}
+
+			if (retried < 11) {
+				retried++;
+				/* Try whacking PTP device */
+				if (camera->port->type == GP_PORT_USB) {
+					ptp_usb_control_device_reset_request (&camera->pl->params);
+					sessionid = 1;
+					continue;
+				}
+			}
+
 			/* FIXME: deviceinfo is not read yet ... */
 			report_result(context, ret, params->deviceinfo.VendorExtensionID);
 			return translate_ptp_result (ret);

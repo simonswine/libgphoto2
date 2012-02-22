@@ -1,3 +1,64 @@
+libgphoto2 2.4.12
+
+libgphoto2_port:
+* Added libusb 1.0 port driver.
+* removed baudboy.h support from serial driver.
+* Updated translations: czech, german
+
+canon:
+* Secondary RAW 2 format for some cameras.
+
+directory:
+* Handle more suffixes to mimetypes (unknowns will not show up in the
+  file list): moov, qt, qtvr, mp2, mpeg, mpe, srw, 3gp, 3g2, dif.
+* set the correct filetime
+
+ptp2:
+* New cameras:
+  Kodak C1530
+  Sony DSC-HX100V, DSC-A1000, SLT-A55
+  Nikon CoolPix P7000, P7100, P500, L120, L23, S5100, S3100, 
+  Nikon D2Hs, D5100
+  Canon EOS 10D, 1D Mark IV, 1100D, 600D
+  Canon PowerShot A2000IS, A3100IS, 
+  Fuji FinePix F80EXR, X10
+  Apple iPad, iPhone 4
+  Panasonic DMC-TZ18, TZ20
+
+* Canon Powershot event handling changed to no longer use PTP Events.
+  Should now be more reliable on MacOS.
+
+* Nikon configurations added: videomode, scenemode, exposure program mode,
+  effect mode, liveviewaf, liveviewaffocus, cleansensor, microphone, moviequality,
+  autodistortioncontrol, autoisopadv renamed to minimumshutterspeed.
+* Allow per-camera configuration tables.
+* Canon EOS configurations added: "Immediate" for shutter button pressing,
+
+* Handle missing runtime iconv module support (as found in embedded devices)
+* Bump retries on EOS liveview getting
+* Fixed stupid EOS event handling bug that caused a 1.5 second delay
+* Fixed more session startup issues
+* Tried a fix for getting bad thumbnail lengths
+
+sierra:
+* Bugfix: handle ACK as valid response code
+
+tp6801:
+* New driver for Tenx tp6801 picture frames from Hans de Goede.
+
+digigr8:
+* added Digital Blue Barbie Camera DC150, Cobra Digital Camera DC150,
+  Aries Digital Keychain Camera, ITEM 128986, Lego Bionicle
+
+jl2005a:
+* added Sakar Nickelodeon iCarly no. 88061, Sakar Dora the Explorer no. 88067,
+  Jazwares Star Wars no. 15256
+
+libgphoto2:
+* make jpeg and gd support configurable (Gentoo)
+* Updated translations: pl
+
+------------------------------------------------------------------------
 libgphoto2 2.4.11
 
 ax203:
@@ -41,7 +102,7 @@ ptp2:
 * Timeouts configurable
 * New cameras:
   Kodak Z710, C183
-  Nikon CoolPix S7c, P90, P100, S8000, S3000
+  Nikon CoolPix S7c, P90, P100, S8000, S3000, S9100
   Nikon DSLR D3s, D3100, D7000
   Casio EX-Z65
   Canon Powershot SD1300 IS, SX210 IS, SX130 IS, 

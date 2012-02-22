@@ -13,9 +13,6 @@
 /* Define to 1 if you have the <asm/io.h> header file. */
 #undef HAVE_ASM_IO_H
 
-/* Define if you have Baudboy serial locking. */
-#undef HAVE_BAUDBOY
-
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
@@ -68,6 +65,9 @@
 
 /* whether we compile with libusb support */
 #undef HAVE_LIBUSB
+
+/* whether we compile with libusb-1.0 support */
+#undef HAVE_LIBUSB1
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
