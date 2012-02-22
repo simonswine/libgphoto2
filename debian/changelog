@@ -6,8 +6,9 @@ libgphoto2 (2.4.12-1) UNRELEASED; urgency=low
     letting me know about .maintscript). (Closes: #659768)
   * Build-Depend on libgd2-xpm-dev instead of libgd2-noxpm-dev
   * Added proper lintian overrides
+  * Add dependency to libjs-jquery to avoid embedding it in libgphoto2-dev-doc
 
- -- David Paleino <dapal@debian.org>  Wed, 22 Feb 2012 19:14:49 +0100
+ -- David Paleino <dapal@debian.org>  Wed, 22 Feb 2012 19:17:11 +0100
 
 libgphoto2 (2.4.11-4) unstable; urgency=low
 
