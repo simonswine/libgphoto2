@@ -2,4 +2,5 @@
 #11_hurd_no_path_max_bsdsource
 00-format_security.patch
 01-support_udev_175.patch
+02-fix_source_typos.patch
 70_increase_max_entries
