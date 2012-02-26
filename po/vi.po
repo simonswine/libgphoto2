@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2 2.4.10\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-20 10:17+0100\n"
 "PO-Revision-Date: 2010-10-02 21:48+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -267,7 +267,7 @@ msgstr "Ảnh đầy đủ"
 
 #: camlibs/canon/library.c:122 camlibs/canon/library.c:265
 #: camlibs/ptp2/config.c:1514 camlibs/ptp2/config.c:1525
-#: camlibs/ptp2/ptp.c:4516
+#: camlibs/ptp2/ptp.c:4573
 msgid "Bulb"
 msgstr "Bóng đèn"
 
@@ -296,7 +296,7 @@ msgid "Beep on"
 msgstr "Bíp bật"
 
 #: camlibs/canon/library.c:229 camlibs/canon/library.c:280
-#: camlibs/ptp2/config.c:2593 camlibs/ptp2/ptp.c:4147
+#: camlibs/ptp2/config.c:2593 camlibs/ptp2/ptp.c:4204
 msgid "Flash off"
 msgstr "Đèn nháy tắt"
 
@@ -313,19 +313,19 @@ msgid "AUTO"
 msgstr "TỰ_ĐỘNG"
 
 #: camlibs/canon/library.c:259 camlibs/ptp2/config.c:1521
-#: camlibs/ptp2/ptp.c:4510
+#: camlibs/ptp2/ptp.c:4567
 msgid "P"
 msgstr "P"
 
-#: camlibs/canon/library.c:260 camlibs/ptp2/ptp.c:4511
+#: camlibs/canon/library.c:260 camlibs/ptp2/ptp.c:4568
 msgid "Tv"
 msgstr "Tv"
 
-#: camlibs/canon/library.c:261 camlibs/ptp2/ptp.c:4512
+#: camlibs/canon/library.c:261 camlibs/ptp2/ptp.c:4569
 msgid "Av"
 msgstr "Av"
 
-#: camlibs/canon/library.c:262 camlibs/ptp2/ptp.c:4513
+#: camlibs/canon/library.c:262 camlibs/ptp2/ptp.c:4570
 msgid "M"
 msgstr "M"
 
@@ -363,7 +363,7 @@ msgstr "Mức xám"
 
 #: camlibs/canon/library.c:272 camlibs/konica/qm150.c:998
 #: camlibs/konica/qm150.c:1014 camlibs/ptp2/config.c:2614
-#: camlibs/ptp2/config.c:3306 camlibs/ptp2/ptp.c:4526 camlibs/ptp2/ptp.c:4661
+#: camlibs/ptp2/config.c:3306 camlibs/ptp2/ptp.c:4583 camlibs/ptp2/ptp.c:4718
 #: camlibs/ricoh/library.c:332 camlibs/sierra/olympus-desc.c:482
 #: camlibs/sierra/sierra.c:997 camlibs/sierra/sierra.c:1006
 #: camlibs/sierra/sierra.c:1312
@@ -373,8 +373,8 @@ msgstr "Kiểu nâu đen"
 #: camlibs/canon/library.c:273 camlibs/ptp2/config.c:1533
 #: camlibs/ptp2/config.c:1697 camlibs/ptp2/config.c:2430
 #: camlibs/ptp2/config.c:2432 camlibs/ptp2/config.c:2466
-#: camlibs/ptp2/config.c:3118 camlibs/ptp2/ptp.c:4161 camlibs/ptp2/ptp.c:4357
-#: camlibs/ptp2/ptp.c:4527 camlibs/st2205/library.c:516
+#: camlibs/ptp2/config.c:3118 camlibs/ptp2/ptp.c:4218 camlibs/ptp2/ptp.c:4414
+#: camlibs/ptp2/ptp.c:4584 camlibs/st2205/library.c:516
 #: camlibs/st2205/library.c:529
 msgid "Portrait"
 msgstr "Thẳng đứng"
@@ -388,7 +388,7 @@ msgstr "Chấm"
 #: camlibs/canon/library.c:275 camlibs/kodak/dc210/dc210.c:231
 #: camlibs/kodak/dc210/dc210.c:245 camlibs/konica/qm150.c:1019
 #: camlibs/ptp2/config.c:2434 camlibs/ptp2/config.c:2468
-#: camlibs/ptp2/ptp.c:4163 camlibs/ptp2/ptp.c:4529 camlibs/ricoh/library.c:500
+#: camlibs/ptp2/ptp.c:4220 camlibs/ptp2/ptp.c:4586 camlibs/ricoh/library.c:500
 #: camlibs/sierra/epson-desc.c:218 camlibs/sierra/nikon-desc.c:324
 #: camlibs/sierra/olympus-desc.c:637 camlibs/sierra/sierra.c:1117
 #: camlibs/sierra/sierra.c:1122 camlibs/sierra/sierra.c:1393
@@ -406,12 +406,12 @@ msgid "PanFocus"
 msgstr "Tiêu điểm kéo ngang"
 
 #: camlibs/canon/library.c:278 camlibs/ptp2/config.c:3114
-#: camlibs/ptp2/config.c:3303 camlibs/ptp2/ptp.c:4353 camlibs/ptp2/ptp.c:4658
+#: camlibs/ptp2/config.c:3303 camlibs/ptp2/ptp.c:4410 camlibs/ptp2/ptp.c:4715
 msgid "Vivid"
 msgstr "Sặc sỡ"
 
 #: camlibs/canon/library.c:279 camlibs/ptp2/config.c:1699
-#: camlibs/ptp2/config.c:3304 camlibs/ptp2/ptp.c:4532 camlibs/ptp2/ptp.c:4659
+#: camlibs/ptp2/config.c:3304 camlibs/ptp2/ptp.c:4589 camlibs/ptp2/ptp.c:4716
 msgid "Neutral"
 msgstr "Trung lập"
 
@@ -468,7 +468,7 @@ msgid "Photo in movie"
 msgstr "Ảnh chụp trong phim"
 
 #: camlibs/canon/library.c:299 camlibs/ptp2/config.c:1183
-#: camlibs/ptp2/config.c:1992 camlibs/ptp2/ptp.c:4122
+#: camlibs/ptp2/config.c:1992 camlibs/ptp2/ptp.c:4179
 msgid "RAW"
 msgstr "RAW"
 
@@ -744,7 +744,7 @@ msgstr "Hạng kích cỡ Bắt"
 
 #: camlibs/canon/library.c:1636 camlibs/canon/library.c:2101
 #: camlibs/ptp2/config.c:5124 camlibs/ptp2/config.c:5125
-#: camlibs/ptp2/config.c:5126 camlibs/ptp2/ptp.c:3453
+#: camlibs/ptp2/config.c:5126 camlibs/ptp2/ptp.c:3510
 #: camlibs/sierra/olympus-desc.c:881 camlibs/sierra/olympus-desc.c:899
 msgid "ISO Speed"
 msgstr "Tốc độ ISO"
@@ -760,7 +760,7 @@ msgstr "Tốc độ ISO"
 #: camlibs/canon/library.c:1950 camlibs/canon/library.c:1951
 #: camlibs/ptp2/config.c:3149 camlibs/ptp2/config.c:3436
 #: camlibs/ptp2/library.c:3185 camlibs/ptp2/library.c:3187
-#: camlibs/ptp2/ptp.c:4306 camlibs/ptp2/ptp.c:4467 camlibs/ptp2/ptp.c:4557
+#: camlibs/ptp2/ptp.c:4363 camlibs/ptp2/ptp.c:4524 camlibs/ptp2/ptp.c:4614
 msgid "Unknown"
 msgstr "Không rõ"
 
@@ -771,14 +771,14 @@ msgstr "Chế độ chụp"
 #: camlibs/canon/library.c:1704 camlibs/canon/library.c:2159
 #: camlibs/ptp2/config.c:5204 camlibs/ptp2/config.c:5205
 #: camlibs/ptp2/config.c:5208 camlibs/ptp2/config.c:5209
-#: camlibs/ptp2/ptp.c:3455 camlibs/ptp2/ptp.c:3994
+#: camlibs/ptp2/ptp.c:3512 camlibs/ptp2/ptp.c:4051
 msgid "Shutter Speed"
 msgstr "Tốc độ cửa chập"
 
 #: camlibs/canon/library.c:1739 camlibs/canon/library.c:2330
 #: camlibs/kodak/dc210/dc210.c:224 camlibs/kodak/dc210/dc210.c:383
 #: camlibs/konica/qm150.c:1033 camlibs/ptp2/config.c:5146
-#: camlibs/ptp2/ptp.c:3440 camlibs/ptp2/ptp.c:3466 camlibs/ricoh/library.c:501
+#: camlibs/ptp2/ptp.c:3497 camlibs/ptp2/ptp.c:3523 camlibs/ricoh/library.c:501
 #: camlibs/sierra/sierra.c:1162 camlibs/sierra/sierra.c:1422
 msgid "Zoom"
 msgstr "Thu phóng"
@@ -786,7 +786,7 @@ msgstr "Thu phóng"
 #: camlibs/canon/library.c:1751 camlibs/canon/library.c:2187
 #: camlibs/canon/library.c:2346 camlibs/ptp2/config.c:5196
 #: camlibs/ptp2/config.c:5197 camlibs/ptp2/config.c:5200
-#: camlibs/ptp2/ptp.c:3454 camlibs/ptp2/ptp.c:3993 camlibs/sierra/sierra.c:964
+#: camlibs/ptp2/ptp.c:3511 camlibs/ptp2/ptp.c:4050 camlibs/sierra/sierra.c:964
 #: camlibs/sierra/sierra.c:1285 camlibs/sierra/sierra.c:1500
 #: camlibs/sierra/sierra.c:1741
 msgid "Aperture"
@@ -795,7 +795,7 @@ msgstr "Lỗ ống kính"
 #: camlibs/canon/library.c:1784 camlibs/canon/library.c:2214
 #: camlibs/ptp2/config.c:5151 camlibs/ptp2/config.c:5152
 #: camlibs/ptp2/config.c:5153 camlibs/ptp2/config.c:5155
-#: camlibs/ptp2/ptp.c:3456 camlibs/ptp2/ptp.c:3622
+#: camlibs/ptp2/ptp.c:3513 camlibs/ptp2/ptp.c:3679
 #: camlibs/sierra/nikon-desc.c:459 camlibs/sierra/nikon-desc.c:482
 #: camlibs/sierra/olympus-desc.c:766
 msgid "Exposure Compensation"
@@ -809,15 +809,15 @@ msgstr "Định dạng Ảnh"
 
 #: camlibs/canon/library.c:1856 camlibs/canon/library.c:2271
 #: camlibs/ptp2/config.c:5180 camlibs/ptp2/config.c:5183
-#: camlibs/ptp2/ptp.c:3382 camlibs/sierra/nikon-desc.c:331
+#: camlibs/ptp2/ptp.c:3439 camlibs/sierra/nikon-desc.c:331
 #: camlibs/sierra/olympus-desc.c:644
 msgid "Focus Mode"
 msgstr "Chế độ Tiêu điểm"
 
 #: camlibs/canon/library.c:1890 camlibs/canon/library.c:2375
 #: camlibs/ptp2/config.c:5158 camlibs/ptp2/config.c:5159
-#: camlibs/ptp2/ptp.c:3384 camlibs/ptp2/ptp.c:3435 camlibs/ptp2/ptp.c:3678
-#: camlibs/ptp2/ptp.c:3866 camlibs/sierra/sierra.c:1024
+#: camlibs/ptp2/ptp.c:3441 camlibs/ptp2/ptp.c:3492 camlibs/ptp2/ptp.c:3735
+#: camlibs/ptp2/ptp.c:3923 camlibs/sierra/sierra.c:1024
 #: camlibs/sierra/sierra.c:1325 camlibs/sierra/sierra.c:1534
 #: camlibs/sierra/sierra.c:1765
 msgid "Flash Mode"
@@ -825,7 +825,7 @@ msgstr "Chế độ Đèn nháy"
 
 #: camlibs/canon/library.c:1924 camlibs/canon/library.c:2300
 #: camlibs/konica/library.c:680 camlibs/konica/library.c:894
-#: camlibs/ptp2/ptp.c:3436
+#: camlibs/ptp2/ptp.c:3493
 msgid "Beep"
 msgstr "Bíp"
 
@@ -843,7 +843,7 @@ msgid "Camera Status Information"
 msgstr "Thông tin Trạng thái Máy ảnh"
 
 #: camlibs/canon/library.c:1976 camlibs/ptp2/config.c:5052
-#: camlibs/ptp2/config.c:5053 camlibs/ptp2/ptp.c:3474
+#: camlibs/ptp2/config.c:5053 camlibs/ptp2/ptp.c:3531
 msgid "Camera Model"
 msgstr "Mô hình Máy ảnh"
 
@@ -863,7 +863,7 @@ msgid "Unavailable"
 msgstr "Không sẵn sàng"
 
 #: camlibs/canon/library.c:1997 camlibs/ptp2/config.c:5054
-#: camlibs/ptp2/ptp.c:3473
+#: camlibs/ptp2/ptp.c:3530
 msgid "Firmware Version"
 msgstr "Phiên bản Phần vững"
 
@@ -1071,7 +1071,7 @@ msgid "Uploading file..."
 msgstr "Đang tải lên tập tin..."
 
 #: camlibs/canon/serial.c:1065 camlibs/digita/digita.c:259
-#: camlibs/directory/directory.c:558
+#: camlibs/directory/directory.c:561
 msgid "Getting file..."
 msgstr "Đang lấy tập tin..."
 
@@ -1706,7 +1706,7 @@ msgstr ""
 #: camlibs/kodak/dc210/dc210.c:257 camlibs/kodak/dc210/dc210.c:425
 #: camlibs/konica/library.c:777 camlibs/konica/library.c:1018
 #: camlibs/konica/qm150.c:848 camlibs/ptp2/config.c:1162
-#: camlibs/ptp2/config.c:3219 camlibs/ptp2/ptp.c:4130
+#: camlibs/ptp2/config.c:3219 camlibs/ptp2/ptp.c:4187
 #: camlibs/ricoh/library.c:502 camlibs/sierra/nikon-desc.c:286
 msgid "Flash"
 msgstr "Đèn nháy"
@@ -1886,48 +1886,48 @@ msgstr "Gặp lỗi khi đặt lại tốc độ liên lạc với máy ảnh"
 msgid "Looks like a modem, not a camera"
 msgstr "Hình như bộ điều giải, không phải máy ảnh"
 
-#: camlibs/directory/directory.c:265
+#: camlibs/directory/directory.c:268
 #, c-format
 msgid "Listing files in '%s'..."
 msgstr "Đang liệt kê các tập tin trong « %s »..."
 
-#: camlibs/directory/directory.c:343
+#: camlibs/directory/directory.c:346
 #, c-format
 msgid "Listing folders in '%s'..."
 msgstr "Đang liệt kê các thư mục trong « %s » ..."
 
-#: camlibs/directory/directory.c:361
+#: camlibs/directory/directory.c:364
 #, c-format
 msgid "Could not get information about '%s' (%m)."
 msgstr "Không thể lấy thông tin về « %s » (%m)."
 
-#: camlibs/directory/directory.c:391 camlibs/directory/directory.c:513
+#: camlibs/directory/directory.c:394 camlibs/directory/directory.c:516
 #, c-format
 msgid "Could not get information about '%s' in '%s' (%m)."
 msgstr "Không thể lấy thông tin về « %s » trong « %s » (%m)."
 
-#: camlibs/directory/directory.c:439
+#: camlibs/directory/directory.c:442
 #, c-format
 msgid "Could not change time of file '%s' in '%s' (%m)."
 msgstr "Không thể thay đổi giờ của tập tin « %s » trong « %s » (%m)."
 
-#: camlibs/directory/directory.c:532
+#: camlibs/directory/directory.c:535
 #, c-format
 msgid "Could not open '%s'."
 msgstr "Không thể mở « %s »."
 
-#: camlibs/directory/directory.c:596
+#: camlibs/directory/directory.c:599
 msgid ""
 "The Directory Browse \"camera\" lets you index photos on your hard drive."
 msgstr ""
 "« Máy ảnh » duyệt qua thư mục thì cho phép bạn phụ lục các ảnh trên đĩa cứng."
 
-#: camlibs/directory/directory.c:605
+#: camlibs/directory/directory.c:608
 msgid "Directory Browse Mode - written by Scott Fritzinger <scottf@unr.edu>."
 msgstr ""
 "Chế độ Duyệt qua Thư mục — được tạo bởi Scott Fritzinger <scottf@unr.edu>."
 
-#: camlibs/directory/directory.c:652
+#: camlibs/directory/directory.c:655
 #, c-format
 msgid "Could not delete file '%s' in folder '%s' (error code %i: %m)."
 msgstr "Không thể xoá tập tin « %s » ra thư mục « %s ». (mã lỗi %i: %m)."
@@ -2042,7 +2042,7 @@ msgid "Configuration for your FUJI camera"
 msgstr "Cấu hình cho máy ảnh FUJI của bạn"
 
 #: camlibs/fuji/library.c:370 camlibs/fuji/library.c:403
-#: camlibs/ptp2/ptp.c:3391 camlibs/ricoh/library.c:447
+#: camlibs/ptp2/ptp.c:3448 camlibs/ricoh/library.c:447
 #: camlibs/ricoh/library.c:449 camlibs/sierra/sierra.c:1720
 #: camlibs/sierra/sierra.c:1893
 msgid "Date & Time"
@@ -2374,7 +2374,7 @@ msgstr "Kiểu tập tin"
 
 # Name: don't translate / Tên: đừng dịch
 #: camlibs/kodak/dc210/dc210.c:179 camlibs/kodak/dc210/dc210.c:184
-#: camlibs/ptp2/config.c:1502 camlibs/ptp2/ptp.c:4488
+#: camlibs/ptp2/config.c:1502 camlibs/ptp2/ptp.c:4545
 msgid "JPEG"
 msgstr "JPEG"
 
@@ -2455,10 +2455,10 @@ msgstr "Sự bù phơi nắng"
 #: camlibs/ptp2/config.c:3125 camlibs/ptp2/config.c:3136
 #: camlibs/ptp2/config.c:3148 camlibs/ptp2/config.c:3195
 #: camlibs/ptp2/config.c:3214 camlibs/ptp2/config.c:3606
-#: camlibs/ptp2/ptp.c:4152 camlibs/ptp2/ptp.c:4160 camlibs/ptp2/ptp.c:4183
-#: camlibs/ptp2/ptp.c:4191 camlibs/ptp2/ptp.c:4391 camlibs/ptp2/ptp.c:4442
-#: camlibs/ptp2/ptp.c:4502 camlibs/ptp2/ptp.c:4509 camlibs/ptp2/ptp.c:4519
-#: camlibs/ptp2/ptp.c:4556 camlibs/ptp2/ptp.c:4573 camlibs/ptp2/ptp.c:4627
+#: camlibs/ptp2/ptp.c:4209 camlibs/ptp2/ptp.c:4217 camlibs/ptp2/ptp.c:4240
+#: camlibs/ptp2/ptp.c:4248 camlibs/ptp2/ptp.c:4448 camlibs/ptp2/ptp.c:4499
+#: camlibs/ptp2/ptp.c:4559 camlibs/ptp2/ptp.c:4566 camlibs/ptp2/ptp.c:4576
+#: camlibs/ptp2/ptp.c:4613 camlibs/ptp2/ptp.c:4630 camlibs/ptp2/ptp.c:4684
 #: camlibs/ricoh/library.c:312 camlibs/ricoh/library.c:327
 #: camlibs/ricoh/library.c:368 camlibs/sierra/epson-desc.c:151
 #: camlibs/sierra/epson-desc.c:169 camlibs/sierra/nikon-desc.c:168
@@ -2502,7 +2502,7 @@ msgstr "Lực"
 #: camlibs/ptp2/config.c:4000 camlibs/ptp2/config.c:4049
 #: camlibs/ptp2/config.c:4054 camlibs/ptp2/config.c:4069
 #: camlibs/ptp2/config.c:4703 camlibs/ptp2/library.c:3503
-#: camlibs/ptp2/library.c:3507 camlibs/ptp2/ptp.c:4189
+#: camlibs/ptp2/library.c:3507 camlibs/ptp2/ptp.c:4246
 #: camlibs/ricoh/library.c:347
 msgid "None"
 msgstr "Không có"
@@ -2524,9 +2524,9 @@ msgstr "Nháy mắt đỏ"
 #: camlibs/ptp2/config.c:1114 camlibs/ptp2/config.c:1116
 #: camlibs/ptp2/config.c:1128 camlibs/ptp2/config.c:1268
 #: camlibs/ptp2/config.c:1274 camlibs/ptp2/config.c:1281
-#: camlibs/ptp2/config.c:2979 camlibs/ptp2/ptp.c:4070 camlibs/ptp2/ptp.c:4071
-#: camlibs/ptp2/ptp.c:4072 camlibs/ptp2/ptp.c:4393 camlibs/ptp2/ptp.c:4503
-#: camlibs/ptp2/ptp.c:4589 camlibs/ricoh/library.c:339
+#: camlibs/ptp2/config.c:2979 camlibs/ptp2/ptp.c:4127 camlibs/ptp2/ptp.c:4128
+#: camlibs/ptp2/ptp.c:4129 camlibs/ptp2/ptp.c:4450 camlibs/ptp2/ptp.c:4560
+#: camlibs/ptp2/ptp.c:4646 camlibs/ricoh/library.c:339
 #: camlibs/ricoh/library.c:370 camlibs/sierra/nikon-desc.c:305
 #: camlibs/sierra/sierra.c:1142 camlibs/sierra/sierra.c:1148
 #: camlibs/sierra/sierra.c:1411 camlibs/topfield/puppy.c:546
@@ -2554,10 +2554,10 @@ msgstr "Bật"
 #: camlibs/ptp2/config.c:3302 camlibs/ptp2/config.c:3413
 #: camlibs/ptp2/config.c:3605 camlibs/ptp2/config.c:3645
 #: camlibs/ptp2/config.c:3711 camlibs/ptp2/config.c:3984
-#: camlibs/ptp2/config.c:4018 camlibs/ptp2/ptp.c:4070 camlibs/ptp2/ptp.c:4071
-#: camlibs/ptp2/ptp.c:4072 camlibs/ptp2/ptp.c:4392 camlibs/ptp2/ptp.c:4501
-#: camlibs/ptp2/ptp.c:4541 camlibs/ptp2/ptp.c:4587 camlibs/ptp2/ptp.c:4652
-#: camlibs/ptp2/ptp.c:4657 camlibs/ricoh/library.c:340
+#: camlibs/ptp2/config.c:4018 camlibs/ptp2/ptp.c:4127 camlibs/ptp2/ptp.c:4128
+#: camlibs/ptp2/ptp.c:4129 camlibs/ptp2/ptp.c:4449 camlibs/ptp2/ptp.c:4558
+#: camlibs/ptp2/ptp.c:4598 camlibs/ptp2/ptp.c:4644 camlibs/ptp2/ptp.c:4709
+#: camlibs/ptp2/ptp.c:4714 camlibs/ricoh/library.c:340
 #: camlibs/ricoh/library.c:369 camlibs/ricoh/library.c:377
 #: camlibs/sierra/epson-desc.c:153 camlibs/sierra/nikon-desc.c:236
 #: camlibs/sierra/nikon-desc.c:304 camlibs/sierra/nikon-desc.c:359
@@ -2878,12 +2878,12 @@ msgid "Empty"
 msgstr "Rỗng"
 
 #: camlibs/kodak/dc240/library.c:564 camlibs/kodak/dc240/library.c:579
-#: camlibs/ptp2/ptp.c:4564
+#: camlibs/ptp2/ptp.c:4621
 msgid "Invalid"
 msgstr "Không hợp lệ"
 
 #: camlibs/kodak/dc240/library.c:571 camlibs/ptp2/config.c:1811
-#: camlibs/ptp2/ptp.c:4497
+#: camlibs/ptp2/ptp.c:4554
 msgid "Not used"
 msgstr "Không dùng"
 
@@ -3287,9 +3287,9 @@ msgstr "Tự hẹn giờ (chỉ ảnh kế)"
 #: camlibs/minolta/dimagev/dimagev.c:400 camlibs/ptp2/config.c:3113
 #: camlibs/ptp2/config.c:3126 camlibs/ptp2/config.c:3137
 #: camlibs/ptp2/config.c:3421 camlibs/ptp2/config.c:3603
-#: camlibs/ptp2/config.c:3647 camlibs/ptp2/ptp.c:4184 camlibs/ptp2/ptp.c:4192
-#: camlibs/ptp2/ptp.c:4352 camlibs/ptp2/ptp.c:4361 camlibs/ptp2/ptp.c:4475
-#: camlibs/ptp2/ptp.c:4482 camlibs/ricoh/library.c:349
+#: camlibs/ptp2/config.c:3647 camlibs/ptp2/ptp.c:4241 camlibs/ptp2/ptp.c:4249
+#: camlibs/ptp2/ptp.c:4409 camlibs/ptp2/ptp.c:4418 camlibs/ptp2/ptp.c:4532
+#: camlibs/ptp2/ptp.c:4539 camlibs/ricoh/library.c:349
 #: camlibs/sierra/epson-desc.c:219 camlibs/sierra/nikon-desc.c:253
 #: camlibs/sierra/nikon-desc.c:325 camlibs/sierra/olympus-desc.c:480
 #: camlibs/sierra/olympus-desc.c:660 camlibs/sierra/sierra.c:995
@@ -3361,8 +3361,8 @@ msgstr "Máy ảnh không đáp ứng."
 #: camlibs/konica/qm150.c:773 camlibs/konica/qm150.c:781
 #: camlibs/ptp2/config.c:3127 camlibs/ptp2/config.c:3604
 #: camlibs/ptp2/config.c:3646 camlibs/ptp2/config.c:3839
-#: camlibs/ptp2/ptp.c:4185 camlibs/ptp2/ptp.c:4601 camlibs/ptp2/ptp.c:4607
-#: camlibs/ptp2/ptp.c:4613 camlibs/sierra/nikon-desc.c:203
+#: camlibs/ptp2/ptp.c:4242 camlibs/ptp2/ptp.c:4658 camlibs/ptp2/ptp.c:4664
+#: camlibs/ptp2/ptp.c:4670 camlibs/sierra/nikon-desc.c:203
 #: camlibs/sierra/sierra.c:966 camlibs/sierra/sierra.c:973
 #: camlibs/sierra/sierra.c:1291
 msgid "Low"
@@ -3376,8 +3376,8 @@ msgstr "Vừa"
 
 #: camlibs/konica/qm150.c:775 camlibs/konica/qm150.c:778
 #: camlibs/ptp2/config.c:3130 camlibs/ptp2/config.c:3602
-#: camlibs/ptp2/config.c:3648 camlibs/ptp2/ptp.c:4188 camlibs/ptp2/ptp.c:4603
-#: camlibs/ptp2/ptp.c:4609 camlibs/ptp2/ptp.c:4615 camlibs/sierra/sierra.c:927
+#: camlibs/ptp2/config.c:3648 camlibs/ptp2/ptp.c:4245 camlibs/ptp2/ptp.c:4660
+#: camlibs/ptp2/ptp.c:4666 camlibs/ptp2/ptp.c:4672 camlibs/sierra/sierra.c:927
 #: camlibs/sierra/sierra.c:935 camlibs/sierra/sierra.c:968
 #: camlibs/sierra/sierra.c:977 camlibs/sierra/sierra.c:1264
 #: camlibs/sierra/sierra.c:1295
@@ -3386,7 +3386,7 @@ msgstr "Cao"
 
 #: camlibs/konica/qm150.c:789 camlibs/polaroid/pdc700.c:162
 #: camlibs/ptp2/config.c:1869 camlibs/ptp2/config.c:1895
-#: camlibs/ptp2/config.c:1922 camlibs/ptp2/ptp.c:4650
+#: camlibs/ptp2/config.c:1922 camlibs/ptp2/ptp.c:4707
 msgid "LCD"
 msgstr "LCD"
 
@@ -3416,14 +3416,14 @@ msgstr "Văn phòng"
 
 #: camlibs/konica/qm150.c:960 camlibs/konica/qm150.c:967
 #: camlibs/ptp2/config.c:1159 camlibs/ptp2/config.c:3196
-#: camlibs/ptp2/config.c:3215 camlibs/ptp2/ptp.c:4127 camlibs/ptp2/ptp.c:4574
+#: camlibs/ptp2/config.c:3215 camlibs/ptp2/ptp.c:4184 camlibs/ptp2/ptp.c:4631
 #: camlibs/sierra/olympus-desc.c:556 camlibs/sierra/olympus-desc.c:575
 #: camlibs/sierra/olympus-desc.c:594 camlibs/sierra/olympus-desc.c:615
 msgid "Daylight"
 msgstr "Ánh sáng ban ngày"
 
 #: camlibs/konica/qm150.c:975 camlibs/ptp2/config.c:5202
-#: camlibs/ptp2/ptp.c:3395 camlibs/ptp2/ptp.c:3450
+#: camlibs/ptp2/ptp.c:3452 camlibs/ptp2/ptp.c:3507
 msgid "Sharpness"
 msgstr "Độ sắc"
 
@@ -3432,7 +3432,7 @@ msgid "Sharp"
 msgstr "Sắc"
 
 #: camlibs/konica/qm150.c:978 camlibs/konica/qm150.c:988
-#: camlibs/ptp2/ptp.c:4533 camlibs/ptp2/ptp.c:4660
+#: camlibs/ptp2/ptp.c:4590 camlibs/ptp2/ptp.c:4717
 msgid "Soft"
 msgstr "Mềm"
 
@@ -3482,7 +3482,7 @@ msgstr "Chế độ thu"
 msgid "Everywhere"
 msgstr "Mọi nơi"
 
-#: camlibs/konica/qm150.c:1136 camlibs/ptp2/ptp.c:4468
+#: camlibs/konica/qm150.c:1136 camlibs/ptp2/ptp.c:4525
 #, c-format
 msgid "AC"
 msgstr "ĐIện chính"
@@ -3690,7 +3690,7 @@ msgstr ""
 "Chế độ nháy đèn: "
 
 #: camlibs/minolta/dimagev/dimagev.c:292 camlibs/ptp2/config.c:2484
-#: camlibs/ptp2/ptp.c:4172
+#: camlibs/ptp2/ptp.c:4229
 msgid "Remote"
 msgstr "Từ xa"
 
@@ -3700,24 +3700,24 @@ msgstr "Cục bộ"
 
 #: camlibs/minolta/dimagev/dimagev.c:293 camlibs/minolta/dimagev/dimagev.c:295
 #: camlibs/minolta/dimagev/dimagev.c:299 camlibs/minolta/dimagev/dimagev.c:302
-#: camlibs/ptp2/ptp.c:4073
+#: camlibs/ptp2/ptp.c:4130
 msgid "Yes"
 msgstr "Có"
 
 #: camlibs/minolta/dimagev/dimagev.c:293 camlibs/minolta/dimagev/dimagev.c:295
 #: camlibs/minolta/dimagev/dimagev.c:299 camlibs/minolta/dimagev/dimagev.c:302
-#: camlibs/ptp2/ptp.c:4073
+#: camlibs/ptp2/ptp.c:4130
 msgid "No"
 msgstr "Không"
 
-#: camlibs/minolta/dimagev/dimagev.c:300 camlibs/ptp2/ptp.c:4483
+#: camlibs/minolta/dimagev/dimagev.c:300 camlibs/ptp2/ptp.c:4540
 #: camlibs/sierra/nikon-desc.c:283
 msgid "Fine"
 msgstr "Chính xác"
 
 #: camlibs/minolta/dimagev/dimagev.c:300 camlibs/ptp2/config.c:1696
-#: camlibs/ptp2/config.c:2612 camlibs/ptp2/ptp.c:4602 camlibs/ptp2/ptp.c:4608
-#: camlibs/ptp2/ptp.c:4614 camlibs/ptp2/ptp.c:4618 camlibs/sierra/sierra.c:926
+#: camlibs/ptp2/config.c:2612 camlibs/ptp2/ptp.c:4659 camlibs/ptp2/ptp.c:4665
+#: camlibs/ptp2/ptp.c:4671 camlibs/ptp2/ptp.c:4675 camlibs/sierra/sierra.c:926
 #: camlibs/sierra/sierra.c:933 camlibs/sierra/sierra.c:1262
 msgid "Standard"
 msgstr "Chuẩn"
@@ -3765,7 +3765,7 @@ msgstr "Không đầy"
 
 #: camlibs/minolta/dimagev/dimagev.c:360 camlibs/minolta/dimagev/dimagev.c:403
 #: camlibs/ptp2/config.c:1567 camlibs/ptp2/config.c:1621
-#: camlibs/ptp2/config.c:1674 camlibs/ptp2/ptp.c:4412 camlibs/ptp2/ptp.c:4418
+#: camlibs/ptp2/config.c:1674 camlibs/ptp2/ptp.c:4469 camlibs/ptp2/ptp.c:4475
 #, c-format
 msgid "Full"
 msgstr "Đầy"
@@ -4133,12 +4133,12 @@ msgstr ""
 
 #: camlibs/polaroid/pdc700.c:159 camlibs/ptp2/config.c:5115
 #: camlibs/ptp2/config.c:5177 camlibs/ptp2/config.c:5302
-#: camlibs/ptp2/config.c:5315 camlibs/ptp2/ptp.c:3431
+#: camlibs/ptp2/config.c:5315 camlibs/ptp2/ptp.c:3488
 msgid "Image Quality"
 msgstr "Chất lượng ảnh"
 
 #: camlibs/polaroid/pdc700.c:160 camlibs/ptp2/config.c:5122
-#: camlibs/ptp2/config.c:5123 camlibs/ptp2/ptp.c:3375 camlibs/ptp2/ptp.c:3433
+#: camlibs/ptp2/config.c:5123 camlibs/ptp2/ptp.c:3432 camlibs/ptp2/ptp.c:3490
 msgid "Image Size"
 msgstr "Cỡ ảnh"
 
@@ -4350,23 +4350,23 @@ msgstr "kiểu dữ liệu bất thường %i"
 #: camlibs/ptp2/config.c:1524 camlibs/ptp2/config.c:1553
 #: camlibs/ptp2/config.c:1590 camlibs/ptp2/config.c:1651
 #: camlibs/ptp2/config.c:3147 camlibs/ptp2/config.c:3166
-#: camlibs/ptp2/config.c:3220 camlibs/ptp2/ptp.c:4124 camlibs/ptp2/ptp.c:4396
-#: camlibs/ptp2/ptp.c:4520 camlibs/ptp2/ptp.c:4555 camlibs/ptp2/ptp.c:4595
+#: camlibs/ptp2/config.c:3220 camlibs/ptp2/ptp.c:4181 camlibs/ptp2/ptp.c:4453
+#: camlibs/ptp2/ptp.c:4577 camlibs/ptp2/ptp.c:4612 camlibs/ptp2/ptp.c:4652
 #: camlibs/sierra/olympus-desc.c:639
 msgid "Manual"
 msgstr "Bằng tay"
 
 #: camlibs/ptp2/config.c:1157 camlibs/ptp2/config.c:3167
-#: camlibs/ptp2/ptp.c:4125 camlibs/ptp2/ptp.c:4136
+#: camlibs/ptp2/ptp.c:4182 camlibs/ptp2/ptp.c:4193
 msgid "Automatic"
 msgstr "Tự động"
 
-#: camlibs/ptp2/config.c:1158 camlibs/ptp2/ptp.c:4126
+#: camlibs/ptp2/config.c:1158 camlibs/ptp2/ptp.c:4183
 msgid "One-push Automatic"
 msgstr "Tự động bấm một"
 
 #: camlibs/ptp2/config.c:1160 camlibs/ptp2/config.c:3199
-#: camlibs/ptp2/config.c:3218 camlibs/ptp2/ptp.c:4128 camlibs/ptp2/ptp.c:4577
+#: camlibs/ptp2/config.c:3218 camlibs/ptp2/ptp.c:4185 camlibs/ptp2/ptp.c:4634
 #: camlibs/ricoh/library.c:329 camlibs/sierra/nikon-desc.c:285
 #: camlibs/sierra/olympus-desc.c:557 camlibs/sierra/olympus-desc.c:576
 #: camlibs/sierra/sierra.c:1088 camlibs/sierra/sierra.c:1097
@@ -4375,7 +4375,7 @@ msgid "Fluorescent"
 msgstr "Huỳnh quang"
 
 #: camlibs/ptp2/config.c:1161 camlibs/ptp2/config.c:3198
-#: camlibs/ptp2/config.c:3217 camlibs/ptp2/ptp.c:4576
+#: camlibs/ptp2/config.c:3217 camlibs/ptp2/ptp.c:4633
 #: camlibs/sierra/olympus-desc.c:558 camlibs/sierra/olympus-desc.c:577
 #: camlibs/sierra/olympus-desc.c:595 camlibs/sierra/olympus-desc.c:616
 #: camlibs/sierra/sierra.c:1089 camlibs/sierra/sierra.c:1099
@@ -4384,7 +4384,7 @@ msgid "Tungsten"
 msgstr "Vonfam"
 
 #: camlibs/ptp2/config.c:1163 camlibs/ptp2/config.c:3197
-#: camlibs/ptp2/config.c:3216 camlibs/ptp2/ptp.c:4131 camlibs/ptp2/ptp.c:4575
+#: camlibs/ptp2/config.c:3216 camlibs/ptp2/ptp.c:4188 camlibs/ptp2/ptp.c:4632
 #: camlibs/sierra/nikon-desc.c:288 camlibs/sierra/olympus-desc.c:559
 #: camlibs/sierra/olympus-desc.c:578 camlibs/sierra/olympus-desc.c:599
 #: camlibs/sierra/olympus-desc.c:622 camlibs/sierra/sierra.c:1090
@@ -4393,17 +4393,17 @@ msgid "Cloudy"
 msgstr "Đầy mây"
 
 #: camlibs/ptp2/config.c:1164 camlibs/ptp2/config.c:1172
-#: camlibs/ptp2/ptp.c:4132
+#: camlibs/ptp2/ptp.c:4189
 msgid "Shade"
 msgstr "Bóng"
 
 #: camlibs/ptp2/config.c:1165 camlibs/ptp2/config.c:3202
-#: camlibs/ptp2/config.c:3223 camlibs/ptp2/ptp.c:3412 camlibs/ptp2/ptp.c:3988
-#: camlibs/ptp2/ptp.c:4133 camlibs/ptp2/ptp.c:4580
+#: camlibs/ptp2/config.c:3223 camlibs/ptp2/ptp.c:3469 camlibs/ptp2/ptp.c:4045
+#: camlibs/ptp2/ptp.c:4190 camlibs/ptp2/ptp.c:4637
 msgid "Color Temperature"
 msgstr "Nhiệt độ màu"
 
-#: camlibs/ptp2/config.c:1166 camlibs/ptp2/ptp.c:4134 camlibs/ptp2/ptp.c:4578
+#: camlibs/ptp2/config.c:1166 camlibs/ptp2/ptp.c:4191 camlibs/ptp2/ptp.c:4635
 #: camlibs/sierra/nikon-desc.c:287 camlibs/sierra/olympus-desc.c:621
 msgid "Preset"
 msgstr "Định sẵn"
@@ -4454,7 +4454,7 @@ msgstr "Định sẵn riêng 5"
 
 #: camlibs/ptp2/config.c:1184 camlibs/ptp2/config.c:3613
 #: camlibs/ptp2/config.c:3624 camlibs/ptp2/config.c:3636
-#: camlibs/ptp2/ptp.c:4121
+#: camlibs/ptp2/ptp.c:4178
 msgid "JPEG Fine"
 msgstr "JPEG chính xác"
 
@@ -4506,12 +4506,12 @@ msgstr "không mất"
 #: camlibs/ptp2/config.c:1501 camlibs/ptp2/config.c:1819
 #: camlibs/ptp2/config.c:1868 camlibs/ptp2/config.c:3165
 #: camlibs/ptp2/library.c:3512 camlibs/ptp2/library.c:3526
-#: camlibs/ptp2/ptp.c:4145 camlibs/ptp2/ptp.c:4474 camlibs/ptp2/ptp.c:4480
-#: camlibs/ptp2/ptp.c:4487 camlibs/ptp2/ptp.c:4649 camlibs/ptp2/ptp.c:4860
+#: camlibs/ptp2/ptp.c:4202 camlibs/ptp2/ptp.c:4531 camlibs/ptp2/ptp.c:4537
+#: camlibs/ptp2/ptp.c:4544 camlibs/ptp2/ptp.c:4706 camlibs/ptp2/ptp.c:4917
 msgid "Undefined"
 msgstr "Chưa xác định"
 
-#: camlibs/ptp2/config.c:1503 camlibs/ptp2/ptp.c:4489
+#: camlibs/ptp2/config.c:1503 camlibs/ptp2/ptp.c:4546
 msgid "CRW"
 msgstr "CRW"
 
@@ -4524,11 +4524,11 @@ msgid "AV"
 msgstr "AV"
 
 #: camlibs/ptp2/config.c:1512 camlibs/ptp2/config.c:1526
-#: camlibs/ptp2/ptp.c:4514
+#: camlibs/ptp2/ptp.c:4571
 msgid "A_DEP"
 msgstr "A_DEP"
 
-#: camlibs/ptp2/config.c:1513 camlibs/ptp2/ptp.c:4515
+#: camlibs/ptp2/config.c:1513 camlibs/ptp2/ptp.c:4572
 msgid "M_DEP"
 msgstr "M_DEP"
 
@@ -4538,7 +4538,7 @@ msgstr "DEP"
 
 #: camlibs/ptp2/config.c:1528 camlibs/ptp2/config.c:3120
 #: camlibs/ptp2/config.c:3142 camlibs/ptp2/config.c:3200
-#: camlibs/ptp2/ptp.c:4197 camlibs/ptp2/ptp.c:4359
+#: camlibs/ptp2/ptp.c:4254 camlibs/ptp2/ptp.c:4416
 #: camlibs/sierra/epson-desc.c:171 camlibs/sierra/sierra.c:1565
 #: camlibs/sierra/sierra.c:1572 camlibs/sierra/sierra.c:1792
 msgid "Custom"
@@ -4549,18 +4549,18 @@ msgid "Lock"
 msgstr "Khoá"
 
 #: camlibs/ptp2/config.c:1531 camlibs/ptp2/config.c:2436
-#: camlibs/ptp2/config.c:2455 camlibs/ptp2/ptp.c:4166
+#: camlibs/ptp2/config.c:2455 camlibs/ptp2/ptp.c:4223
 msgid "Night Portrait"
 msgstr "Chân dung đêm"
 
 #: camlibs/ptp2/config.c:1532 camlibs/ptp2/config.c:2435
-#: camlibs/ptp2/config.c:2469 camlibs/ptp2/ptp.c:4164 camlibs/ptp2/ptp.c:4528
+#: camlibs/ptp2/config.c:2469 camlibs/ptp2/ptp.c:4221 camlibs/ptp2/ptp.c:4585
 msgid "Sports"
 msgstr "Thể thao"
 
 #: camlibs/ptp2/config.c:1534 camlibs/ptp2/config.c:1698
 #: camlibs/ptp2/config.c:2433 camlibs/ptp2/config.c:2467
-#: camlibs/ptp2/config.c:3119 camlibs/ptp2/ptp.c:4162 camlibs/ptp2/ptp.c:4358
+#: camlibs/ptp2/config.c:3119 camlibs/ptp2/ptp.c:4219 camlibs/ptp2/ptp.c:4415
 #: camlibs/st2205/library.c:514 camlibs/st2205/library.c:527
 msgid "Landscape"
 msgstr "Nằm ngang"
@@ -4593,7 +4593,7 @@ msgstr "bật, giảm mắt đỏ"
 msgid "iTTL"
 msgstr "iTTL"
 
-#: camlibs/ptp2/config.c:1554 camlibs/ptp2/ptp.c:4397
+#: camlibs/ptp2/config.c:1554 camlibs/ptp2/ptp.c:4454
 msgid "Commander"
 msgstr "Commander"
 
@@ -4602,39 +4602,39 @@ msgid "Repeating"
 msgstr "Lặp lại"
 
 #: camlibs/ptp2/config.c:1560 camlibs/ptp2/config.c:1589
-#: camlibs/ptp2/config.c:1649 camlibs/ptp2/ptp.c:4399
+#: camlibs/ptp2/config.c:1649 camlibs/ptp2/ptp.c:4456
 msgid "TTL"
 msgstr "TTL"
 
 #: camlibs/ptp2/config.c:1561 camlibs/ptp2/config.c:1650
-#: camlibs/ptp2/ptp.c:4400
+#: camlibs/ptp2/ptp.c:4457
 msgid "Auto Aperture"
 msgstr "Tự động đặt độ mở"
 
-#: camlibs/ptp2/config.c:1562 camlibs/ptp2/ptp.c:4401
+#: camlibs/ptp2/config.c:1562 camlibs/ptp2/ptp.c:4458
 msgid "Full Manual"
 msgstr "Toàn thủ công"
 
 #: camlibs/ptp2/config.c:1658 camlibs/ptp2/config.c:3169
-#: camlibs/ptp2/ptp.c:4367
+#: camlibs/ptp2/ptp.c:4424
 msgid "AF-S"
 msgstr "AF-S"
 
 #: camlibs/ptp2/config.c:1659 camlibs/ptp2/config.c:3170
-#: camlibs/ptp2/ptp.c:4368
+#: camlibs/ptp2/ptp.c:4425
 msgid "AF-C"
 msgstr "AF-C"
 
 #: camlibs/ptp2/config.c:1660 camlibs/ptp2/config.c:3171
-#: camlibs/ptp2/ptp.c:4369
+#: camlibs/ptp2/ptp.c:4426
 msgid "AF-A"
 msgstr "AF-A"
 
-#: camlibs/ptp2/config.c:1661 camlibs/ptp2/ptp.c:4370
+#: camlibs/ptp2/config.c:1661 camlibs/ptp2/ptp.c:4427
 msgid "MF (fixed)"
 msgstr "MF (cố định)"
 
-#: camlibs/ptp2/config.c:1662 camlibs/ptp2/ptp.c:4371
+#: camlibs/ptp2/config.c:1662 camlibs/ptp2/ptp.c:4428
 msgid "MF (selection)"
 msgstr "MF (vùng chọn)"
 
@@ -4643,7 +4643,7 @@ msgid "Center-weighted"
 msgstr "Nặng giữa"
 
 #: camlibs/ptp2/config.c:1686 camlibs/ptp2/config.c:2582
-#: camlibs/ptp2/config.c:3023 camlibs/ptp2/ptp.c:4141
+#: camlibs/ptp2/config.c:3023 camlibs/ptp2/ptp.c:4198
 msgid "Average"
 msgstr "Trung bình"
 
@@ -4671,7 +4671,7 @@ msgstr "Đa điểm"
 msgid "Faithful"
 msgstr "Trung thực"
 
-#: camlibs/ptp2/config.c:1701 camlibs/ptp2/ptp.c:4530 camlibs/ptp2/ptp.c:4662
+#: camlibs/ptp2/config.c:1701 camlibs/ptp2/ptp.c:4587 camlibs/ptp2/ptp.c:4719
 msgid "Monochrome"
 msgstr "Đơn sắc"
 
@@ -4687,62 +4687,62 @@ msgstr "Tự xác định 2"
 msgid "User defined 3"
 msgstr "Tự xác định 3"
 
-#: camlibs/ptp2/config.c:1790 camlibs/ptp2/ptp.c:4565
+#: camlibs/ptp2/config.c:1790 camlibs/ptp2/ptp.c:4622
 msgid "Focusing Point on Center Only, Manual"
 msgstr "Điểm tiêu chỉ ở tâm, thủ công"
 
-#: camlibs/ptp2/config.c:1791 camlibs/ptp2/ptp.c:4566
+#: camlibs/ptp2/config.c:1791 camlibs/ptp2/ptp.c:4623
 msgid "Focusing Point on Center Only, Auto"
 msgstr "Điểm tiêu chỉ ở tâm, tự động"
 
-#: camlibs/ptp2/config.c:1792 camlibs/ptp2/ptp.c:4567
+#: camlibs/ptp2/config.c:1792 camlibs/ptp2/ptp.c:4624
 msgid "Multiple Focusing Points (No Specification), Manual"
 msgstr "Nhiều điểm tiêu (không xác định), thủ công"
 
-#: camlibs/ptp2/config.c:1793 camlibs/ptp2/ptp.c:4568
+#: camlibs/ptp2/config.c:1793 camlibs/ptp2/ptp.c:4625
 msgid "Multiple Focusing Points, Auto"
 msgstr "Nhiều điểm tiêu, tự động"
 
-#: camlibs/ptp2/config.c:1794 camlibs/ptp2/ptp.c:4569
+#: camlibs/ptp2/config.c:1794 camlibs/ptp2/ptp.c:4626
 msgid "Multiple Focusing Points (Right)"
 msgstr "Nhiều điểm tiêu (Phải)"
 
-#: camlibs/ptp2/config.c:1795 camlibs/ptp2/ptp.c:4570
+#: camlibs/ptp2/config.c:1795 camlibs/ptp2/ptp.c:4627
 msgid "Multiple Focusing Points (Center)"
 msgstr "Nhiều điểm tiêu (tâm)"
 
-#: camlibs/ptp2/config.c:1796 camlibs/ptp2/ptp.c:4571
+#: camlibs/ptp2/config.c:1796 camlibs/ptp2/ptp.c:4628
 msgid "Multiple Focusing Points (Left)"
 msgstr "Nhiều điểm tiêu (Trái)"
 
-#: camlibs/ptp2/config.c:1801 camlibs/ptp2/ptp.c:4491
+#: camlibs/ptp2/config.c:1801 camlibs/ptp2/ptp.c:4548
 msgid "Large"
 msgstr "Lớn"
 
-#: camlibs/ptp2/config.c:1802 camlibs/ptp2/ptp.c:4492
+#: camlibs/ptp2/config.c:1802 camlibs/ptp2/ptp.c:4549
 msgid "Medium 1"
 msgstr "Vừa 1"
 
-#: camlibs/ptp2/config.c:1803 camlibs/ptp2/ptp.c:4494
+#: camlibs/ptp2/config.c:1803 camlibs/ptp2/ptp.c:4551
 msgid "Medium 2"
 msgstr "Vừa 2"
 
-#: camlibs/ptp2/config.c:1804 camlibs/ptp2/ptp.c:4495
+#: camlibs/ptp2/config.c:1804 camlibs/ptp2/ptp.c:4552
 msgid "Medium 3"
 msgstr "Vừa 3"
 
-#: camlibs/ptp2/config.c:1805 camlibs/ptp2/ptp.c:4493
+#: camlibs/ptp2/config.c:1805 camlibs/ptp2/ptp.c:4550
 msgid "Small"
 msgstr "Nhỏ"
 
 #: camlibs/ptp2/config.c:1812 camlibs/ptp2/config.c:2995
-#: camlibs/ptp2/config.c:3013 camlibs/ptp2/ptp.c:4247 camlibs/ptp2/ptp.c:4250
-#: camlibs/ptp2/ptp.c:4498
+#: camlibs/ptp2/config.c:3013 camlibs/ptp2/ptp.c:4304 camlibs/ptp2/ptp.c:4307
+#: camlibs/ptp2/ptp.c:4555
 msgid "10 seconds"
 msgstr "10 giây"
 
 #: camlibs/ptp2/config.c:1813 camlibs/ptp2/config.c:3011
-#: camlibs/ptp2/config.c:3186 camlibs/ptp2/ptp.c:4245 camlibs/ptp2/ptp.c:4499
+#: camlibs/ptp2/config.c:3186 camlibs/ptp2/ptp.c:4302 camlibs/ptp2/ptp.c:4556
 msgid "2 seconds"
 msgstr "2 giây"
 
@@ -4759,7 +4759,7 @@ msgid "TFT + PC"
 msgstr "TFT + máy tính"
 
 #: camlibs/ptp2/config.c:1870 camlibs/ptp2/config.c:1896
-#: camlibs/ptp2/config.c:1923 camlibs/ptp2/ptp.c:4651
+#: camlibs/ptp2/config.c:1923 camlibs/ptp2/ptp.c:4708
 msgid "Video OUT"
 msgstr "Ảnh động RA"
 
@@ -4829,7 +4829,7 @@ msgstr "sRAW1 + JPEG chuẩn nhỏ"
 msgid "sRAW2 + Small Normal JPEG"
 msgstr "sRAW2 + JPEG chuẩn nhỏ"
 
-#: camlibs/ptp2/config.c:2041 camlibs/ptp2/ptp.c:4596
+#: camlibs/ptp2/config.c:2041 camlibs/ptp2/ptp.c:4653
 msgid "Continuous"
 msgstr "Liên tiếp"
 
@@ -4869,7 +4869,7 @@ msgstr "Sáng tạo"
 msgid "Action"
 msgstr "Hành động"
 
-#: camlibs/ptp2/config.c:2437 camlibs/ptp2/ptp.c:4165
+#: camlibs/ptp2/config.c:2437 camlibs/ptp2/ptp.c:4222
 msgid "Night Landscape"
 msgstr "Phong cảnh đêm"
 
@@ -4936,7 +4936,7 @@ msgstr ""
 msgid "Effects"
 msgstr "Chế độ hiệu ứng"
 
-#: camlibs/ptp2/config.c:2478 camlibs/ptp2/ptp.c:4167 camlibs/ptp2/ptp.c:4592
+#: camlibs/ptp2/config.c:2478 camlibs/ptp2/ptp.c:4224 camlibs/ptp2/ptp.c:4649
 msgid "Single Shot"
 msgstr "Chụp một"
 
@@ -4944,19 +4944,19 @@ msgstr "Chụp một"
 msgid "Burst"
 msgstr "Loạt"
 
-#: camlibs/ptp2/config.c:2480 camlibs/ptp2/ptp.c:4169
+#: camlibs/ptp2/config.c:2480 camlibs/ptp2/ptp.c:4226
 msgid "Timelapse"
 msgstr "Thời gian đã qua"
 
-#: camlibs/ptp2/config.c:2481 camlibs/ptp2/ptp.c:4170
+#: camlibs/ptp2/config.c:2481 camlibs/ptp2/ptp.c:4227
 msgid "Continuous Low Speed"
 msgstr "Tốc độ thấp liên tục"
 
-#: camlibs/ptp2/config.c:2482 camlibs/ptp2/ptp.c:4171
+#: camlibs/ptp2/config.c:2482 camlibs/ptp2/ptp.c:4228
 msgid "Timer"
 msgstr "Đồng hồ hẹn giờ"
 
-#: camlibs/ptp2/config.c:2483 camlibs/ptp2/ptp.c:4173
+#: camlibs/ptp2/config.c:2483 camlibs/ptp2/ptp.c:4230
 msgid "Mirror Up"
 msgstr "Nhân bản lên"
 
@@ -4972,23 +4972,23 @@ msgstr "Từ xa trễ"
 msgid "Quiet Release"
 msgstr "Nhả im"
 
-#: camlibs/ptp2/config.c:2496 camlibs/ptp2/ptp.c:4175
+#: camlibs/ptp2/config.c:2496 camlibs/ptp2/ptp.c:4232
 msgid "Centre-spot"
 msgstr "Điểm giữa"
 
-#: camlibs/ptp2/config.c:2497 camlibs/ptp2/ptp.c:4143 camlibs/ptp2/ptp.c:4176
+#: camlibs/ptp2/config.c:2497 camlibs/ptp2/ptp.c:4200 camlibs/ptp2/ptp.c:4233
 msgid "Multi-spot"
 msgstr "Đa điểm"
 
-#: camlibs/ptp2/config.c:2498 camlibs/ptp2/ptp.c:4177
+#: camlibs/ptp2/config.c:2498 camlibs/ptp2/ptp.c:4234
 msgid "Single Area"
 msgstr "Vùng đơn"
 
-#: camlibs/ptp2/config.c:2499 camlibs/ptp2/ptp.c:4178
+#: camlibs/ptp2/config.c:2499 camlibs/ptp2/ptp.c:4235
 msgid "Closest Subject"
 msgstr "Chủ đề gần nhất"
 
-#: camlibs/ptp2/config.c:2500 camlibs/ptp2/ptp.c:4179
+#: camlibs/ptp2/config.c:2500 camlibs/ptp2/ptp.c:4236
 msgid "Group Dynamic"
 msgstr "Nhóm động"
 
@@ -5031,23 +5031,23 @@ msgstr "sRGB"
 msgid "Unknown value 0x%04x"
 msgstr "Giá trị không rõ 0x%04x"
 
-#: camlibs/ptp2/config.c:2572 camlibs/ptp2/ptp.c:4324
+#: camlibs/ptp2/config.c:2572 camlibs/ptp2/ptp.c:4381
 msgid "Centre"
 msgstr "Giữa"
 
-#: camlibs/ptp2/config.c:2573 camlibs/ptp2/ptp.c:4325
+#: camlibs/ptp2/config.c:2573 camlibs/ptp2/ptp.c:4382
 msgid "Top"
 msgstr "Trên"
 
-#: camlibs/ptp2/config.c:2574 camlibs/ptp2/ptp.c:4326
+#: camlibs/ptp2/config.c:2574 camlibs/ptp2/ptp.c:4383
 msgid "Bottom"
 msgstr "Dưới"
 
-#: camlibs/ptp2/config.c:2575 camlibs/ptp2/ptp.c:4327
+#: camlibs/ptp2/config.c:2575 camlibs/ptp2/ptp.c:4384
 msgid "Left"
 msgstr "Trái"
 
-#: camlibs/ptp2/config.c:2576 camlibs/ptp2/ptp.c:4328
+#: camlibs/ptp2/config.c:2576 camlibs/ptp2/ptp.c:4385
 msgid "Right"
 msgstr "Phải"
 
@@ -5067,7 +5067,7 @@ msgstr "Chấm giữa"
 msgid "Automatic Flash"
 msgstr "Tự động nháy đèn"
 
-#: camlibs/ptp2/config.c:2594 camlibs/ptp2/ptp.c:4148
+#: camlibs/ptp2/config.c:2594 camlibs/ptp2/ptp.c:4205
 msgid "Fill flash"
 msgstr "Tô đầy nháy đèn"
 
@@ -5079,20 +5079,20 @@ msgstr "Tự động mắt đỏ"
 msgid "Red-eye fill"
 msgstr "Tô đầy mắt đỏ"
 
-#: camlibs/ptp2/config.c:2597 camlibs/ptp2/ptp.c:4151
+#: camlibs/ptp2/config.c:2597 camlibs/ptp2/ptp.c:4208
 msgid "External sync"
 msgstr "Đồng bộ bên ngoài"
 
-#: camlibs/ptp2/config.c:2599 camlibs/ptp2/ptp.c:4153
+#: camlibs/ptp2/config.c:2599 camlibs/ptp2/ptp.c:4210
 #, fuzzy
 msgid "Auto Slow Sync"
 msgstr "Đồng bộ chậm"
 
-#: camlibs/ptp2/config.c:2600 camlibs/ptp2/ptp.c:4154
+#: camlibs/ptp2/config.c:2600 camlibs/ptp2/ptp.c:4211
 msgid "Rear Curtain Sync + Slow Sync"
 msgstr "Đồng bộ mành sau + Đồng bộ chậm"
 
-#: camlibs/ptp2/config.c:2601 camlibs/ptp2/ptp.c:4155
+#: camlibs/ptp2/config.c:2601 camlibs/ptp2/ptp.c:4212
 msgid "Red-eye Reduction + Slow Sync"
 msgstr "Giảm mắt đỏ + Đồng bộ chậm"
 
@@ -5195,15 +5195,15 @@ msgstr "AF phụ đơn"
 msgid "Full-time-servo AF"
 msgstr "AF phụ đơn"
 
-#: camlibs/ptp2/config.c:2972 camlibs/ptp2/ptp.c:4135
+#: camlibs/ptp2/config.c:2972 camlibs/ptp2/ptp.c:4192
 msgid "Manual Focus"
 msgstr "Tiêu điểm thủ công"
 
-#: camlibs/ptp2/config.c:2985 camlibs/ptp2/ptp.c:4231
+#: camlibs/ptp2/config.c:2985 camlibs/ptp2/ptp.c:4288
 msgid "AE/AF Lock"
 msgstr "Khoá AE/AF"
 
-#: camlibs/ptp2/config.c:2986 camlibs/ptp2/ptp.c:4233
+#: camlibs/ptp2/config.c:2986 camlibs/ptp2/ptp.c:4290
 msgid "AE Lock only"
 msgstr "Chỉ khoá AE"
 
@@ -5211,11 +5211,11 @@ msgstr "Chỉ khoá AE"
 msgid "AF Lock Only"
 msgstr "Chỉ khoá AF"
 
-#: camlibs/ptp2/config.c:2988 camlibs/ptp2/ptp.c:4234
+#: camlibs/ptp2/config.c:2988 camlibs/ptp2/ptp.c:4291
 msgid "AF Lock Hold"
 msgstr "Giữ khoá AE"
 
-#: camlibs/ptp2/config.c:2989 camlibs/ptp2/ptp.c:4235
+#: camlibs/ptp2/config.c:2989 camlibs/ptp2/ptp.c:4292
 msgid "AF On"
 msgstr "AF bật"
 
@@ -5224,31 +5224,31 @@ msgid "Flash Level Lock"
 msgstr "Khoá cấp nháy đèn"
 
 #: camlibs/ptp2/config.c:2996 camlibs/ptp2/config.c:3014
-#: camlibs/ptp2/ptp.c:4248 camlibs/ptp2/ptp.c:4251
+#: camlibs/ptp2/ptp.c:4305 camlibs/ptp2/ptp.c:4308
 msgid "20 seconds"
 msgstr "20 giây"
 
 #: camlibs/ptp2/config.c:2997 camlibs/ptp2/config.c:3105
-#: camlibs/ptp2/config.c:3658 camlibs/ptp2/ptp.c:4252
+#: camlibs/ptp2/config.c:3658 camlibs/ptp2/ptp.c:4309
 msgid "1 minute"
 msgstr "1 phút"
 
 #: camlibs/ptp2/config.c:2998 camlibs/ptp2/config.c:3106
-#: camlibs/ptp2/config.c:3659 camlibs/ptp2/ptp.c:4253
+#: camlibs/ptp2/config.c:3659 camlibs/ptp2/ptp.c:4310
 msgid "5 minutes"
 msgstr "5 phút"
 
 #: camlibs/ptp2/config.c:2999 camlibs/ptp2/config.c:3107
-#: camlibs/ptp2/config.c:3660 camlibs/ptp2/ptp.c:4254
+#: camlibs/ptp2/config.c:3660 camlibs/ptp2/ptp.c:4311
 msgid "10 minutes"
 msgstr "10 phút"
 
 #: camlibs/ptp2/config.c:3000 camlibs/ptp2/config.c:3012
-#: camlibs/ptp2/ptp.c:4246 camlibs/ptp2/ptp.c:4255
+#: camlibs/ptp2/ptp.c:4303 camlibs/ptp2/ptp.c:4312
 msgid "5 seconds"
 msgstr "5 giây"
 
-#: camlibs/ptp2/config.c:3005 camlibs/ptp2/ptp.c:4330
+#: camlibs/ptp2/config.c:3005 camlibs/ptp2/ptp.c:4387
 msgid "Card"
 msgstr "Bo mạch"
 
@@ -5549,56 +5549,56 @@ msgstr "1/8000gy"
 msgid "15 minutes"
 msgstr "15 phút"
 
-#: camlibs/ptp2/config.c:3115 camlibs/ptp2/ptp.c:4354
+#: camlibs/ptp2/config.c:3115 camlibs/ptp2/ptp.c:4411
 msgid "Sharper"
 msgstr "Sắc hơn"
 
-#: camlibs/ptp2/config.c:3116 camlibs/ptp2/ptp.c:4355
+#: camlibs/ptp2/config.c:3116 camlibs/ptp2/ptp.c:4412
 msgid "Softer"
 msgstr "Mềm hơn"
 
-#: camlibs/ptp2/config.c:3117 camlibs/ptp2/ptp.c:4356
+#: camlibs/ptp2/config.c:3117 camlibs/ptp2/ptp.c:4413
 msgid "Direct Print"
 msgstr "In trực tiếp"
 
 #: camlibs/ptp2/config.c:3128 camlibs/ptp2/config.c:3139
-#: camlibs/ptp2/ptp.c:4186 camlibs/ptp2/ptp.c:4194
+#: camlibs/ptp2/ptp.c:4243 camlibs/ptp2/ptp.c:4251
 msgid "Medium Low"
 msgstr "Vừa thấp"
 
-#: camlibs/ptp2/config.c:3129 camlibs/ptp2/ptp.c:4187
+#: camlibs/ptp2/config.c:3129 camlibs/ptp2/ptp.c:4244
 msgid "Medium high"
 msgstr "Vừa cao"
 
-#: camlibs/ptp2/config.c:3138 camlibs/ptp2/ptp.c:4193
+#: camlibs/ptp2/config.c:3138 camlibs/ptp2/ptp.c:4250
 msgid "Low contrast"
 msgstr "Tương phản thấp"
 
-#: camlibs/ptp2/config.c:3140 camlibs/ptp2/ptp.c:4195
+#: camlibs/ptp2/config.c:3140 camlibs/ptp2/ptp.c:4252
 msgid "Medium High"
 msgstr "Vừa cao"
 
-#: camlibs/ptp2/config.c:3141 camlibs/ptp2/ptp.c:4196
+#: camlibs/ptp2/config.c:3141 camlibs/ptp2/ptp.c:4253
 msgid "High control"
 msgstr "Điều khiển cao"
 
-#: camlibs/ptp2/config.c:3150 camlibs/ptp2/ptp.c:4558
+#: camlibs/ptp2/config.c:3150 camlibs/ptp2/ptp.c:4615
 msgid "Zone Focus (Close-up)"
 msgstr "Vùng tiêu (cảnh gần)"
 
-#: camlibs/ptp2/config.c:3151 camlibs/ptp2/ptp.c:4559
+#: camlibs/ptp2/config.c:3151 camlibs/ptp2/ptp.c:4616
 msgid "Zone Focus (Very Close)"
 msgstr "Vùng tiêu (rất gần)"
 
-#: camlibs/ptp2/config.c:3152 camlibs/ptp2/ptp.c:4560
+#: camlibs/ptp2/config.c:3152 camlibs/ptp2/ptp.c:4617
 msgid "Zone Focus (Close)"
 msgstr "Vùng tiêu (gần)"
 
-#: camlibs/ptp2/config.c:3153 camlibs/ptp2/ptp.c:4561
+#: camlibs/ptp2/config.c:3153 camlibs/ptp2/ptp.c:4618
 msgid "Zone Focus (Medium)"
 msgstr "Vùng tiêu (vừa)"
 
-#: camlibs/ptp2/config.c:3154 camlibs/ptp2/ptp.c:4562
+#: camlibs/ptp2/config.c:3154 camlibs/ptp2/ptp.c:4619
 msgid "Zone Focus (Far)"
 msgstr "Vùng tiêu (xa)"
 
@@ -5634,21 +5634,21 @@ msgstr "AF phụ liên tục"
 msgid "One Shot"
 msgstr "Chụp một"
 
-#: camlibs/ptp2/config.c:3179 camlibs/ptp2/ptp.c:4594
+#: camlibs/ptp2/config.c:3179 camlibs/ptp2/ptp.c:4651
 msgid "AI Focus"
 msgstr "Tiêu điểm AI"
 
-#: camlibs/ptp2/config.c:3180 camlibs/ptp2/ptp.c:4593
+#: camlibs/ptp2/config.c:3180 camlibs/ptp2/ptp.c:4650
 msgid "AI Servo"
 msgstr "Secvô AI"
 
 #: camlibs/ptp2/config.c:3187 camlibs/ptp2/config.c:3653
-#: camlibs/ptp2/ptp.c:4238
+#: camlibs/ptp2/ptp.c:4295
 msgid "4 seconds"
 msgstr "4 giây"
 
 #: camlibs/ptp2/config.c:3188 camlibs/ptp2/config.c:3655
-#: camlibs/ptp2/ptp.c:4240
+#: camlibs/ptp2/ptp.c:4297
 msgid "8 seconds"
 msgstr "8 giây"
 
@@ -5656,23 +5656,23 @@ msgstr "8 giây"
 msgid "Hold"
 msgstr "Giữ"
 
-#: camlibs/ptp2/config.c:3201 camlibs/ptp2/ptp.c:4579 camlibs/ptp2/ptp.c:4585
+#: camlibs/ptp2/config.c:3201 camlibs/ptp2/ptp.c:4636 camlibs/ptp2/ptp.c:4642
 msgid "Fluorescent H"
 msgstr "Huỳnh quang H"
 
-#: camlibs/ptp2/config.c:3203 camlibs/ptp2/ptp.c:4581
+#: camlibs/ptp2/config.c:3203 camlibs/ptp2/ptp.c:4638
 msgid "Custom Whitebalance PC-1"
 msgstr "Cán cân trắng riêng PC-1"
 
-#: camlibs/ptp2/config.c:3204 camlibs/ptp2/ptp.c:4582
+#: camlibs/ptp2/config.c:3204 camlibs/ptp2/ptp.c:4639
 msgid "Custom Whitebalance PC-2"
 msgstr "Cán cân trắng riêng PC-2"
 
-#: camlibs/ptp2/config.c:3205 camlibs/ptp2/ptp.c:4583
+#: camlibs/ptp2/config.c:3205 camlibs/ptp2/ptp.c:4640
 msgid "Custom Whitebalance PC-3"
 msgstr "Cán cân trắng riêng PC-3"
 
-#: camlibs/ptp2/config.c:3206 camlibs/ptp2/ptp.c:4584
+#: camlibs/ptp2/config.c:3206 camlibs/ptp2/ptp.c:4641
 msgid "Missing Number"
 msgstr "Số thiếu"
 
@@ -5688,20 +5688,20 @@ msgstr "Mài sắc thấp"
 msgid "Black & white"
 msgstr "Đen trắng"
 
-#: camlibs/ptp2/config.c:3404 camlibs/ptp2/ptp.c:4279
+#: camlibs/ptp2/config.c:3404 camlibs/ptp2/ptp.c:4336
 msgid "AE & Flash"
 msgstr "AE và nháy đèn"
 
-#: camlibs/ptp2/config.c:3405 camlibs/ptp2/ptp.c:4280
+#: camlibs/ptp2/config.c:3405 camlibs/ptp2/ptp.c:4337
 msgid "AE only"
 msgstr "Chỉ AE"
 
 #: camlibs/ptp2/config.c:3406 camlibs/ptp2/config.c:3493
-#: camlibs/ptp2/ptp.c:4281
+#: camlibs/ptp2/ptp.c:4338
 msgid "Flash only"
 msgstr "Chỉ nháy đèn"
 
-#: camlibs/ptp2/config.c:3407 camlibs/ptp2/ptp.c:4282
+#: camlibs/ptp2/config.c:3407 camlibs/ptp2/ptp.c:4339
 msgid "WB bracketing"
 msgstr "Đặt ngoặc WB"
 
@@ -5721,19 +5721,19 @@ msgstr ""
 msgid "Startup and Shutdown"
 msgstr ""
 
-#: camlibs/ptp2/config.c:3422 camlibs/ptp2/ptp.c:4362
+#: camlibs/ptp2/config.c:3422 camlibs/ptp2/ptp.c:4419
 msgid "Moderate"
 msgstr "Vừa"
 
-#: camlibs/ptp2/config.c:3423 camlibs/ptp2/ptp.c:4363
+#: camlibs/ptp2/config.c:3423 camlibs/ptp2/ptp.c:4420
 msgid "Enhanced"
 msgstr "Tăng cường"
 
-#: camlibs/ptp2/config.c:3429 camlibs/ptp2/ptp.c:4284
+#: camlibs/ptp2/config.c:3429 camlibs/ptp2/ptp.c:4341
 msgid "MTR > Under"
 msgstr "MTR > bên dưới"
 
-#: camlibs/ptp2/config.c:3430 camlibs/ptp2/ptp.c:4285
+#: camlibs/ptp2/config.c:3430 camlibs/ptp2/ptp.c:4342
 msgid "Under > MTR"
 msgstr "Bên dưới > MTR"
 
@@ -5788,7 +5788,7 @@ msgid "Extra high"
 msgstr ""
 
 #: camlibs/ptp2/config.c:3611 camlibs/ptp2/config.c:3622
-#: camlibs/ptp2/config.c:3634 camlibs/ptp2/ptp.c:4119
+#: camlibs/ptp2/config.c:3634 camlibs/ptp2/ptp.c:4176
 msgid "JPEG Basic"
 msgstr "JPEG cơ bản"
 
@@ -5816,19 +5816,19 @@ msgstr "NEF+Chính xác"
 msgid "TIFF (RGB)"
 msgstr "TIFF (RGB)"
 
-#: camlibs/ptp2/config.c:3654 camlibs/ptp2/ptp.c:4239
+#: camlibs/ptp2/config.c:3654 camlibs/ptp2/ptp.c:4296
 msgid "6 seconds"
 msgstr "6 giây"
 
-#: camlibs/ptp2/config.c:3656 camlibs/ptp2/ptp.c:4241
+#: camlibs/ptp2/config.c:3656 camlibs/ptp2/ptp.c:4298
 msgid "16 seconds"
 msgstr "16 giây"
 
-#: camlibs/ptp2/config.c:3657 camlibs/ptp2/ptp.c:4243
+#: camlibs/ptp2/config.c:3657 camlibs/ptp2/ptp.c:4300
 msgid "30 seconds"
 msgstr "30 giây"
 
-#: camlibs/ptp2/config.c:3661 camlibs/ptp2/ptp.c:4242
+#: camlibs/ptp2/config.c:3661 camlibs/ptp2/ptp.c:4299
 msgid "30 minutes"
 msgstr "30 phút"
 
@@ -6133,7 +6133,7 @@ msgstr "Liệt kê hồ sơ WIFI"
 msgid "Create Wifi profile"
 msgstr "Tạo hồ sơ WIFI"
 
-#: camlibs/ptp2/config.c:5033 camlibs/ptp2/ptp.c:3636
+#: camlibs/ptp2/config.c:5033 camlibs/ptp2/ptp.c:3693
 msgid "Focus Lock"
 msgstr "Khoá tiêu điểm"
 
@@ -6191,11 +6191,11 @@ msgstr ""
 msgid "PTP Version"
 msgstr "Phiên bản PTP"
 
-#: camlibs/ptp2/config.c:5056 camlibs/ptp2/ptp.c:3494
+#: camlibs/ptp2/config.c:5056 camlibs/ptp2/ptp.c:3551
 msgid "DPOF Version"
 msgstr "Phiên bản DPOF"
 
-#: camlibs/ptp2/config.c:5057 camlibs/ptp2/ptp.c:3770
+#: camlibs/ptp2/config.c:5057 camlibs/ptp2/ptp.c:3827
 msgid "AC Power"
 msgstr "Điện chính"
 
@@ -6204,20 +6204,20 @@ msgid "External Flash"
 msgstr "Đèn nháy ngoài"
 
 #: camlibs/ptp2/config.c:5059 camlibs/ptp2/config.c:5060
-#: camlibs/ptp2/ptp.c:3373
+#: camlibs/ptp2/ptp.c:3430
 msgid "Battery Level"
 msgstr "Cấp pin"
 
 #: camlibs/ptp2/config.c:5061 camlibs/ptp2/config.c:5062
-#: camlibs/ptp2/ptp.c:3792
+#: camlibs/ptp2/ptp.c:3849
 msgid "Camera Orientation"
 msgstr "Hướng máy ảnh"
 
-#: camlibs/ptp2/config.c:5063 camlibs/ptp2/ptp.c:3926
+#: camlibs/ptp2/config.c:5063 camlibs/ptp2/ptp.c:3983
 msgid "Flash Open"
 msgstr "Đèn nháy đã mở"
 
-#: camlibs/ptp2/config.c:5064 camlibs/ptp2/ptp.c:3928
+#: camlibs/ptp2/config.c:5064 camlibs/ptp2/ptp.c:3985
 msgid "Flash Charged"
 msgstr "Đèn nháy đã sạc"
 
@@ -6261,15 +6261,15 @@ msgstr "Ít sáng"
 msgid "Light Meter"
 msgstr "Đo sáng"
 
-#: camlibs/ptp2/config.c:5077 camlibs/ptp2/ptp.c:3774
+#: camlibs/ptp2/config.c:5077 camlibs/ptp2/ptp.c:3831
 msgid "AF Locked"
 msgstr "Khoá AF"
 
-#: camlibs/ptp2/config.c:5078 camlibs/ptp2/ptp.c:3775
+#: camlibs/ptp2/config.c:5078 camlibs/ptp2/ptp.c:3832
 msgid "AE Locked"
 msgstr "Khoá AE"
 
-#: camlibs/ptp2/config.c:5079 camlibs/ptp2/ptp.c:3776
+#: camlibs/ptp2/config.c:5079 camlibs/ptp2/ptp.c:3833
 msgid "FV Locked"
 msgstr "Khoá FV"
 
@@ -6278,7 +6278,7 @@ msgstr "Khoá FV"
 msgid "Camera Date and Time"
 msgstr "Ngày và Giờ máy ảnh"
 
-#: camlibs/ptp2/config.c:5087 camlibs/ptp2/ptp.c:3415 camlibs/ptp2/ptp.c:3426
+#: camlibs/ptp2/config.c:5087 camlibs/ptp2/ptp.c:3472 camlibs/ptp2/ptp.c:3483
 msgid "Beep Mode"
 msgstr "Chế độ bíp"
 
@@ -6290,11 +6290,11 @@ msgstr "Ghi chú ảnh"
 msgid "Enable Image Comment"
 msgstr "Bật ghi chú ảnh"
 
-#: camlibs/ptp2/config.c:5090 camlibs/ptp2/ptp.c:3644
+#: camlibs/ptp2/config.c:5090 camlibs/ptp2/ptp.c:3701
 msgid "LCD Off Time"
 msgstr "Thời gian tắt LCD"
 
-#: camlibs/ptp2/config.c:5091 camlibs/ptp2/ptp.c:3786
+#: camlibs/ptp2/config.c:5091 camlibs/ptp2/ptp.c:3843
 msgid "Recording Media"
 msgstr "Vật chứa thu"
 
@@ -6302,16 +6302,16 @@ msgstr "Vật chứa thu"
 msgid "Quick Review Time"
 msgstr "Thời gian xem lại nhanh"
 
-#: camlibs/ptp2/config.c:5093 camlibs/ptp2/ptp.c:3884
+#: camlibs/ptp2/config.c:5093 camlibs/ptp2/ptp.c:3941
 msgid "CSM Menu"
 msgstr "Trình đơn CSM"
 
-#: camlibs/ptp2/config.c:5094 camlibs/ptp2/ptp.c:3703
+#: camlibs/ptp2/config.c:5094 camlibs/ptp2/ptp.c:3760
 msgid "Reverse Command Dial"
 msgstr "Ngược lại đĩa lệnh"
 
 #: camlibs/ptp2/config.c:5095 camlibs/ptp2/config.c:5096
-#: camlibs/ptp2/ptp.c:3478
+#: camlibs/ptp2/ptp.c:3535
 msgid "Camera Output"
 msgstr "Kết xuất máy ảnh"
 
@@ -6324,7 +6324,7 @@ msgstr "Tiếng nói phim"
 msgid "EVF Mode"
 msgstr "Chế độ EVF"
 
-#: camlibs/ptp2/config.c:5101 camlibs/ptp2/ptp.c:3404
+#: camlibs/ptp2/config.c:5101 camlibs/ptp2/ptp.c:3461
 msgid "Artist"
 msgstr "Nghệ sĩ"
 
@@ -6357,7 +6357,7 @@ msgstr "CF định dạng ảnh"
 msgid "Image Format Ext HD"
 msgstr "Đĩa cứng ngoài định dạng ảnh"
 
-#: camlibs/ptp2/config.c:5127 camlibs/ptp2/ptp.c:3872
+#: camlibs/ptp2/config.c:5127 camlibs/ptp2/ptp.c:3929
 msgid "ISO Auto"
 msgstr "Tự động ISO"
 
@@ -6382,20 +6382,20 @@ msgstr "Cán cân trắng X A"
 msgid "WhiteBalance X B"
 msgstr "Cán cân trắng X B"
 
-#: camlibs/ptp2/config.c:5135 camlibs/ptp2/ptp.c:3488
+#: camlibs/ptp2/config.c:5135 camlibs/ptp2/ptp.c:3545
 msgid "Photo Effect"
 msgstr "Hiệu ứng ảnh chụp"
 
-#: camlibs/ptp2/config.c:5136 camlibs/ptp2/ptp.c:3562
+#: camlibs/ptp2/config.c:5136 camlibs/ptp2/ptp.c:3619
 msgid "Color Model"
 msgstr "Mô hình màu"
 
 #: camlibs/ptp2/config.c:5137 camlibs/ptp2/config.c:5138
-#: camlibs/ptp2/ptp.c:3574
+#: camlibs/ptp2/ptp.c:3631
 msgid "Color Space"
 msgstr "Miền Màu"
 
-#: camlibs/ptp2/config.c:5139 camlibs/ptp2/ptp.c:3614
+#: camlibs/ptp2/config.c:5139 camlibs/ptp2/ptp.c:3671
 msgid "Auto ISO"
 msgstr "Tự động ISO"
 
@@ -6408,7 +6408,7 @@ msgid "Auto Focus Mode 2"
 msgstr "Chế độ tiêu điểm tự động 2"
 
 #: camlibs/ptp2/config.c:5147 camlibs/ptp2/config.c:5150
-#: camlibs/ptp2/ptp.c:3489
+#: camlibs/ptp2/ptp.c:3546
 msgid "Assist Light"
 msgstr "Giúp ánh sáng"
 
@@ -6416,11 +6416,11 @@ msgstr "Giúp ánh sáng"
 msgid "Rotation Flag"
 msgstr "Cờ xoay"
 
-#: camlibs/ptp2/config.c:5156 camlibs/ptp2/ptp.c:3457
+#: camlibs/ptp2/config.c:5156 camlibs/ptp2/ptp.c:3514
 msgid "Flash Compensation"
 msgstr "Sự bù đèn nháy"
 
-#: camlibs/ptp2/config.c:5157 camlibs/ptp2/ptp.c:3458
+#: camlibs/ptp2/config.c:5157 camlibs/ptp2/ptp.c:3515
 msgid "AEB Exposure Compensation"
 msgstr "Sự bù phơi nắng AEB"
 
@@ -6428,7 +6428,7 @@ msgstr "Sự bù phơi nắng AEB"
 msgid "Nikon Flash Mode"
 msgstr "Chế độ Đèn nháy Nikon"
 
-#: camlibs/ptp2/config.c:5161 camlibs/ptp2/ptp.c:3868
+#: camlibs/ptp2/config.c:5161 camlibs/ptp2/ptp.c:3925
 msgid "Flash Commander Mode"
 msgstr "Chế độ quản lý đèn nháy"
 
@@ -6436,67 +6436,67 @@ msgstr "Chế độ quản lý đèn nháy"
 msgid "Flash Commander Power"
 msgstr "Điện quản lý đèn nháy"
 
-#: camlibs/ptp2/config.c:5163 camlibs/ptp2/ptp.c:3936
+#: camlibs/ptp2/config.c:5163 camlibs/ptp2/ptp.c:3993
 msgid "Flash Command Channel"
 msgstr "Kênh câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5164 camlibs/ptp2/ptp.c:3938
+#: camlibs/ptp2/config.c:5164 camlibs/ptp2/ptp.c:3995
 msgid "Flash Command Self Mode"
 msgstr "Chế độ tự làm câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5165 camlibs/ptp2/ptp.c:3940
+#: camlibs/ptp2/config.c:5165 camlibs/ptp2/ptp.c:3997
 msgid "Flash Command Self Compensation"
 msgstr "Tự bù câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5166 camlibs/ptp2/ptp.c:3942
+#: camlibs/ptp2/config.c:5166 camlibs/ptp2/ptp.c:3999
 msgid "Flash Command Self Value"
 msgstr "Tự đặt giá trị câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5167 camlibs/ptp2/ptp.c:3944
+#: camlibs/ptp2/config.c:5167 camlibs/ptp2/ptp.c:4001
 msgid "Flash Command A Mode"
 msgstr "Chế độ A câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5168 camlibs/ptp2/ptp.c:3946
+#: camlibs/ptp2/config.c:5168 camlibs/ptp2/ptp.c:4003
 msgid "Flash Command A Compensation"
 msgstr "Bù A câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5169 camlibs/ptp2/ptp.c:3948
+#: camlibs/ptp2/config.c:5169 camlibs/ptp2/ptp.c:4005
 msgid "Flash Command A Value"
 msgstr "Giá trị A câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5170 camlibs/ptp2/ptp.c:3950
+#: camlibs/ptp2/config.c:5170 camlibs/ptp2/ptp.c:4007
 msgid "Flash Command B Mode"
 msgstr "Chế độ B câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5171 camlibs/ptp2/ptp.c:3952
+#: camlibs/ptp2/config.c:5171 camlibs/ptp2/ptp.c:4009
 msgid "Flash Command B Compensation"
 msgstr "Bù B câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5172 camlibs/ptp2/ptp.c:3954
+#: camlibs/ptp2/config.c:5172 camlibs/ptp2/ptp.c:4011
 msgid "Flash Command B Value"
 msgstr "Giá trị B câu lệnh đèn nháy"
 
-#: camlibs/ptp2/config.c:5173 camlibs/ptp2/ptp.c:3864
+#: camlibs/ptp2/config.c:5173 camlibs/ptp2/ptp.c:3921
 msgid "AF Area Illumination"
 msgstr "Chiếu sáng vùng AF"
 
-#: camlibs/ptp2/config.c:5174 camlibs/ptp2/ptp.c:3854
+#: camlibs/ptp2/config.c:5174 camlibs/ptp2/ptp.c:3911
 msgid "AF Beep Mode"
 msgstr "Chế độ bíp AF"
 
-#: camlibs/ptp2/config.c:5175 camlibs/ptp2/ptp.c:3379
+#: camlibs/ptp2/config.c:5175 camlibs/ptp2/ptp.c:3436
 msgid "F-Number"
 msgstr "Số F"
 
-#: camlibs/ptp2/config.c:5176 camlibs/ptp2/ptp.c:3782
+#: camlibs/ptp2/config.c:5176 camlibs/ptp2/ptp.c:3839
 msgid "Flexible Program"
 msgstr "Chương trình dẻo"
 
-#: camlibs/ptp2/config.c:5178 camlibs/ptp2/ptp.c:3381
+#: camlibs/ptp2/config.c:5178 camlibs/ptp2/ptp.c:3438
 msgid "Focus Distance"
 msgstr "Khoảng cách tiêu điểm"
 
-#: camlibs/ptp2/config.c:5179 camlibs/ptp2/ptp.c:3380 camlibs/ptp2/ptp.c:3461
+#: camlibs/ptp2/config.c:5179 camlibs/ptp2/ptp.c:3437 camlibs/ptp2/ptp.c:3518
 msgid "Focal Length"
 msgstr "Tiêu cự"
 
@@ -6505,7 +6505,7 @@ msgid "Focus Mode 2"
 msgstr "Chế độ Tiêu điểm 2"
 
 #: camlibs/ptp2/config.c:5184 camlibs/ptp2/config.c:5185
-#: camlibs/ptp2/ptp.c:3397
+#: camlibs/ptp2/ptp.c:3454
 msgid "Effect Mode"
 msgstr "Chế độ hiệu ứng"
 
@@ -6519,7 +6519,7 @@ msgid "Scene Mode"
 msgstr "Chế độ bíp"
 
 #: camlibs/ptp2/config.c:5188 camlibs/ptp2/config.c:5189
-#: camlibs/ptp2/ptp.c:3393
+#: camlibs/ptp2/ptp.c:3450
 msgid "Still Capture Mode"
 msgstr "Chế độ bắt tĩnh"
 
@@ -6531,7 +6531,7 @@ msgstr "Chế độ chụp Canon"
 msgid "Canon Auto Exposure Mode"
 msgstr "Chế độ tự động phơi nắng Canon"
 
-#: camlibs/ptp2/config.c:5192 camlibs/ptp2/ptp.c:3439
+#: camlibs/ptp2/config.c:5192 camlibs/ptp2/ptp.c:3496
 msgid "Drive Mode"
 msgstr "Chế độ ổ đĩa"
 
@@ -6539,11 +6539,11 @@ msgstr "Chế độ ổ đĩa"
 msgid "Picture Style"
 msgstr "Kiểu dáng ảnh"
 
-#: camlibs/ptp2/config.c:5194 camlibs/ptp2/ptp.c:3402
+#: camlibs/ptp2/config.c:5194 camlibs/ptp2/ptp.c:3459
 msgid "Focus Metering Mode"
 msgstr "Chế độ đo tiêu điểm"
 
-#: camlibs/ptp2/config.c:5195 camlibs/ptp2/ptp.c:3383
+#: camlibs/ptp2/config.c:5195 camlibs/ptp2/ptp.c:3440
 msgid "Exposure Metering Mode"
 msgstr "Chế độ đo phơi nắng"
 
@@ -6555,7 +6555,7 @@ msgstr "AV mở"
 msgid "AV Max"
 msgstr "AV đại"
 
-#: camlibs/ptp2/config.c:5201 camlibs/ptp2/ptp.c:3443
+#: camlibs/ptp2/config.c:5201 camlibs/ptp2/ptp.c:3500
 msgid "Focusing Point"
 msgstr "Điểm tiêu"
 
@@ -6568,15 +6568,15 @@ msgid "Shutter Speed 2"
 msgstr "Tốc độ chập 2"
 
 #: camlibs/ptp2/config.c:5210 camlibs/ptp2/config.c:5211
-#: camlibs/ptp2/ptp.c:3441
+#: camlibs/ptp2/ptp.c:3498
 msgid "Metering Mode"
 msgstr "Chế độ đo"
 
-#: camlibs/ptp2/config.c:5212 camlibs/ptp2/ptp.c:3442
+#: camlibs/ptp2/config.c:5212 camlibs/ptp2/ptp.c:3499
 msgid "AF Distance"
 msgstr "Khoảng cách AF"
 
-#: camlibs/ptp2/config.c:5213 camlibs/ptp2/ptp.c:3604
+#: camlibs/ptp2/config.c:5213 camlibs/ptp2/ptp.c:3661
 msgid "Focus Area Wrap"
 msgstr "Cuộn vùng tiêu điểm"
 
@@ -6584,7 +6584,7 @@ msgstr "Cuộn vùng tiêu điểm"
 msgid "Exposure Delay Mode"
 msgstr "Chế độ phơi nắng trễ"
 
-#: camlibs/ptp2/config.c:5215 camlibs/ptp2/ptp.c:3634
+#: camlibs/ptp2/config.c:5215 camlibs/ptp2/ptp.c:3691
 msgid "Exposure Lock"
 msgstr "Khoá phơi nắng"
 
@@ -6597,16 +6597,16 @@ msgstr "Chế độ AE-L/AF-L"
 msgid "Live View AF Mode"
 msgstr "Chế độ xem tại chỗ"
 
-#: camlibs/ptp2/config.c:5219 camlibs/ptp2/ptp.c:3638
+#: camlibs/ptp2/config.c:5219 camlibs/ptp2/ptp.c:3695
 #, fuzzy
 msgid "Live View AF Focus"
 msgstr "AF xem tại chỗ"
 
-#: camlibs/ptp2/config.c:5220 camlibs/ptp2/ptp.c:3658
+#: camlibs/ptp2/config.c:5220 camlibs/ptp2/ptp.c:3715
 msgid "File Number Sequencing"
 msgstr "Thứ tự số hiệu tập tin"
 
-#: camlibs/ptp2/config.c:5221 camlibs/ptp2/ptp.c:3870
+#: camlibs/ptp2/config.c:5221 camlibs/ptp2/ptp.c:3927
 msgid "Flash Sign"
 msgstr "Dấu đèn nháy"
 
@@ -6619,7 +6619,7 @@ msgstr "Làm mẫu đèn nháy"
 msgid "Viewfinder Grid"
 msgstr "Lưới kính ngắm"
 
-#: camlibs/ptp2/config.c:5224 camlibs/ptp2/ptp.c:3862
+#: camlibs/ptp2/config.c:5224 camlibs/ptp2/ptp.c:3919
 msgid "Image Review"
 msgstr "Xem lại ảnh"
 
@@ -6631,7 +6631,7 @@ msgstr "Cờ xoay ảnh"
 msgid "Release without CF card"
 msgstr "Buông ra không có bo mạch CF"
 
-#: camlibs/ptp2/config.c:5227 camlibs/ptp2/ptp.c:3878
+#: camlibs/ptp2/config.c:5227 camlibs/ptp2/ptp.c:3935
 msgid "Flash Mode Manual Power"
 msgstr "Chế độ đèn nháy có điện thủ công"
 
@@ -6639,7 +6639,7 @@ msgstr "Chế độ đèn nháy có điện thủ công"
 msgid "Auto Focus Area"
 msgstr "Vùng tự động tiêu điểm"
 
-#: camlibs/ptp2/config.c:5229 camlibs/ptp2/ptp.c:3820
+#: camlibs/ptp2/config.c:5229 camlibs/ptp2/ptp.c:3877
 msgid "Flash Exposure Compensation"
 msgstr "Sự bù phơi nắng đèn nháy"
 
@@ -6655,54 +6655,54 @@ msgstr "Chế độ ngoặc"
 msgid "EV Step"
 msgstr "Bước EV"
 
-#: camlibs/ptp2/config.c:5234 camlibs/ptp2/ptp.c:3682
+#: camlibs/ptp2/config.c:5234 camlibs/ptp2/ptp.c:3739
 msgid "Bracket Set"
 msgstr "Đặt ngoặc"
 
-#: camlibs/ptp2/config.c:5235 camlibs/ptp2/ptp.c:3686
+#: camlibs/ptp2/config.c:5235 camlibs/ptp2/ptp.c:3743
 msgid "Bracket Order"
 msgstr "Thứ tự ngoặc"
 
-#: camlibs/ptp2/config.c:5236 camlibs/ptp2/ptp.c:3398
+#: camlibs/ptp2/config.c:5236 camlibs/ptp2/ptp.c:3455
 msgid "Burst Number"
 msgstr "Số loạt"
 
-#: camlibs/ptp2/config.c:5237 camlibs/ptp2/ptp.c:3399
+#: camlibs/ptp2/config.c:5237 camlibs/ptp2/ptp.c:3456
 msgid "Burst Interval"
 msgstr "Khoảng loạt"
 
 #: camlibs/ptp2/config.c:5240 camlibs/ptp2/config.c:5249
-#: camlibs/ptp2/ptp.c:3520
+#: camlibs/ptp2/ptp.c:3577
 msgid "Auto White Balance Bias"
 msgstr "Khuynh hướng tự động cán cân trắng"
 
 #: camlibs/ptp2/config.c:5241 camlibs/ptp2/config.c:5250
-#: camlibs/ptp2/ptp.c:3522
+#: camlibs/ptp2/ptp.c:3579
 msgid "Tungsten White Balance Bias"
 msgstr "Khuynh hướng cán cân trắng Vonfam"
 
 #: camlibs/ptp2/config.c:5242 camlibs/ptp2/config.c:5251
-#: camlibs/ptp2/ptp.c:3524
+#: camlibs/ptp2/ptp.c:3581
 msgid "Fluorescent White Balance Bias"
 msgstr "Khuynh hướng cán cân trắng huỳnh quang"
 
 #: camlibs/ptp2/config.c:5243 camlibs/ptp2/config.c:5252
-#: camlibs/ptp2/ptp.c:3526
+#: camlibs/ptp2/ptp.c:3583
 msgid "Daylight White Balance Bias"
 msgstr "Khuynh hướng cán cân trắng ánh nắng ban ngày"
 
 #: camlibs/ptp2/config.c:5244 camlibs/ptp2/config.c:5253
-#: camlibs/ptp2/ptp.c:3528
+#: camlibs/ptp2/ptp.c:3585
 msgid "Flash White Balance Bias"
 msgstr "Khuynh hướng cán cân trắng đèn nháy"
 
 #: camlibs/ptp2/config.c:5245 camlibs/ptp2/config.c:5254
-#: camlibs/ptp2/ptp.c:3530
+#: camlibs/ptp2/ptp.c:3587
 msgid "Cloudy White Balance Bias"
 msgstr "Khuynh hướng cán cân trắng dầy mây"
 
 #: camlibs/ptp2/config.c:5246 camlibs/ptp2/config.c:5255
-#: camlibs/ptp2/ptp.c:3532
+#: camlibs/ptp2/ptp.c:3589
 msgid "Shady White Balance Bias"
 msgstr "Khuynh hướng cán cân trắng có bóng"
 
@@ -6739,31 +6739,31 @@ msgid "Center Weight Area"
 msgstr "Vùng nặng giữa"
 
 #: camlibs/ptp2/config.c:5265 camlibs/ptp2/config.c:5314
-#: camlibs/ptp2/config.c:5345 camlibs/ptp2/ptp.c:3676
+#: camlibs/ptp2/config.c:5345 camlibs/ptp2/ptp.c:3733
 msgid "Flash Shutter Speed"
 msgstr "Tốc độ cửa chập đèn nháy"
 
-#: camlibs/ptp2/config.c:5266 camlibs/ptp2/ptp.c:3874
+#: camlibs/ptp2/config.c:5266 camlibs/ptp2/ptp.c:3931
 msgid "Remote Timeout"
 msgstr "Quá thời từ xa"
 
-#: camlibs/ptp2/config.c:5267 camlibs/ptp2/ptp.c:3822
+#: camlibs/ptp2/config.c:5267 camlibs/ptp2/ptp.c:3879
 msgid "Optimize Image"
 msgstr "Tối ưu hoá ảnh"
 
-#: camlibs/ptp2/config.c:5268 camlibs/ptp2/ptp.c:3558
+#: camlibs/ptp2/config.c:5268 camlibs/ptp2/ptp.c:3615
 msgid "Sharpening"
 msgstr "Mài sắc"
 
-#: camlibs/ptp2/config.c:5269 camlibs/ptp2/ptp.c:3560
+#: camlibs/ptp2/config.c:5269 camlibs/ptp2/ptp.c:3617
 msgid "Tone Compensation"
 msgstr "Sự bù sắc màu"
 
-#: camlibs/ptp2/config.c:5270 camlibs/ptp2/ptp.c:3824
+#: camlibs/ptp2/config.c:5270 camlibs/ptp2/ptp.c:3881
 msgid "Saturation"
 msgstr "Độ bão hòa"
 
-#: camlibs/ptp2/config.c:5271 camlibs/ptp2/ptp.c:3564
+#: camlibs/ptp2/config.c:5271 camlibs/ptp2/ptp.c:3621
 msgid "Hue Adjustment"
 msgstr "Điều chỉnh sắc độ"
 
@@ -6838,11 +6838,11 @@ msgid "Continuous Shooting Speed High"
 msgstr "Tốc độ Cao Liên tục"
 
 #: camlibs/ptp2/config.c:5313 camlibs/ptp2/config.c:5344
-#: camlibs/ptp2/ptp.c:3674
+#: camlibs/ptp2/ptp.c:3731
 msgid "Flash Sync. Speed"
 msgstr "Tốc độ đồng bộ nháy đèn"
 
-#: camlibs/ptp2/config.c:5316 camlibs/ptp2/ptp.c:3572
+#: camlibs/ptp2/config.c:5316 camlibs/ptp2/ptp.c:3629
 msgid "JPEG Compression Policy"
 msgstr "Chính sách nén JPEG"
 
@@ -6861,15 +6861,15 @@ msgstr "Ưu tiên Loại Bộ"
 msgid "AF Activation"
 msgstr "Hành động"
 
-#: camlibs/ptp2/config.c:5320 camlibs/ptp2/ptp.c:3892
+#: camlibs/ptp2/config.c:5320 camlibs/ptp2/ptp.c:3949
 msgid "Dynamic AF Area"
 msgstr "Vùng AF Động"
 
-#: camlibs/ptp2/config.c:5321 camlibs/ptp2/ptp.c:3608
+#: camlibs/ptp2/config.c:5321 camlibs/ptp2/ptp.c:3665
 msgid "AF Lock On"
 msgstr "Bật khoá AF"
 
-#: camlibs/ptp2/config.c:5322 camlibs/ptp2/ptp.c:3717
+#: camlibs/ptp2/config.c:5322 camlibs/ptp2/ptp.c:3774
 msgid "AF Area Point"
 msgstr "Điểm vùng AF"
 
@@ -7558,29 +7558,29 @@ msgstr " không đọc ra.\n"
 msgid " error %x on query."
 msgstr " lỗi %x khi truy vấn."
 
-#: camlibs/ptp2/library.c:4612 camlibs/ptp2/library.c:4616
+#: camlibs/ptp2/library.c:4611 camlibs/ptp2/library.c:4615
 #, c-format
 msgid "File '%s/%s' does not exist."
 msgstr "Tập tin « %s/%s » không tồn tại"
 
-#: camlibs/ptp2/library.c:4622
+#: camlibs/ptp2/library.c:4621
 msgid "Metadata only supported for MTP devices."
 msgstr "Siêu dữ liệu chỉ được hỗ trợ cho thiết bị kiểu MTP."
 
-#: camlibs/ptp2/library.c:4811
+#: camlibs/ptp2/library.c:4810
 msgid "Device does not support setting object protection."
 msgstr "Thiết bị này không hỗ trợ chức năng đặt mức bảo mật đối tượng."
 
-#: camlibs/ptp2/library.c:4816
+#: camlibs/ptp2/library.c:4815
 #, c-format
 msgid "Device failed to set object protection to %d, error 0x%04x."
 msgstr "Thiết bị không đặt được mức bảo mật đối tượng thành %d, lỗi 0x%04x."
 
-#: camlibs/ptp2/library.c:5463
+#: camlibs/ptp2/library.c:5543
 msgid "Initializing Camera"
 msgstr "Đang sở khởi máy ảnh"
 
-#: camlibs/ptp2/library.c:5627
+#: camlibs/ptp2/library.c:5707
 #, c-format
 msgid ""
 "Currently, PTP is only implemented for USB and PTP/IP cameras currently, "
@@ -7589,179 +7589,179 @@ msgstr ""
 "PTP hiện thời chỉ được thực hiện cho các máy ảnh kiểu USB và PTP/IP, kiểu "
 "cổng %x."
 
-#: camlibs/ptp2/ptp.c:3311
+#: camlibs/ptp2/ptp.c:3368
 msgid "PTP: Undefined Error"
 msgstr "PTP: lỗi không xác định"
 
-#: camlibs/ptp2/ptp.c:3312
+#: camlibs/ptp2/ptp.c:3369
 msgid "PTP: OK!"
 msgstr "PTP: OK."
 
-#: camlibs/ptp2/ptp.c:3313
+#: camlibs/ptp2/ptp.c:3370
 msgid "PTP: General Error"
 msgstr "PTP: lỗi chung"
 
-#: camlibs/ptp2/ptp.c:3314
+#: camlibs/ptp2/ptp.c:3371
 msgid "PTP: Session Not Open"
 msgstr "PTP: phiên chạy chưa mở"
 
-#: camlibs/ptp2/ptp.c:3315
+#: camlibs/ptp2/ptp.c:3372
 msgid "PTP: Invalid Transaction ID"
 msgstr "PTP: mã hiệu giao dịch không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3316
+#: camlibs/ptp2/ptp.c:3373
 msgid "PTP: Operation Not Supported"
 msgstr "PTP: thao tác không được hỗ trợ"
 
-#: camlibs/ptp2/ptp.c:3317
+#: camlibs/ptp2/ptp.c:3374
 msgid "PTP: Parameter Not Supported"
 msgstr "PTP: tham số không được hỗ trợ"
 
-#: camlibs/ptp2/ptp.c:3318
+#: camlibs/ptp2/ptp.c:3375
 msgid "PTP: Incomplete Transfer"
 msgstr "PTP: chưa truyền xong"
 
-#: camlibs/ptp2/ptp.c:3319
+#: camlibs/ptp2/ptp.c:3376
 msgid "PTP: Invalid Storage ID"
 msgstr "PTP: mã hiệu cất giữ không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3320
+#: camlibs/ptp2/ptp.c:3377
 msgid "PTP: Invalid Object Handle"
 msgstr "PTP: bộ quản lý đối tượng không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3321
+#: camlibs/ptp2/ptp.c:3378
 msgid "PTP: Device Prop Not Supported"
 msgstr "PTP: cái đỡ thiết bị không được hỗ trợ"
 
-#: camlibs/ptp2/ptp.c:3322
+#: camlibs/ptp2/ptp.c:3379
 msgid "PTP: Invalid Object Format Code"
 msgstr "PTP: mã định dạng đối tượng không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3323
+#: camlibs/ptp2/ptp.c:3380
 msgid "PTP: Store Full"
 msgstr "PTP: kho đầy"
 
-#: camlibs/ptp2/ptp.c:3324
+#: camlibs/ptp2/ptp.c:3381
 msgid "PTP: Object Write Protected"
 msgstr "PTP: đối tượng bị bảo vệ chống ghi"
 
-#: camlibs/ptp2/ptp.c:3325
+#: camlibs/ptp2/ptp.c:3382
 msgid "PTP: Store Read Only"
 msgstr "PTP: kho chỉ đọc"
 
-#: camlibs/ptp2/ptp.c:3326
+#: camlibs/ptp2/ptp.c:3383
 msgid "PTP: Access Denied"
 msgstr "PTP: truy cập bị từ chối"
 
-#: camlibs/ptp2/ptp.c:3327
+#: camlibs/ptp2/ptp.c:3384
 msgid "PTP: No Thumbnail Present"
 msgstr "PTP: không có ảnh mẫu"
 
-#: camlibs/ptp2/ptp.c:3328
+#: camlibs/ptp2/ptp.c:3385
 msgid "PTP: Self Test Failed"
 msgstr "PTP: lỗi tự thử"
 
-#: camlibs/ptp2/ptp.c:3329
+#: camlibs/ptp2/ptp.c:3386
 msgid "PTP: Partial Deletion"
 msgstr "PTP: xoá bộ phạn"
 
-#: camlibs/ptp2/ptp.c:3330
+#: camlibs/ptp2/ptp.c:3387
 msgid "PTP: Store Not Available"
 msgstr "PTP: kho không sẵn sàng"
 
-#: camlibs/ptp2/ptp.c:3332
+#: camlibs/ptp2/ptp.c:3389
 msgid "PTP: Specification By Format Unsupported"
 msgstr "PTP: không hỗ trợ khả năng xác định theo định dạng"
 
-#: camlibs/ptp2/ptp.c:3333
+#: camlibs/ptp2/ptp.c:3390
 msgid "PTP: No Valid Object Info"
 msgstr "PTP: không có thông tin đối tượng hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3334
+#: camlibs/ptp2/ptp.c:3391
 msgid "PTP: Invalid Code Format"
 msgstr "PTP: định dạng mã không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3335
+#: camlibs/ptp2/ptp.c:3392
 msgid "PTP: Unknown Vendor Code"
 msgstr "PTP: mã nhà sản xuất lạ"
 
-#: camlibs/ptp2/ptp.c:3337
+#: camlibs/ptp2/ptp.c:3394
 msgid "PTP: Capture Already Terminated"
 msgstr "PTP: tiến trình bắt đã kết thúc"
 
-#: camlibs/ptp2/ptp.c:3338
+#: camlibs/ptp2/ptp.c:3395
 msgid "PTP: Device Busy"
 msgstr "PTP: thiết bị đang bận"
 
-#: camlibs/ptp2/ptp.c:3339
+#: camlibs/ptp2/ptp.c:3396
 msgid "PTP: Invalid Parent Object"
 msgstr "PTP: đối tượng cha không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3340
+#: camlibs/ptp2/ptp.c:3397
 msgid "PTP: Invalid Device Prop Format"
 msgstr "PTP: định dạng cái đỡ thiết bị không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3341
+#: camlibs/ptp2/ptp.c:3398
 msgid "PTP: Invalid Device Prop Value"
 msgstr "PTP: giá trị cái đỡ thiết bị không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3342
+#: camlibs/ptp2/ptp.c:3399
 msgid "PTP: Invalid Parameter"
 msgstr "PTP: tham số không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3343
+#: camlibs/ptp2/ptp.c:3400
 msgid "PTP: Session Already Opened"
 msgstr "PTP: phiên chạy đã mở"
 
-#: camlibs/ptp2/ptp.c:3344
+#: camlibs/ptp2/ptp.c:3401
 msgid "PTP: Transaction Canceled"
 msgstr "PTP: giao dịch bị hủy bỏ"
 
-#: camlibs/ptp2/ptp.c:3346
+#: camlibs/ptp2/ptp.c:3403
 msgid "PTP: Specification Of Destination Unsupported"
 msgstr "PTP: không hỗ trợ khả năng xác định đích"
 
-#: camlibs/ptp2/ptp.c:3347
+#: camlibs/ptp2/ptp.c:3404
 msgid "PTP: EK Filename Required"
 msgstr "PTP: cần thiết tên tập tin EK"
 
-#: camlibs/ptp2/ptp.c:3348
+#: camlibs/ptp2/ptp.c:3405
 msgid "PTP: EK Filename Conflicts"
 msgstr "PTP: xung đột tên tập tin EK"
 
-#: camlibs/ptp2/ptp.c:3349
+#: camlibs/ptp2/ptp.c:3406
 msgid "PTP: EK Filename Invalid"
 msgstr "PTP: tên tập tin EK không hợp lệ"
 
-#: camlibs/ptp2/ptp.c:3351
+#: camlibs/ptp2/ptp.c:3408
 msgid "PTP: I/O error"
 msgstr "PTP: lỗi V/R"
 
-#: camlibs/ptp2/ptp.c:3352
+#: camlibs/ptp2/ptp.c:3409
 msgid "PTP: Error: bad parameter"
 msgstr "PTP: lỗi: tham số sai"
 
-#: camlibs/ptp2/ptp.c:3353
+#: camlibs/ptp2/ptp.c:3410
 msgid "PTP: Protocol error, data expected"
 msgstr "PTP: lỗi giao thức: mong đợi dữ liệu"
 
-#: camlibs/ptp2/ptp.c:3354
+#: camlibs/ptp2/ptp.c:3411
 msgid "PTP: Protocol error, response expected"
 msgstr "PTP: lỗi giao thức: mong đợi đáp ứng"
 
-#: camlibs/ptp2/ptp.c:3372
+#: camlibs/ptp2/ptp.c:3429
 msgid "Undefined PTP Property"
 msgstr "PTP: chưa xác định thuộc tính"
 
-#: camlibs/ptp2/ptp.c:3374
+#: camlibs/ptp2/ptp.c:3431
 msgid "Functional Mode"
 msgstr "Chế độ chức năng"
 
-#: camlibs/ptp2/ptp.c:3376
+#: camlibs/ptp2/ptp.c:3433
 msgid "Compression Setting"
 msgstr "Thiết lập nén"
 
-#: camlibs/ptp2/ptp.c:3377 camlibs/ptp2/ptp.c:3444
+#: camlibs/ptp2/ptp.c:3434 camlibs/ptp2/ptp.c:3501
 #: camlibs/sierra/epson-desc.c:176 camlibs/sierra/nikon-desc.c:293
 #: camlibs/sierra/olympus-desc.c:564 camlibs/sierra/olympus-desc.c:583
 #: camlibs/sierra/olympus-desc.c:604 camlibs/sierra/olympus-desc.c:628
@@ -7770,1732 +7770,1732 @@ msgstr "Thiết lập nén"
 msgid "White Balance"
 msgstr "Cán cân trắng"
 
-#: camlibs/ptp2/ptp.c:3378
+#: camlibs/ptp2/ptp.c:3435
 msgid "RGB Gain"
 msgstr "Khuếch đại RGB"
 
-#: camlibs/ptp2/ptp.c:3385
+#: camlibs/ptp2/ptp.c:3442
 msgid "Exposure Time"
 msgstr "Thời gian phơi bày"
 
-#: camlibs/ptp2/ptp.c:3386
+#: camlibs/ptp2/ptp.c:3443
 msgid "Exposure Program Mode"
 msgstr "Chế độ chương trình phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3388
+#: camlibs/ptp2/ptp.c:3445
 msgid "Exposure Index (film speed ISO)"
 msgstr "Số mũ phơi nắng (tốc độ phim ISO)"
 
-#: camlibs/ptp2/ptp.c:3390
+#: camlibs/ptp2/ptp.c:3447
 msgid "Exposure Bias Compensation"
 msgstr "Sự bù khuynh hướng phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3392
+#: camlibs/ptp2/ptp.c:3449
 msgid "Pre-Capture Delay"
 msgstr "Hoãn trước khi bắt"
 
-#: camlibs/ptp2/ptp.c:3394 camlibs/ptp2/ptp.c:3448
+#: camlibs/ptp2/ptp.c:3451 camlibs/ptp2/ptp.c:3505
 msgid "Contrast"
 msgstr "Tương phản"
 
-#: camlibs/ptp2/ptp.c:3396 camlibs/sierra/nikon-desc.c:553
+#: camlibs/ptp2/ptp.c:3453 camlibs/sierra/nikon-desc.c:553
 #: camlibs/sierra/nikon-desc.c:576
 msgid "Digital Zoom"
 msgstr "Phóng to số"
 
-#: camlibs/ptp2/ptp.c:3400
+#: camlibs/ptp2/ptp.c:3457
 msgid "Timelapse Number"
 msgstr "Số khoảng thời gian"
 
-#: camlibs/ptp2/ptp.c:3401
+#: camlibs/ptp2/ptp.c:3458
 msgid "Timelapse Interval"
 msgstr "Khoảng thời gian"
 
-#: camlibs/ptp2/ptp.c:3403
+#: camlibs/ptp2/ptp.c:3460
 msgid "Upload URL"
 msgstr "URL tải lên"
 
-#: camlibs/ptp2/ptp.c:3405
+#: camlibs/ptp2/ptp.c:3462
 msgid "Copyright Info"
 msgstr "Thông tin tác quyền"
 
-#: camlibs/ptp2/ptp.c:3414
+#: camlibs/ptp2/ptp.c:3471
 msgid "Date Time Stamp Format"
 msgstr "Định dạng ghi Ngày/Giờ"
 
-#: camlibs/ptp2/ptp.c:3416
+#: camlibs/ptp2/ptp.c:3473
 msgid "Video Out"
 msgstr "Ảnh động ra"
 
-#: camlibs/ptp2/ptp.c:3417
+#: camlibs/ptp2/ptp.c:3474
 msgid "Power Saving"
 msgstr "Tiết kiệm điện"
 
-#: camlibs/ptp2/ptp.c:3418
+#: camlibs/ptp2/ptp.c:3475
 msgid "UI Language"
 msgstr "Ngôn ngữ Ui"
 
-#: camlibs/ptp2/ptp.c:3427
+#: camlibs/ptp2/ptp.c:3484
 msgid "Battery Type"
 msgstr "Kiểu pin"
 
-#: camlibs/ptp2/ptp.c:3428
+#: camlibs/ptp2/ptp.c:3485
 msgid "Battery Mode"
 msgstr "Chế độ pin"
 
-#: camlibs/ptp2/ptp.c:3429
+#: camlibs/ptp2/ptp.c:3486
 msgid "UILockType"
 msgstr "Kiểu khoá UI"
 
-#: camlibs/ptp2/ptp.c:3430
+#: camlibs/ptp2/ptp.c:3487
 msgid "Camera Mode"
 msgstr "Chế độ máy ảnh"
 
-#: camlibs/ptp2/ptp.c:3432
+#: camlibs/ptp2/ptp.c:3489
 msgid "Full View File Format"
 msgstr "Định dạng tập tin xem đầy đủ"
 
-#: camlibs/ptp2/ptp.c:3434
+#: camlibs/ptp2/ptp.c:3491
 msgid "Self Time"
 msgstr "Tự kẹn giờ"
 
-#: camlibs/ptp2/ptp.c:3437 camlibs/ptp2/ptp.c:3570
+#: camlibs/ptp2/ptp.c:3494 camlibs/ptp2/ptp.c:3627
 msgid "Shooting Mode"
 msgstr "Chế độ chụp"
 
-#: camlibs/ptp2/ptp.c:3438
+#: camlibs/ptp2/ptp.c:3495
 msgid "Image Mode"
 msgstr "Chế độ ảnh"
 
-#: camlibs/ptp2/ptp.c:3445
+#: camlibs/ptp2/ptp.c:3502
 msgid "Slow Shutter Setting"
 msgstr "Thiết lập chập chậm"
 
-#: camlibs/ptp2/ptp.c:3446
+#: camlibs/ptp2/ptp.c:3503
 msgid "AF Mode"
 msgstr "Chế độ AF"
 
-#: camlibs/ptp2/ptp.c:3447
+#: camlibs/ptp2/ptp.c:3504
 msgid "Image Stabilization"
 msgstr "Làm ổn định ảnh"
 
-#: camlibs/ptp2/ptp.c:3449
+#: camlibs/ptp2/ptp.c:3506
 msgid "Color Gain"
 msgstr "Khuếch đại màu"
 
-#: camlibs/ptp2/ptp.c:3451
+#: camlibs/ptp2/ptp.c:3508
 msgid "Sensitivity"
 msgstr "Độ nhạy"
 
-#: camlibs/ptp2/ptp.c:3452
+#: camlibs/ptp2/ptp.c:3509
 msgid "Parameter Set"
 msgstr "Tham số đã đặt"
 
-#: camlibs/ptp2/ptp.c:3459
+#: camlibs/ptp2/ptp.c:3516
 msgid "Av Open"
 msgstr "AV mở"
 
-#: camlibs/ptp2/ptp.c:3460
+#: camlibs/ptp2/ptp.c:3517
 msgid "Av Max"
 msgstr "AV tối đa"
 
-#: camlibs/ptp2/ptp.c:3462 camlibs/ptp2/ptp.c:3486
+#: camlibs/ptp2/ptp.c:3519 camlibs/ptp2/ptp.c:3543
 msgid "Focal Length Tele"
 msgstr "Tiêu cự kính viễn vọng"
 
-#: camlibs/ptp2/ptp.c:3463
+#: camlibs/ptp2/ptp.c:3520
 msgid "Focal Length Wide"
 msgstr "Tiêu cự rộng"
 
-#: camlibs/ptp2/ptp.c:3464
+#: camlibs/ptp2/ptp.c:3521
 msgid "Focal Length Denominator"
 msgstr "Tiêu cự mẫu số"
 
-#: camlibs/ptp2/ptp.c:3465
+#: camlibs/ptp2/ptp.c:3522
 msgid "Capture Transfer Mode"
 msgstr "Chế độ truyền bắt"
 
-#: camlibs/ptp2/ptp.c:3467
+#: camlibs/ptp2/ptp.c:3524
 msgid "Name Prefix"
 msgstr "Tiền tố tên"
 
-#: camlibs/ptp2/ptp.c:3468
+#: camlibs/ptp2/ptp.c:3525
 msgid "Size Quality Mode"
 msgstr "Chế độ chất lượng kích cỡ"
 
-#: camlibs/ptp2/ptp.c:3469
+#: camlibs/ptp2/ptp.c:3526
 msgid "Supported Thumb Size"
 msgstr "Kích cỡ ảnh mẫu đã hỗ trợ"
 
-#: camlibs/ptp2/ptp.c:3470
+#: camlibs/ptp2/ptp.c:3527
 msgid "Size of Output Data from Camera"
 msgstr "Kích cỡ dữ liệu xuất ra máy ảnh"
 
-#: camlibs/ptp2/ptp.c:3471
+#: camlibs/ptp2/ptp.c:3528
 msgid "Size of Input Data to Camera"
 msgstr "Kích cỡ dữ liệu nhập vào máy ảnh"
 
-#: camlibs/ptp2/ptp.c:3472
+#: camlibs/ptp2/ptp.c:3529
 msgid "Remote API Version"
 msgstr "Phiên bản API ở xa"
 
-#: camlibs/ptp2/ptp.c:3475
+#: camlibs/ptp2/ptp.c:3532
 msgid "Camera Owner"
 msgstr "Người sở hữu máy ảnh"
 
-#: camlibs/ptp2/ptp.c:3476
+#: camlibs/ptp2/ptp.c:3533
 msgid "UNIX Time"
 msgstr "Giờ UNIX"
 
-#: camlibs/ptp2/ptp.c:3477
+#: camlibs/ptp2/ptp.c:3534
 msgid "Camera Body ID"
 msgstr "Mã hiệu thân máy ảnh"
 
-#: camlibs/ptp2/ptp.c:3479
+#: camlibs/ptp2/ptp.c:3536
 msgid "Disp Av"
 msgstr "Disp Av"
 
-#: camlibs/ptp2/ptp.c:3480
+#: camlibs/ptp2/ptp.c:3537
 msgid "Av Open Apex"
 msgstr "Av Open Apex"
 
-#: camlibs/ptp2/ptp.c:3481
+#: camlibs/ptp2/ptp.c:3538
 msgid "Digital Zoom Magnification"
 msgstr "Phóng to điện số"
 
-#: camlibs/ptp2/ptp.c:3482
+#: camlibs/ptp2/ptp.c:3539
 msgid "Ml Spot Position"
 msgstr "Vị trí chấm MI"
 
-#: camlibs/ptp2/ptp.c:3483
+#: camlibs/ptp2/ptp.c:3540
 msgid "Disp Av Max"
 msgstr "Disp Av Max"
 
-#: camlibs/ptp2/ptp.c:3484
+#: camlibs/ptp2/ptp.c:3541
 msgid "Av Max Apex"
 msgstr "Av Max Apex"
 
-#: camlibs/ptp2/ptp.c:3485
+#: camlibs/ptp2/ptp.c:3542
 msgid "EZoom Start Position"
 msgstr "Vị trí bắt đầu thu phóng EZoom"
 
-#: camlibs/ptp2/ptp.c:3487
+#: camlibs/ptp2/ptp.c:3544
 msgid "EZoom Size of Tele"
 msgstr "Cỡ kính viễn vọng EZoom"
 
-#: camlibs/ptp2/ptp.c:3490
+#: camlibs/ptp2/ptp.c:3547
 msgid "Flash Quantity Count"
 msgstr "Đếm lần nháy đèn"
 
-#: camlibs/ptp2/ptp.c:3491
+#: camlibs/ptp2/ptp.c:3548
 msgid "Rotation Angle"
 msgstr "Góc xoay"
 
-#: camlibs/ptp2/ptp.c:3492
+#: camlibs/ptp2/ptp.c:3549
 msgid "Rotation Scene"
 msgstr "Cảnh xoay"
 
-#: camlibs/ptp2/ptp.c:3493
+#: camlibs/ptp2/ptp.c:3550
 msgid "Event Emulate Mode"
 msgstr "Chế độ mô phỏng dữ kiện"
 
-#: camlibs/ptp2/ptp.c:3495
+#: camlibs/ptp2/ptp.c:3552
 msgid "Type of Slideshow"
 msgstr "Kiểu chiếu ảnh"
 
-#: camlibs/ptp2/ptp.c:3496
+#: camlibs/ptp2/ptp.c:3553
 msgid "Average Filesizes"
 msgstr "Cỡ tập tin trung bình"
 
-#: camlibs/ptp2/ptp.c:3497
+#: camlibs/ptp2/ptp.c:3554
 msgid "Model ID"
 msgstr "Mã hiệu mô hình"
 
-#: camlibs/ptp2/ptp.c:3506
+#: camlibs/ptp2/ptp.c:3563
 msgid "Shooting Bank"
 msgstr "Nhóm chụp"
 
-#: camlibs/ptp2/ptp.c:3508
+#: camlibs/ptp2/ptp.c:3565
 msgid "Shooting Bank Name A"
 msgstr "Tên nhóm chụp A"
 
-#: camlibs/ptp2/ptp.c:3510
+#: camlibs/ptp2/ptp.c:3567
 msgid "Shooting Bank Name B"
 msgstr "Tên nhóm chụp B"
 
-#: camlibs/ptp2/ptp.c:3512
+#: camlibs/ptp2/ptp.c:3569
 msgid "Shooting Bank Name C"
 msgstr "Tên nhóm chụp C"
 
-#: camlibs/ptp2/ptp.c:3514
+#: camlibs/ptp2/ptp.c:3571
 msgid "Shooting Bank Name D"
 msgstr "Tên nhóm chụp D"
 
-#: camlibs/ptp2/ptp.c:3516
+#: camlibs/ptp2/ptp.c:3573
 msgid "Reset Bank 0"
 msgstr "Đặt lại nhóm 0"
 
-#: camlibs/ptp2/ptp.c:3518
+#: camlibs/ptp2/ptp.c:3575
 msgid "Raw Compression"
 msgstr "Nén thô"
 
-#: camlibs/ptp2/ptp.c:3534
+#: camlibs/ptp2/ptp.c:3591
 msgid "White Balance Colour Temperature"
 msgstr "Nhiệt độ màu cán cân trắng"
 
-#: camlibs/ptp2/ptp.c:3536
+#: camlibs/ptp2/ptp.c:3593
 msgid "White Balance Preset Number"
 msgstr "Số định sẵn cán cân trắng"
 
-#: camlibs/ptp2/ptp.c:3538
+#: camlibs/ptp2/ptp.c:3595
 msgid "White Balance Preset Name 0"
 msgstr "Tên định sẵn cán cân trắng 0"
 
-#: camlibs/ptp2/ptp.c:3540
+#: camlibs/ptp2/ptp.c:3597
 msgid "White Balance Preset Name 1"
 msgstr "Tên định sẵn cán cân trắng 1"
 
-#: camlibs/ptp2/ptp.c:3542
+#: camlibs/ptp2/ptp.c:3599
 msgid "White Balance Preset Name 2"
 msgstr "Tên định sẵn cán cân trắng 2"
 
-#: camlibs/ptp2/ptp.c:3544
+#: camlibs/ptp2/ptp.c:3601
 msgid "White Balance Preset Name 3"
 msgstr "Tên định sẵn cán cân trắng 3"
 
-#: camlibs/ptp2/ptp.c:3546
+#: camlibs/ptp2/ptp.c:3603
 msgid "White Balance Preset Name 4"
 msgstr "Tên định sẵn cán cân trắng 4"
 
-#: camlibs/ptp2/ptp.c:3548
+#: camlibs/ptp2/ptp.c:3605
 msgid "White Balance Preset Value 0"
 msgstr "Giá trị định sẵn cán cân trắng 0"
 
-#: camlibs/ptp2/ptp.c:3550
+#: camlibs/ptp2/ptp.c:3607
 msgid "White Balance Preset Value 1"
 msgstr "Giá trị định sẵn cán cân trắng 1"
 
-#: camlibs/ptp2/ptp.c:3552
+#: camlibs/ptp2/ptp.c:3609
 msgid "White Balance Preset Value 2"
 msgstr "Giá trị định sẵn cán cân trắng 2"
 
-#: camlibs/ptp2/ptp.c:3554
+#: camlibs/ptp2/ptp.c:3611
 msgid "White Balance Preset Value 3"
 msgstr "Giá trị định sẵn cán cân trắng 3"
 
-#: camlibs/ptp2/ptp.c:3556
+#: camlibs/ptp2/ptp.c:3613
 msgid "White Balance Preset Value 4"
 msgstr "Giá trị định sẵn cán cân trắng 4"
 
-#: camlibs/ptp2/ptp.c:3566
+#: camlibs/ptp2/ptp.c:3623
 msgid "Lens Focal Length (Non CPU)"
 msgstr "Tiêu cự ống kính (khác CPU)"
 
-#: camlibs/ptp2/ptp.c:3568
+#: camlibs/ptp2/ptp.c:3625
 msgid "Lens Maximum Aperture (Non CPU)"
 msgstr "Độ mở tối đa của ống kính (khác CPU)"
 
-#: camlibs/ptp2/ptp.c:3576
+#: camlibs/ptp2/ptp.c:3633
 msgid "Auto DX Crop"
 msgstr "Tự động xén DX"
 
-#: camlibs/ptp2/ptp.c:3580
+#: camlibs/ptp2/ptp.c:3637
 msgid "Menu Bank Name A"
 msgstr "Tên nhóm trình đơn A"
 
-#: camlibs/ptp2/ptp.c:3582
+#: camlibs/ptp2/ptp.c:3639
 msgid "Menu Bank Name B"
 msgstr "Tên nhóm trình đơn B"
 
-#: camlibs/ptp2/ptp.c:3584
+#: camlibs/ptp2/ptp.c:3641
 msgid "Menu Bank Name C"
 msgstr "Tên nhóm trình đơn C"
 
-#: camlibs/ptp2/ptp.c:3586
+#: camlibs/ptp2/ptp.c:3643
 msgid "Menu Bank Name D"
 msgstr "Tên nhóm trình đơn D"
 
-#: camlibs/ptp2/ptp.c:3588
+#: camlibs/ptp2/ptp.c:3645
 msgid "Reset Menu Bank"
 msgstr "Đặt lại nhóm trình đơn"
 
-#: camlibs/ptp2/ptp.c:3606
+#: camlibs/ptp2/ptp.c:3663
 msgid "Vertical AF On"
 msgstr "AF dọc đã bật"
 
-#: camlibs/ptp2/ptp.c:3610
+#: camlibs/ptp2/ptp.c:3667
 msgid "Focus Area Zone"
 msgstr "Vùng tiêu điểm"
 
-#: camlibs/ptp2/ptp.c:3612
+#: camlibs/ptp2/ptp.c:3669
 msgid "Enable Copyright"
 msgstr "Bật tác quyền"
 
-#: camlibs/ptp2/ptp.c:3616
+#: camlibs/ptp2/ptp.c:3673
 msgid "Exposure ISO Step"
 msgstr "Bước ISO phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3618
+#: camlibs/ptp2/ptp.c:3675
 msgid "Exposure Step"
 msgstr "Bước phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3620
+#: camlibs/ptp2/ptp.c:3677
 msgid "Exposure Compensation (EV)"
 msgstr "Bù phơi nắng (EV)"
 
-#: camlibs/ptp2/ptp.c:3624
+#: camlibs/ptp2/ptp.c:3681
 msgid "Centre Weight Area"
 msgstr "Vùng nặng giữa"
 
-#: camlibs/ptp2/ptp.c:3626
+#: camlibs/ptp2/ptp.c:3683
 msgid "Exposure Base Matrix"
 msgstr "Ma trận Cơ bản Phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3628
+#: camlibs/ptp2/ptp.c:3685
 msgid "Exposure Base Center"
 msgstr "Trung tâm Cơ bản Phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3630
+#: camlibs/ptp2/ptp.c:3687
 msgid "Exposure Base Spot"
 msgstr "Chấm Cơ bản Phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3632
+#: camlibs/ptp2/ptp.c:3689
 #, fuzzy
 msgid "Live View AF Area"
 msgstr "AF xem tại chỗ"
 
-#: camlibs/ptp2/ptp.c:3640
+#: camlibs/ptp2/ptp.c:3697
 msgid "Auto Meter Off Time"
 msgstr "Thời gian tự động tắt cái đo"
 
-#: camlibs/ptp2/ptp.c:3642
+#: camlibs/ptp2/ptp.c:3699
 msgid "Self Timer Delay"
 msgstr "Trễ tự kẹn giờ"
 
-#: camlibs/ptp2/ptp.c:3646
+#: camlibs/ptp2/ptp.c:3703
 msgid "Img Conf Time"
 msgstr "Giờ cấu hình ảnh"
 
-#: camlibs/ptp2/ptp.c:3648
+#: camlibs/ptp2/ptp.c:3705
 msgid "Angle Level"
 msgstr "Mức Góc"
 
-#: camlibs/ptp2/ptp.c:3650
+#: camlibs/ptp2/ptp.c:3707
 msgid "Shooting Speed"
 msgstr "Tốc độ Chụp"
 
-#: camlibs/ptp2/ptp.c:3652 camlibs/ptp2/ptp.c:3773
+#: camlibs/ptp2/ptp.c:3709 camlibs/ptp2/ptp.c:3830
 msgid "Maximum Shots"
 msgstr "Lần chụp tối đa"
 
-#: camlibs/ptp2/ptp.c:3654
+#: camlibs/ptp2/ptp.c:3711
 msgid "Exposure delay mode"
 msgstr "Chế độ phơi nắng trễ"
 
-#: camlibs/ptp2/ptp.c:3656
+#: camlibs/ptp2/ptp.c:3713
 msgid "Long Exposure Noise Reduction"
 msgstr "Giảm nhiễu phơi nắng lâu"
 
-#: camlibs/ptp2/ptp.c:3664
+#: camlibs/ptp2/ptp.c:3721
 msgid "LCD Illumination"
 msgstr "Chiếu sáng LCD"
 
-#: camlibs/ptp2/ptp.c:3666
+#: camlibs/ptp2/ptp.c:3723
 msgid "High ISO noise reduction"
 msgstr "Giảm nhiễu ISO cao"
 
-#: camlibs/ptp2/ptp.c:3668
+#: camlibs/ptp2/ptp.c:3725
 msgid "On screen tips"
 msgstr "Mẹo trên màn hình"
 
-#: camlibs/ptp2/ptp.c:3670
+#: camlibs/ptp2/ptp.c:3727
 msgid "Artist Name"
 msgstr "Tên nghệ sĩ"
 
-#: camlibs/ptp2/ptp.c:3672
+#: camlibs/ptp2/ptp.c:3729
 msgid "Copyright Information"
 msgstr "Thông tin Tác quyền"
 
-#: camlibs/ptp2/ptp.c:3680
+#: camlibs/ptp2/ptp.c:3737
 msgid "Modeling Flash"
 msgstr "Làm mẫu đèn nháy"
 
-#: camlibs/ptp2/ptp.c:3684
+#: camlibs/ptp2/ptp.c:3741
 msgid "Manual Mode Bracketing"
 msgstr "Chế độ tự định vị giữa ngoặc"
 
-#: camlibs/ptp2/ptp.c:3688
+#: camlibs/ptp2/ptp.c:3745
 msgid "Auto Bracket Selection"
 msgstr "Tự động định vị vùng chọn giữa ngoặc"
 
-#: camlibs/ptp2/ptp.c:3689
+#: camlibs/ptp2/ptp.c:3746
 msgid "NIKON Auto Bracketing Set"
 msgstr "NIKON: tự động định vị giữa ngoặc đã đặt"
 
-#: camlibs/ptp2/ptp.c:3691
+#: camlibs/ptp2/ptp.c:3748
 msgid "Center Button Shooting Mode"
 msgstr "Chế độ chụp bằng nút giữa"
 
-#: camlibs/ptp2/ptp.c:3693
+#: camlibs/ptp2/ptp.c:3750
 msgid "Center Button Playback Mode"
 msgstr "Chế độ phát lại bằng nút giữa"
 
-#: camlibs/ptp2/ptp.c:3695
+#: camlibs/ptp2/ptp.c:3752
 msgid "Multiselector"
 msgstr "Bộ đa chọn"
 
-#: camlibs/ptp2/ptp.c:3697
+#: camlibs/ptp2/ptp.c:3754
 msgid "Photo Info. Playback"
 msgstr "Phát lại thông tin ảnh"
 
-#: camlibs/ptp2/ptp.c:3699
+#: camlibs/ptp2/ptp.c:3756
 msgid "Assign Func. Button"
 msgstr "Gán nút chức năng"
 
-#: camlibs/ptp2/ptp.c:3701
+#: camlibs/ptp2/ptp.c:3758
 msgid "Customise Command Dials"
 msgstr "Tùy chỉnh đĩa lệnh"
 
-#: camlibs/ptp2/ptp.c:3705
+#: camlibs/ptp2/ptp.c:3762
 msgid "Aperture Setting"
 msgstr "Giá trị độ mở"
 
-#: camlibs/ptp2/ptp.c:3707
+#: camlibs/ptp2/ptp.c:3764
 msgid "Menus and Playback"
 msgstr "Trình đơn và Phát lại"
 
-#: camlibs/ptp2/ptp.c:3709
+#: camlibs/ptp2/ptp.c:3766
 msgid "Buttons and Dials"
 msgstr "Nút và Hộp thoại"
 
-#: camlibs/ptp2/ptp.c:3711
+#: camlibs/ptp2/ptp.c:3768
 msgid "No CF Card Release"
 msgstr "Không buông ra bo mạch CF"
 
-#: camlibs/ptp2/ptp.c:3713
+#: camlibs/ptp2/ptp.c:3770
 msgid "Center Button Zoom Ratio"
 msgstr "Tỷ lệ phóng to bằng nút giữa"
 
-#: camlibs/ptp2/ptp.c:3715
+#: camlibs/ptp2/ptp.c:3772
 msgid "Function Button 2"
 msgstr "Nút chức năng 2"
 
-#: camlibs/ptp2/ptp.c:3719
+#: camlibs/ptp2/ptp.c:3776
 msgid "Normal AF On"
 msgstr "AF chuẩn đã bật"
 
-#: camlibs/ptp2/ptp.c:3721
+#: camlibs/ptp2/ptp.c:3778
 msgid "Image Comment String"
 msgstr "Chuỗi ghi chú ảnh"
 
-#: camlibs/ptp2/ptp.c:3723
+#: camlibs/ptp2/ptp.c:3780
 msgid "Image Comment Enable"
 msgstr "Bật ghi chú ảnh"
 
-#: camlibs/ptp2/ptp.c:3725
+#: camlibs/ptp2/ptp.c:3782
 msgid "Image Rotation"
 msgstr "Xoay ảnh"
 
-#: camlibs/ptp2/ptp.c:3727
+#: camlibs/ptp2/ptp.c:3784
 msgid "Manual Set Lens Number"
 msgstr "Đặt số ống kính bằng tay"
 
-#: camlibs/ptp2/ptp.c:3729
+#: camlibs/ptp2/ptp.c:3786
 msgid "Movie Screen Size"
 msgstr "Kích cỡ màn hình phim"
 
-#: camlibs/ptp2/ptp.c:3731
+#: camlibs/ptp2/ptp.c:3788
 msgid "Movie Voice"
 msgstr "Tiếng nói phim"
 
-#: camlibs/ptp2/ptp.c:3733
+#: camlibs/ptp2/ptp.c:3790
 msgid "Bracketing Enable"
 msgstr "Bật đặt ngoặc"
 
-#: camlibs/ptp2/ptp.c:3735
+#: camlibs/ptp2/ptp.c:3792
 msgid "Exposure Bracketing Step"
 msgstr "Bước đặt ngoặc phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3737
+#: camlibs/ptp2/ptp.c:3794
 msgid "Exposure Bracketing Program"
 msgstr "Trình đặt ngoặc phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3739
+#: camlibs/ptp2/ptp.c:3796
 msgid "Auto Exposure Bracket Count"
 msgstr "Đếm ngoặc tự động phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3740
+#: camlibs/ptp2/ptp.c:3797
 msgid "White Balance Bracket Step"
 msgstr "Bước ngoặc cán cân trắng"
 
-#: camlibs/ptp2/ptp.c:3741
+#: camlibs/ptp2/ptp.c:3798
 msgid "White Balance Bracket Program"
 msgstr "Trình ngoặc cán cân trắng"
 
-#: camlibs/ptp2/ptp.c:3743
+#: camlibs/ptp2/ptp.c:3800
 msgid "Lens ID"
 msgstr "Mã số ống kính"
 
-#: camlibs/ptp2/ptp.c:3745
+#: camlibs/ptp2/ptp.c:3802
 msgid "Lens Sort"
 msgstr "Sắp xếp Ống kính"
 
-#: camlibs/ptp2/ptp.c:3747
+#: camlibs/ptp2/ptp.c:3804
 msgid "Lens Type"
 msgstr "Kiểu ống kính"
 
-#: camlibs/ptp2/ptp.c:3749
+#: camlibs/ptp2/ptp.c:3806
 msgid "Min. Focal Length"
 msgstr "Tiêu cự tiểu"
 
-#: camlibs/ptp2/ptp.c:3751
+#: camlibs/ptp2/ptp.c:3808
 msgid "Max. Focal Length"
 msgstr "Tiêu cự đại"
 
-#: camlibs/ptp2/ptp.c:3753
+#: camlibs/ptp2/ptp.c:3810
 msgid "Max. Aperture at Min. Focal Length"
 msgstr "Độ mở đại ở tiêu cự tiểu"
 
-#: camlibs/ptp2/ptp.c:3755
+#: camlibs/ptp2/ptp.c:3812
 msgid "Max. Aperture at Max. Focal Length"
 msgstr "Độ mở đại ở tiêu cự đại"
 
-#: camlibs/ptp2/ptp.c:3757
+#: camlibs/ptp2/ptp.c:3814
 msgid "Finder ISO Display"
 msgstr "Hiển thị ISO Tìm"
 
-#: camlibs/ptp2/ptp.c:3759
+#: camlibs/ptp2/ptp.c:3816
 msgid "Auto Off Photo"
 msgstr "Tự động tắt ảnh chụp"
 
-#: camlibs/ptp2/ptp.c:3761
+#: camlibs/ptp2/ptp.c:3818
 msgid "Auto Off Menu"
 msgstr "Tự động tắt trình đơn"
 
-#: camlibs/ptp2/ptp.c:3763
+#: camlibs/ptp2/ptp.c:3820
 msgid "Auto Off Info"
 msgstr "Tự động tắt thông tin"
 
-#: camlibs/ptp2/ptp.c:3765
+#: camlibs/ptp2/ptp.c:3822
 msgid "Self Timer Shot Number"
 msgstr "Số tự hẹn giờ lần chụp"
 
-#: camlibs/ptp2/ptp.c:3767
+#: camlibs/ptp2/ptp.c:3824
 msgid "Vignette Control"
 msgstr "Điều khiển làm mờ nét ảnh"
 
-#: camlibs/ptp2/ptp.c:3769
+#: camlibs/ptp2/ptp.c:3826
 msgid "Nikon Exposure Time"
 msgstr "Thời gian phơi nắng Nikon"
 
-#: camlibs/ptp2/ptp.c:3771
+#: camlibs/ptp2/ptp.c:3828
 msgid "Warning Status"
 msgstr "Trạng thái Cảnh báo"
 
-#: camlibs/ptp2/ptp.c:3778
+#: camlibs/ptp2/ptp.c:3835
 msgid "AF LCD Top Mode 2"
 msgstr "AF LCD Chế độ đầu 2"
 
-#: camlibs/ptp2/ptp.c:3780
+#: camlibs/ptp2/ptp.c:3837
 msgid "Active AF Sensor"
 msgstr "Máy nhạy AF hoạt động"
 
-#: camlibs/ptp2/ptp.c:3784
+#: camlibs/ptp2/ptp.c:3841
 msgid "Exposure Meter"
 msgstr "Cái đo Phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3788
+#: camlibs/ptp2/ptp.c:3845
 msgid "USB Speed"
 msgstr "Tốc độ USB"
 
-#: camlibs/ptp2/ptp.c:3790
+#: camlibs/ptp2/ptp.c:3847
 msgid "CCD Serial Number"
 msgstr "Số sản xuất CCD"
 
-#: camlibs/ptp2/ptp.c:3794
+#: camlibs/ptp2/ptp.c:3851
 msgid "Group PTN Type"
 msgstr "Loại PTN Nhóm"
 
-#: camlibs/ptp2/ptp.c:3796
+#: camlibs/ptp2/ptp.c:3853
 msgid "FNumber Lock"
 msgstr "Khoá Số F"
 
-#: camlibs/ptp2/ptp.c:3798
+#: camlibs/ptp2/ptp.c:3855
 msgid "Exposure Aperture Lock"
 msgstr "Khoá độ mở phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3800
+#: camlibs/ptp2/ptp.c:3857
 msgid "TV Lock Setting"
 msgstr "Thiết lập khoá TV"
 
-#: camlibs/ptp2/ptp.c:3802
+#: camlibs/ptp2/ptp.c:3859
 msgid "AV Lock Setting"
 msgstr "Thiết lập khoá AV"
 
-#: camlibs/ptp2/ptp.c:3804
+#: camlibs/ptp2/ptp.c:3861
 msgid "Illum Setting"
 msgstr "Thiết lập chiếu sáng"
 
-#: camlibs/ptp2/ptp.c:3806
+#: camlibs/ptp2/ptp.c:3863
 msgid "Focus Point Bright"
 msgstr "Điểm tiêu sáng"
 
-#: camlibs/ptp2/ptp.c:3808
+#: camlibs/ptp2/ptp.c:3865
 msgid "External Flash Attached"
 msgstr "Đèn nháy ngoài bị gắn nối"
 
-#: camlibs/ptp2/ptp.c:3810
+#: camlibs/ptp2/ptp.c:3867
 msgid "External Flash Status"
 msgstr "Trạng thái đèn nháy ngoài"
 
-#: camlibs/ptp2/ptp.c:3812
+#: camlibs/ptp2/ptp.c:3869
 msgid "External Flash Sort"
 msgstr "Sắp xếp đèn nháy ngoài"
 
-#: camlibs/ptp2/ptp.c:3814 camlibs/ptp2/ptp.c:3818
+#: camlibs/ptp2/ptp.c:3871 camlibs/ptp2/ptp.c:3875
 msgid "External Flash Mode"
 msgstr "Chế độ đèn nháy ngoài"
 
-#: camlibs/ptp2/ptp.c:3816
+#: camlibs/ptp2/ptp.c:3873
 msgid "External Flash Compensation"
 msgstr "Bù đèn nháy ngoài"
 
-#: camlibs/ptp2/ptp.c:3826
+#: camlibs/ptp2/ptp.c:3883
 msgid "BW Filler Effect"
 msgstr "Hiệu ứng trám đầy ĐenTrắng"
 
-#: camlibs/ptp2/ptp.c:3828
+#: camlibs/ptp2/ptp.c:3885
 msgid "BW Sharpness"
 msgstr "Độ sắc ĐenTrắng"
 
-#: camlibs/ptp2/ptp.c:3830
+#: camlibs/ptp2/ptp.c:3887
 msgid "BW Contrast"
 msgstr "Tương phản ĐenTrắng"
 
-#: camlibs/ptp2/ptp.c:3832
+#: camlibs/ptp2/ptp.c:3889
 msgid "BW Setting Type"
 msgstr "Loại thiết lập ĐenTrắng"
 
-#: camlibs/ptp2/ptp.c:3834
+#: camlibs/ptp2/ptp.c:3891
 msgid "Slot 2 Save Mode"
 msgstr "Khe 2 chế độ Lưu"
 
-#: camlibs/ptp2/ptp.c:3836
+#: camlibs/ptp2/ptp.c:3893
 msgid "Raw Bit Mode"
 msgstr "Chế độ bit thô"
 
-#: camlibs/ptp2/ptp.c:3838
+#: camlibs/ptp2/ptp.c:3895
 msgid "ISO Auto Time"
 msgstr "Tự động giờ ISO"
 
-#: camlibs/ptp2/ptp.c:3840
+#: camlibs/ptp2/ptp.c:3897
 msgid "Flourescent Type"
 msgstr "Loại huỳnh quang"
 
-#: camlibs/ptp2/ptp.c:3842
+#: camlibs/ptp2/ptp.c:3899
 msgid "Tune Colour Temperature"
 msgstr "Chỉnh nhiệt độ màu"
 
-#: camlibs/ptp2/ptp.c:3844
+#: camlibs/ptp2/ptp.c:3901
 msgid "Tune Preset 0"
 msgstr "Chỉnh định sẵn 0"
 
-#: camlibs/ptp2/ptp.c:3846
+#: camlibs/ptp2/ptp.c:3903
 msgid "Tune Preset 1"
 msgstr "Chỉnh định sẵn 1"
 
-#: camlibs/ptp2/ptp.c:3848
+#: camlibs/ptp2/ptp.c:3905
 msgid "Tune Preset 2"
 msgstr "Chỉnh định sẵn 2"
 
-#: camlibs/ptp2/ptp.c:3850
+#: camlibs/ptp2/ptp.c:3907
 msgid "Tune Preset 3"
 msgstr "Chỉnh định sẵn 3"
 
-#: camlibs/ptp2/ptp.c:3852
+#: camlibs/ptp2/ptp.c:3909
 msgid "Tune Preset 4"
 msgstr "Chỉnh định sẵn 4"
 
-#: camlibs/ptp2/ptp.c:3856
+#: camlibs/ptp2/ptp.c:3913
 msgid "Autofocus Mode"
 msgstr "Chế độ tự động tiêu điểm"
 
-#: camlibs/ptp2/ptp.c:3858
+#: camlibs/ptp2/ptp.c:3915
 msgid "AF Assist Lamp"
 msgstr "Đèn giúp AF"
 
-#: camlibs/ptp2/ptp.c:3860
+#: camlibs/ptp2/ptp.c:3917
 msgid "Auto ISO P/A/DVP Setting"
 msgstr "Tự động thiết lập ISO P/A/DVP"
 
-#: camlibs/ptp2/ptp.c:3876
+#: camlibs/ptp2/ptp.c:3933
 msgid "Viewfinder Grid Display"
 msgstr "Hiển thị lưới kính ngắm"
 
-#: camlibs/ptp2/ptp.c:3880
+#: camlibs/ptp2/ptp.c:3937
 msgid "Flash Mode Commander Power"
 msgstr "Điện quản lý chế độ đèn nháy"
 
-#: camlibs/ptp2/ptp.c:3882
+#: camlibs/ptp2/ptp.c:3939
 msgid "Auto FP"
 msgstr "Tự động FP"
 
-#: camlibs/ptp2/ptp.c:3886
+#: camlibs/ptp2/ptp.c:3943
 msgid "Warning Display"
 msgstr "Hiển thị Cảnh báo"
 
-#: camlibs/ptp2/ptp.c:3888
+#: camlibs/ptp2/ptp.c:3945
 msgid "Battery Cell Kind"
 msgstr "Loại bộ pin"
 
-#: camlibs/ptp2/ptp.c:3890
+#: camlibs/ptp2/ptp.c:3947
 msgid "ISO Auto High Limit"
 msgstr "Tự động giới hạn cao ISO"
 
-#: camlibs/ptp2/ptp.c:3894
+#: camlibs/ptp2/ptp.c:3951
 msgid "Continuous Speed High"
 msgstr "Tốc độ Cao Liên tục"
 
-#: camlibs/ptp2/ptp.c:3896
+#: camlibs/ptp2/ptp.c:3953
 msgid "Info Disp Setting"
 msgstr "Thiết lập Giải Thông tin"
 
-#: camlibs/ptp2/ptp.c:3898
+#: camlibs/ptp2/ptp.c:3955
 msgid "Preview Button"
 msgstr "Nút Xem thử"
 
-#: camlibs/ptp2/ptp.c:3900
+#: camlibs/ptp2/ptp.c:3957
 msgid "Preview Button 2"
 msgstr "Nút Xem thử 2"
 
-#: camlibs/ptp2/ptp.c:3902
+#: camlibs/ptp2/ptp.c:3959
 msgid "AEAF Lock Button 2"
 msgstr "Nút khoá AEAF 2"
 
-#: camlibs/ptp2/ptp.c:3904
+#: camlibs/ptp2/ptp.c:3961
 msgid "Indicator Display"
 msgstr "Hiển thị Chỉ báo"
 
-#: camlibs/ptp2/ptp.c:3906
+#: camlibs/ptp2/ptp.c:3963
 msgid "Cell Kind Priority"
 msgstr "Ưu tiên Loại Bộ"
 
-#: camlibs/ptp2/ptp.c:3908
+#: camlibs/ptp2/ptp.c:3965
 msgid "Bracketing Frames and Steps"
 msgstr "Khung và bước đặt ngoặc"
 
-#: camlibs/ptp2/ptp.c:3910
+#: camlibs/ptp2/ptp.c:3967
 msgid "Live View Mode"
 msgstr "Chế độ xem tại chỗ"
 
-#: camlibs/ptp2/ptp.c:3912
+#: camlibs/ptp2/ptp.c:3969
 msgid "Live View Drive Mode"
 msgstr "Chế độ chạy xem tại chỗ"
 
-#: camlibs/ptp2/ptp.c:3914
+#: camlibs/ptp2/ptp.c:3971
 msgid "Live View Status"
 msgstr "Trạng thái xem tại chỗ"
 
-#: camlibs/ptp2/ptp.c:3916
+#: camlibs/ptp2/ptp.c:3973
 msgid "Live View Image Zoom Ratio"
 msgstr "Tỷ lệ phóng to ảnh xem tại chỗ"
 
-#: camlibs/ptp2/ptp.c:3918
+#: camlibs/ptp2/ptp.c:3975
 msgid "Live View Prohibit Condition"
 msgstr "Điều kiện cấm xem tại chỗ"
 
-#: camlibs/ptp2/ptp.c:3920
+#: camlibs/ptp2/ptp.c:3977
 msgid "Exposure Display Status"
 msgstr "Trạng thái hiển thị phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3922
+#: camlibs/ptp2/ptp.c:3979
 msgid "Exposure Indicate Status"
 msgstr "Trạng thái ngụ ý phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3924
+#: camlibs/ptp2/ptp.c:3981
 msgid "Exposure Indicate Lightup"
 msgstr "Đèn ngụ ý phơi nắng"
 
-#: camlibs/ptp2/ptp.c:3930
+#: camlibs/ptp2/ptp.c:3987
 msgid "Flash MRepeat Value"
 msgstr "Giá trị MRepeat đèn nháy"
 
-#: camlibs/ptp2/ptp.c:3932
+#: camlibs/ptp2/ptp.c:3989
 msgid "Flash MRepeat Count"
 msgstr "Đếm lần MRepeat đèn nháy"
 
-#: camlibs/ptp2/ptp.c:3934
+#: camlibs/ptp2/ptp.c:3991
 msgid "Flash MRepeat Interval"
 msgstr "Khoảng MRepeat đèn nháy"
 
-#: camlibs/ptp2/ptp.c:3956
+#: camlibs/ptp2/ptp.c:4013
 msgid "Active Pic Ctrl Item"
 msgstr "Kích hoạt mục điều khiển ảnh"
 
-#: camlibs/ptp2/ptp.c:3958
+#: camlibs/ptp2/ptp.c:4015
 msgid "Change Pic Ctrl Item"
 msgstr "Đổi mục điều khiển ảnh"
 
-#: camlibs/ptp2/ptp.c:3965
+#: camlibs/ptp2/ptp.c:4022
 msgid "Secure Time"
 msgstr "Thời gian bảo mật"
 
-#: camlibs/ptp2/ptp.c:3966
+#: camlibs/ptp2/ptp.c:4023
 msgid "Device Certificate"
 msgstr "Chứng nhận thiết bị"
 
-#: camlibs/ptp2/ptp.c:3967
+#: camlibs/ptp2/ptp.c:4024
 msgid "Revocation Info"
 msgstr "Thông tin hủy bỏ"
 
-#: camlibs/ptp2/ptp.c:3969
+#: camlibs/ptp2/ptp.c:4026
 msgid "Synchronization Partner"
 msgstr "Bên khác đồng bộ hoá"
 
-#: camlibs/ptp2/ptp.c:3971
+#: camlibs/ptp2/ptp.c:4028
 msgid "Friendly Device Name"
 msgstr "Tên thiết bị thân thiện"
 
-#: camlibs/ptp2/ptp.c:3972
+#: camlibs/ptp2/ptp.c:4029
 msgid "Volume Level"
 msgstr "Mức âm lượng"
 
-#: camlibs/ptp2/ptp.c:3973
+#: camlibs/ptp2/ptp.c:4030
 msgid "Device Icon"
 msgstr "Biểu tượng thiết bị"
 
-#: camlibs/ptp2/ptp.c:3974
+#: camlibs/ptp2/ptp.c:4031
 msgid "Session Initiator Info"
 msgstr "Thông tin khởi tạo buổi hợp"
 
-#: camlibs/ptp2/ptp.c:3975
+#: camlibs/ptp2/ptp.c:4032
 msgid "Perceived Device Type"
 msgstr "Kiểu thiết bị đã thấy"
 
-#: camlibs/ptp2/ptp.c:3976
+#: camlibs/ptp2/ptp.c:4033
 msgid "Playback Rate"
 msgstr "Tỷ lệ phát lại"
 
-#: camlibs/ptp2/ptp.c:3977
+#: camlibs/ptp2/ptp.c:4034
 msgid "Playback Object"
 msgstr "Đối tượng phát lại"
 
-#: camlibs/ptp2/ptp.c:3979
+#: camlibs/ptp2/ptp.c:4036
 msgid "Playback Container Index"
 msgstr "Chỉ mục độ chứa phát lại"
 
-#: camlibs/ptp2/ptp.c:3980
+#: camlibs/ptp2/ptp.c:4037
 msgid "Playback Position"
 msgstr "Vị trí phát lại"
 
-#: camlibs/ptp2/ptp.c:3981
+#: camlibs/ptp2/ptp.c:4038
 msgid "PlaysForSure ID"
 msgstr "PlaysForSure ID"
 
-#: camlibs/ptp2/ptp.c:3989
+#: camlibs/ptp2/ptp.c:4046
 msgid "Quality"
 msgstr "Chất lượng"
 
-#: camlibs/ptp2/ptp.c:3990
+#: camlibs/ptp2/ptp.c:4047
 msgid "Release Mode"
 msgstr "Chế độ nhả"
 
-#: camlibs/ptp2/ptp.c:3991
+#: camlibs/ptp2/ptp.c:4048
 msgid "Focus Areas"
 msgstr "Vùng tiêu điểm"
 
-#: camlibs/ptp2/ptp.c:3992
+#: camlibs/ptp2/ptp.c:4049
 msgid "AE Lock"
 msgstr "Khoá AE"
 
-#: camlibs/ptp2/ptp.c:4095 camlibs/ptp2/ptp.c:4101 camlibs/ptp2/ptp.c:4102
-#: camlibs/ptp2/ptp.c:4109
+#: camlibs/ptp2/ptp.c:4152 camlibs/ptp2/ptp.c:4158 camlibs/ptp2/ptp.c:4159
+#: camlibs/ptp2/ptp.c:4166
 #, c-format
 msgid "%.1f stops"
 msgstr "%.1f bước"
 
-#: camlibs/ptp2/ptp.c:4103
+#: camlibs/ptp2/ptp.c:4160
 #, c-format
 msgid "%.0f mm"
 msgstr "%.0f mm"
 
-#: camlibs/ptp2/ptp.c:4120
+#: camlibs/ptp2/ptp.c:4177
 msgid "JPEG Norm"
 msgstr "JPEG chuẩn"
 
-#: camlibs/ptp2/ptp.c:4123
+#: camlibs/ptp2/ptp.c:4180
 msgid "RAW + JPEG Basic"
 msgstr "RAW + JPEG cơ bản"
 
-#: camlibs/ptp2/ptp.c:4129 camlibs/ricoh/library.c:330
+#: camlibs/ptp2/ptp.c:4186 camlibs/ricoh/library.c:330
 #: camlibs/sierra/nikon-desc.c:284
 msgid "Incandescent"
 msgstr "Nóng sáng"
 
-#: camlibs/ptp2/ptp.c:4137
+#: camlibs/ptp2/ptp.c:4194
 msgid "Automatic Macro (close-up)"
 msgstr "Vĩ lệnh tự động (gần)"
 
-#: camlibs/ptp2/ptp.c:4142
+#: camlibs/ptp2/ptp.c:4199
 msgid "Center Weighted Average"
 msgstr "Trung bình nặng giữa"
 
-#: camlibs/ptp2/ptp.c:4144
+#: camlibs/ptp2/ptp.c:4201
 msgid "Center-spot"
 msgstr "Điểm giữa"
 
-#: camlibs/ptp2/ptp.c:4146
+#: camlibs/ptp2/ptp.c:4203
 msgid "Automatic flash"
 msgstr "Tự động nháy đèn"
 
-#: camlibs/ptp2/ptp.c:4149
+#: camlibs/ptp2/ptp.c:4206
 msgid "Automatic Red-eye Reduction"
 msgstr "Tự động giảm mắt đỏ"
 
-#: camlibs/ptp2/ptp.c:4150
+#: camlibs/ptp2/ptp.c:4207
 msgid "Red-eye fill flash"
 msgstr "Nháy đèn đầy mắt đỏ"
 
-#: camlibs/ptp2/ptp.c:4168
+#: camlibs/ptp2/ptp.c:4225
 msgid "Power Wind"
 msgstr "Máy quay"
 
-#: camlibs/ptp2/ptp.c:4174
+#: camlibs/ptp2/ptp.c:4231
 msgid "Timer + Remote"
 msgstr "Hẹn giờ + Từ xa"
 
-#: camlibs/ptp2/ptp.c:4232
+#: camlibs/ptp2/ptp.c:4289
 msgid "AF Lock only"
 msgstr "Chỉ khoá AF"
 
-#: camlibs/ptp2/ptp.c:4236
+#: camlibs/ptp2/ptp.c:4293
 msgid "Flash Lock"
 msgstr "Khoá đèn nháy"
 
-#: camlibs/ptp2/ptp.c:4287
+#: camlibs/ptp2/ptp.c:4344
 msgid "Reset focus point to center"
 msgstr "Đặt lại điểm tiêu về tâm"
 
-#: camlibs/ptp2/ptp.c:4288
+#: camlibs/ptp2/ptp.c:4345
 msgid "Highlight active focus point"
 msgstr "Tô sáng điểm tiêu hoạt động"
 
-#: camlibs/ptp2/ptp.c:4289
+#: camlibs/ptp2/ptp.c:4346
 msgid "Unused"
 msgstr "Chưa dùng"
 
-#: camlibs/ptp2/ptp.c:4331
+#: camlibs/ptp2/ptp.c:4388
 msgid "SDRam"
 msgstr "SDRAM"
 
-#: camlibs/ptp2/ptp.c:4333
+#: camlibs/ptp2/ptp.c:4390
 msgid "USB 1.1"
 msgstr "USB 1.1"
 
-#: camlibs/ptp2/ptp.c:4334
+#: camlibs/ptp2/ptp.c:4391
 msgid "USB 2.0"
 msgstr "USB 2.0"
 
-#: camlibs/ptp2/ptp.c:4346
+#: camlibs/ptp2/ptp.c:4403
 msgid "LCD Backlight"
 msgstr "Chiếu sáng mặt sau LCD"
 
-#: camlibs/ptp2/ptp.c:4347
+#: camlibs/ptp2/ptp.c:4404
 msgid "LCD Backlight and Info Display"
 msgstr "Chiếu sáng mặt sau LCD và Hiển thị thông tin"
 
-#: camlibs/ptp2/ptp.c:4405
+#: camlibs/ptp2/ptp.c:4462
 msgid "1 min"
 msgstr "1 phút"
 
-#: camlibs/ptp2/ptp.c:4406
+#: camlibs/ptp2/ptp.c:4463
 msgid "5 mins"
 msgstr "5 phút"
 
-#: camlibs/ptp2/ptp.c:4407
+#: camlibs/ptp2/ptp.c:4464
 msgid "10 mins"
 msgstr "10 phút"
 
-#: camlibs/ptp2/ptp.c:4408
+#: camlibs/ptp2/ptp.c:4465
 msgid "15 mins"
 msgstr "15 phút"
 
-#: camlibs/ptp2/ptp.c:4443
+#: camlibs/ptp2/ptp.c:4500
 msgid "Dark on light"
 msgstr "Tối trên sáng"
 
-#: camlibs/ptp2/ptp.c:4444
+#: camlibs/ptp2/ptp.c:4501
 msgid "Light on dark"
 msgstr "Sáng trên tối"
 
-#: camlibs/ptp2/ptp.c:4469
+#: camlibs/ptp2/ptp.c:4526
 msgid "Lithium Ion"
 msgstr "Iôn Lithi"
 
-#: camlibs/ptp2/ptp.c:4470
+#: camlibs/ptp2/ptp.c:4527
 msgid "Nickel hydride"
 msgstr "Ni hyddrua"
 
-#: camlibs/ptp2/ptp.c:4471
+#: camlibs/ptp2/ptp.c:4528
 msgid "Nickel cadmium"
 msgstr "Ni Cd"
 
-#: camlibs/ptp2/ptp.c:4472
+#: camlibs/ptp2/ptp.c:4529
 msgid "Alkalium manganese"
 msgstr "Kiềm Mn"
 
-#: camlibs/ptp2/ptp.c:4476
+#: camlibs/ptp2/ptp.c:4533
 msgid "Warning Level 1"
 msgstr "Cảnh báo cấp 1"
 
-#: camlibs/ptp2/ptp.c:4477
+#: camlibs/ptp2/ptp.c:4534
 msgid "Emergency"
 msgstr "Khẩn cấp"
 
-#: camlibs/ptp2/ptp.c:4478
+#: camlibs/ptp2/ptp.c:4535
 msgid "Warning Level 0"
 msgstr "Cảnh báo cấp 0"
 
-#: camlibs/ptp2/ptp.c:4481
+#: camlibs/ptp2/ptp.c:4538
 msgid "Economy"
 msgstr "Ít mực"
 
-#: camlibs/ptp2/ptp.c:4484
+#: camlibs/ptp2/ptp.c:4541
 msgid "Lossless"
 msgstr "Không mất"
 
-#: camlibs/ptp2/ptp.c:4485
+#: camlibs/ptp2/ptp.c:4542
 msgid "SuperFine"
 msgstr "Rất cao"
 
-#: camlibs/ptp2/ptp.c:4504
+#: camlibs/ptp2/ptp.c:4561
 msgid "Red Eye Suppression"
 msgstr "Bỏ mắt đỏ"
 
-#: camlibs/ptp2/ptp.c:4505
+#: camlibs/ptp2/ptp.c:4562
 msgid "Low Speed Synchronization"
 msgstr "Đồng bộ hoá thấp tốc"
 
-#: camlibs/ptp2/ptp.c:4506
+#: camlibs/ptp2/ptp.c:4563
 msgid "Auto + Red Eye Suppression"
 msgstr "Tự động, giảm mắt đỏ"
 
-#: camlibs/ptp2/ptp.c:4507
+#: camlibs/ptp2/ptp.c:4564
 msgid "On + Red Eye Suppression"
 msgstr "Bật, giảm mắt đỏ"
 
-#: camlibs/ptp2/ptp.c:4521
+#: camlibs/ptp2/ptp.c:4578
 msgid "Distant View"
 msgstr "Xem xa"
 
-#: camlibs/ptp2/ptp.c:4522
+#: camlibs/ptp2/ptp.c:4579
 msgid "High-Speed Shutter"
 msgstr "Cửa chập cao tốc"
 
-#: camlibs/ptp2/ptp.c:4523
+#: camlibs/ptp2/ptp.c:4580
 msgid "Low-Speed Shutter"
 msgstr "Cửa chập thấp tốc"
 
-#: camlibs/ptp2/ptp.c:4524 camlibs/ptp2/ptp.c:4588
+#: camlibs/ptp2/ptp.c:4581 camlibs/ptp2/ptp.c:4645
 msgid "Night View"
 msgstr "Xem đêm"
 
-#: camlibs/ptp2/ptp.c:4525
+#: camlibs/ptp2/ptp.c:4582
 msgid "Grayscale"
 msgstr "Mức xám"
 
-#: camlibs/ptp2/ptp.c:4531
+#: camlibs/ptp2/ptp.c:4588
 msgid "Pan Focus"
 msgstr "Tiêu điểm kéo ngang"
 
-#: camlibs/ptp2/ptp.c:4535
+#: camlibs/ptp2/ptp.c:4592
 msgid "Single-Frame Shooting"
 msgstr "Chụp khung đơn"
 
-#: camlibs/ptp2/ptp.c:4536
+#: camlibs/ptp2/ptp.c:4593
 msgid "Continuous Shooting"
 msgstr "Chụp liên tiếp"
 
-#: camlibs/ptp2/ptp.c:4537
+#: camlibs/ptp2/ptp.c:4594
 msgid "Timer (Single) Shooting"
 msgstr "Chụp hẹn giờ (đơn)"
 
-#: camlibs/ptp2/ptp.c:4538
+#: camlibs/ptp2/ptp.c:4595
 msgid "Continuous Low-speed Shooting"
 msgstr "Chụp thấp tốc liên tục"
 
-#: camlibs/ptp2/ptp.c:4539
+#: camlibs/ptp2/ptp.c:4596
 msgid "Continuous High-speed Shooting"
 msgstr "Chụp cao tốc liên tiếp"
 
 # Literal: don't translate / Nghĩa chữ: đừng dịch
-#: camlibs/ptp2/ptp.c:4542 camlibs/ricoh/library.c:378
+#: camlibs/ptp2/ptp.c:4599 camlibs/ricoh/library.c:378
 #: camlibs/sierra/sierra.c:1165 camlibs/sierra/sierra.c:1171
 msgid "2x"
 msgstr "2×"
 
-#: camlibs/ptp2/ptp.c:4543 camlibs/ricoh/library.c:380
+#: camlibs/ptp2/ptp.c:4600 camlibs/ricoh/library.c:380
 msgid "4x"
 msgstr "4×"
 
-#: camlibs/ptp2/ptp.c:4544
+#: camlibs/ptp2/ptp.c:4601
 msgid "Smooth"
 msgstr "Mịn"
 
-#: camlibs/ptp2/ptp.c:4546
+#: camlibs/ptp2/ptp.c:4603
 msgid "Center-weighted Metering"
 msgstr "Đo nặng giữa"
 
-#: camlibs/ptp2/ptp.c:4547
+#: camlibs/ptp2/ptp.c:4604
 msgid "Spot Metering"
 msgstr "Đo ít"
 
-#: camlibs/ptp2/ptp.c:4548
+#: camlibs/ptp2/ptp.c:4605
 msgid "Average Metering"
 msgstr "Đo trung bình"
 
-#: camlibs/ptp2/ptp.c:4549
+#: camlibs/ptp2/ptp.c:4606
 msgid "Evaluative Metering"
 msgstr "Đo đánh giá"
 
-#: camlibs/ptp2/ptp.c:4550
+#: camlibs/ptp2/ptp.c:4607
 msgid "Partial Metering"
 msgstr "Đo bộ phạn"
 
-#: camlibs/ptp2/ptp.c:4551
+#: camlibs/ptp2/ptp.c:4608
 msgid "Center-weighted Average Metering"
 msgstr "Đo trung bình nặng giữa"
 
-#: camlibs/ptp2/ptp.c:4552
+#: camlibs/ptp2/ptp.c:4609
 msgid "Spot Metering Interlocked with AF Frame"
 msgstr "Đo ít cũng cũng khoá chuyển với khung AF"
 
-#: camlibs/ptp2/ptp.c:4553
+#: camlibs/ptp2/ptp.c:4610
 msgid "Multi-Spot Metering"
 msgstr "Đo ít (nhiều điểm)"
 
-#: camlibs/ptp2/ptp.c:4590
+#: camlibs/ptp2/ptp.c:4647
 msgid "Low-speed shutter function not available"
 msgstr "Chức năng cửa chấp thấp cao không sẵn dùng"
 
-#: camlibs/ptp2/ptp.c:4600 camlibs/ptp2/ptp.c:4606 camlibs/ptp2/ptp.c:4612
+#: camlibs/ptp2/ptp.c:4657 camlibs/ptp2/ptp.c:4663 camlibs/ptp2/ptp.c:4669
 msgid "Low 2"
 msgstr "Thấp 2"
 
-#: camlibs/ptp2/ptp.c:4604 camlibs/ptp2/ptp.c:4610 camlibs/ptp2/ptp.c:4616
+#: camlibs/ptp2/ptp.c:4661 camlibs/ptp2/ptp.c:4667 camlibs/ptp2/ptp.c:4673
 msgid "High 2"
 msgstr "Cao 2"
 
-#: camlibs/ptp2/ptp.c:4619
+#: camlibs/ptp2/ptp.c:4676
 msgid "Upper 1"
 msgstr "Trên 1"
 
-#: camlibs/ptp2/ptp.c:4620
+#: camlibs/ptp2/ptp.c:4677
 msgid "Upper 2"
 msgstr "Trên 2"
 
-#: camlibs/ptp2/ptp.c:4622
+#: camlibs/ptp2/ptp.c:4679
 msgid "Standard Development Parameters"
 msgstr "Tham số rửa phim ảnh tiêu chuẩn"
 
-#: camlibs/ptp2/ptp.c:4623
+#: camlibs/ptp2/ptp.c:4680
 msgid "Development Parameters 1"
 msgstr "Tham số rửa phim ảnh 1"
 
-#: camlibs/ptp2/ptp.c:4624
+#: camlibs/ptp2/ptp.c:4681
 msgid "Development Parameters 2"
 msgstr "Tham số rửa phim ảnh 2"
 
-#: camlibs/ptp2/ptp.c:4625
+#: camlibs/ptp2/ptp.c:4682
 msgid "Development Parameters 3"
 msgstr "Tham số rửa phim ảnh 3"
 
-#: camlibs/ptp2/ptp.c:4654
+#: camlibs/ptp2/ptp.c:4711
 msgid "MlSpotPosCenter"
 msgstr "MlSpotPosCenter"
 
-#: camlibs/ptp2/ptp.c:4655
+#: camlibs/ptp2/ptp.c:4712
 msgid "MlSpotPosAfLink"
 msgstr "MlSpotPosAfLink"
 
-#: camlibs/ptp2/ptp.c:4759
+#: camlibs/ptp2/ptp.c:4816
 msgid "Media Card"
 msgstr "Bo mạch ảnh/nhạc"
 
-#: camlibs/ptp2/ptp.c:4760
+#: camlibs/ptp2/ptp.c:4817
 msgid "Media Card Group"
 msgstr "Nhóm bo mạch ảnh/nhạc"
 
-#: camlibs/ptp2/ptp.c:4761
+#: camlibs/ptp2/ptp.c:4818
 msgid "Encounter"
 msgstr "Encounter"
 
-#: camlibs/ptp2/ptp.c:4762
+#: camlibs/ptp2/ptp.c:4819
 msgid "Encounter Box"
 msgstr "Encounter Box"
 
-#: camlibs/ptp2/ptp.c:4763
+#: camlibs/ptp2/ptp.c:4820
 msgid "M4A"
 msgstr "M4A"
 
-#: camlibs/ptp2/ptp.c:4764
+#: camlibs/ptp2/ptp.c:4821
 msgid "Firmware"
 msgstr "Phần vững"
 
-#: camlibs/ptp2/ptp.c:4765
+#: camlibs/ptp2/ptp.c:4822
 msgid "Windows Image Format"
 msgstr "Định dạng ảnh Windows"
 
-#: camlibs/ptp2/ptp.c:4766
+#: camlibs/ptp2/ptp.c:4823
 msgid "Undefined Audio"
 msgstr "Âm thanh chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4770
+#: camlibs/ptp2/ptp.c:4827
 msgid "Audible.com Codec"
 msgstr "Audible.com Codec"
 
-#: camlibs/ptp2/ptp.c:4772
+#: camlibs/ptp2/ptp.c:4829
 msgid "Samsung Playlist"
 msgstr "Danh mục nhạc Samsung"
 
-#: camlibs/ptp2/ptp.c:4773
+#: camlibs/ptp2/ptp.c:4830
 msgid "Undefined Video"
 msgstr "Ảnh động chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4778
+#: camlibs/ptp2/ptp.c:4835
 msgid "Undefined Collection"
 msgstr "Tập hợp chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4779
+#: camlibs/ptp2/ptp.c:4836
 msgid "Abstract Multimedia Album"
 msgstr "Tập ảnh/nhạc Abstract"
 
-#: camlibs/ptp2/ptp.c:4780
+#: camlibs/ptp2/ptp.c:4837
 msgid "Abstract Image Album"
 msgstr "Tập ảnh Abstract"
 
-#: camlibs/ptp2/ptp.c:4781
+#: camlibs/ptp2/ptp.c:4838
 msgid "Abstract Audio Album"
 msgstr "Tập nhạc Abstract"
 
-#: camlibs/ptp2/ptp.c:4782
+#: camlibs/ptp2/ptp.c:4839
 msgid "Abstract Video Album"
 msgstr "Tập ảnh động Abstract"
 
-#: camlibs/ptp2/ptp.c:4783
+#: camlibs/ptp2/ptp.c:4840
 msgid "Abstract Audio Video Playlist"
 msgstr "Danh mục ảnh/nhạc Abstract"
 
-#: camlibs/ptp2/ptp.c:4784
+#: camlibs/ptp2/ptp.c:4841
 msgid "Abstract Contact Group"
 msgstr "Nhóm liên lạc Abstract"
 
-#: camlibs/ptp2/ptp.c:4785
+#: camlibs/ptp2/ptp.c:4842
 msgid "Abstract Message Folder"
 msgstr "Thư mục tin nhắn Abstract"
 
-#: camlibs/ptp2/ptp.c:4786
+#: camlibs/ptp2/ptp.c:4843
 msgid "Abstract Chaptered Production"
 msgstr "Sự Trình Bày Tập Abstract"
 
-#: camlibs/ptp2/ptp.c:4787
+#: camlibs/ptp2/ptp.c:4844
 msgid "Abstract Audio Playlist"
 msgstr "Danh mục nhạc Abstract"
 
-#: camlibs/ptp2/ptp.c:4788
+#: camlibs/ptp2/ptp.c:4845
 msgid "Abstract Video Playlist"
 msgstr "Danh mục ảnh Abstract"
 
-#: camlibs/ptp2/ptp.c:4789
+#: camlibs/ptp2/ptp.c:4846
 msgid "Abstract Mediacast"
 msgstr "Abstract Mediacast"
 
-#: camlibs/ptp2/ptp.c:4790
+#: camlibs/ptp2/ptp.c:4847
 msgid "WPL Playlist"
 msgstr "Danh mục nhạc WPL"
 
-#: camlibs/ptp2/ptp.c:4791
+#: camlibs/ptp2/ptp.c:4848
 msgid "M3U Playlist"
 msgstr "Danh mục nhạc M3U"
 
-#: camlibs/ptp2/ptp.c:4792
+#: camlibs/ptp2/ptp.c:4849
 msgid "MPL Playlist"
 msgstr "Danh mục nhạc MPL"
 
-#: camlibs/ptp2/ptp.c:4793
+#: camlibs/ptp2/ptp.c:4850
 msgid "ASX Playlist"
 msgstr "Danh mục nhạc ASX"
 
-#: camlibs/ptp2/ptp.c:4794
+#: camlibs/ptp2/ptp.c:4851
 msgid "PLS Playlist"
 msgstr "Danh mục nhạc PLS"
 
-#: camlibs/ptp2/ptp.c:4795
+#: camlibs/ptp2/ptp.c:4852
 msgid "Undefined Document"
 msgstr "Tài liệu chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4796
+#: camlibs/ptp2/ptp.c:4853
 msgid "Abstract Document"
 msgstr "Tài liệu Abstract"
 
-#: camlibs/ptp2/ptp.c:4797
+#: camlibs/ptp2/ptp.c:4854
 msgid "XMLDocument"
 msgstr "Tài liệu XML"
 
-#: camlibs/ptp2/ptp.c:4798
+#: camlibs/ptp2/ptp.c:4855
 msgid "Microsoft Word Document"
 msgstr "Tài liệu Word của Microsoft™"
 
-#: camlibs/ptp2/ptp.c:4799
+#: camlibs/ptp2/ptp.c:4856
 msgid "MHT Compiled HTML Document"
 msgstr "Tài liệu HTML đã biên dịch MHT"
 
-#: camlibs/ptp2/ptp.c:4800
+#: camlibs/ptp2/ptp.c:4857
 msgid "Microsoft Excel Spreadsheet (.xls)"
 msgstr "Bảng tính Excel của Microsoft™ (.xls)"
 
-#: camlibs/ptp2/ptp.c:4801
+#: camlibs/ptp2/ptp.c:4858
 msgid "Microsoft Powerpoint (.ppt)"
 msgstr "Trình diễn PowerPoint của Microsoft™ (.ppt)"
 
-#: camlibs/ptp2/ptp.c:4802
+#: camlibs/ptp2/ptp.c:4859
 msgid "Undefined Message"
 msgstr "Tin nhắn chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4803
+#: camlibs/ptp2/ptp.c:4860
 msgid "Abstract Message"
 msgstr "Tin nhắn Abstract"
 
-#: camlibs/ptp2/ptp.c:4804
+#: camlibs/ptp2/ptp.c:4861
 msgid "Undefined Contact"
 msgstr "Liên lạc chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4805
+#: camlibs/ptp2/ptp.c:4862
 msgid "Abstract Contact"
 msgstr "Liên lạc Abstract"
 
-#: camlibs/ptp2/ptp.c:4806
+#: camlibs/ptp2/ptp.c:4863
 msgid "vCard2"
 msgstr "vCard2"
 
-#: camlibs/ptp2/ptp.c:4807
+#: camlibs/ptp2/ptp.c:4864
 msgid "vCard3"
 msgstr "vCard3"
 
-#: camlibs/ptp2/ptp.c:4808
+#: camlibs/ptp2/ptp.c:4865
 msgid "Undefined Calendar Item"
 msgstr "Mục lịch chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4809
+#: camlibs/ptp2/ptp.c:4866
 msgid "Abstract Calendar Item"
 msgstr "Mục lịch Abstract"
 
-#: camlibs/ptp2/ptp.c:4810
+#: camlibs/ptp2/ptp.c:4867
 msgid "vCalendar1"
 msgstr "vCalendar1"
 
-#: camlibs/ptp2/ptp.c:4811
+#: camlibs/ptp2/ptp.c:4868
 msgid "vCalendar2"
 msgstr "vCalendar2"
 
-#: camlibs/ptp2/ptp.c:4812
+#: camlibs/ptp2/ptp.c:4869
 msgid "Undefined Windows Executable"
 msgstr "Tập tin có khả năng thực hiện Windows chưa xác định"
 
-#: camlibs/ptp2/ptp.c:4813
+#: camlibs/ptp2/ptp.c:4870
 msgid "Media Cast"
 msgstr "Quảng bá ảnh/nhạc"
 
-#: camlibs/ptp2/ptp.c:4814
+#: camlibs/ptp2/ptp.c:4871
 msgid "Section"
 msgstr "Phần"
 
-#: camlibs/ptp2/ptp.c:4853
+#: camlibs/ptp2/ptp.c:4910
 #, c-format
 msgid "Unknown(%04x)"
 msgstr "Không rõ (%04x)"
 
-#: camlibs/ptp2/ptp.c:4861
+#: camlibs/ptp2/ptp.c:4918
 msgid "get device info"
 msgstr "lấy thông tin về thiết bị"
 
-#: camlibs/ptp2/ptp.c:4862
+#: camlibs/ptp2/ptp.c:4919
 msgid "Open session"
 msgstr "Mở phiên chạy"
 
-#: camlibs/ptp2/ptp.c:4863
+#: camlibs/ptp2/ptp.c:4920
 msgid "Close session"
 msgstr "Đóng phiên chạy"
 
-#: camlibs/ptp2/ptp.c:4864
+#: camlibs/ptp2/ptp.c:4921
 msgid "Get storage IDs"
 msgstr "Lấy các mã hiệu cất giữ"
 
-#: camlibs/ptp2/ptp.c:4865
+#: camlibs/ptp2/ptp.c:4922
 msgid "Get storage info"
 msgstr "Lấy thông tin cất giữ"
 
-#: camlibs/ptp2/ptp.c:4866
+#: camlibs/ptp2/ptp.c:4923
 msgid "Get number of objects"
 msgstr "Lấy số đối tượng"
 
-#: camlibs/ptp2/ptp.c:4867
+#: camlibs/ptp2/ptp.c:4924
 msgid "Get object handles"
 msgstr "Lấy các móc đối tượng"
 
-#: camlibs/ptp2/ptp.c:4868
+#: camlibs/ptp2/ptp.c:4925
 msgid "Get object info"
 msgstr "Lấy thông tin về đối tượng"
 
-#: camlibs/ptp2/ptp.c:4869
+#: camlibs/ptp2/ptp.c:4926
 msgid "Get object"
 msgstr "Lấy đối tượng"
 
-#: camlibs/ptp2/ptp.c:4870
+#: camlibs/ptp2/ptp.c:4927
 msgid "Get thumbnail"
 msgstr "Lấy ảnh mẫu"
 
-#: camlibs/ptp2/ptp.c:4871
+#: camlibs/ptp2/ptp.c:4928
 msgid "Delete object"
 msgstr "Xoá đối tượng"
 
-#: camlibs/ptp2/ptp.c:4872
+#: camlibs/ptp2/ptp.c:4929
 msgid "Send object info"
 msgstr "Gửi thông tin về đối tượng"
 
-#: camlibs/ptp2/ptp.c:4873
+#: camlibs/ptp2/ptp.c:4930
 msgid "Send object"
 msgstr "Gửi đối tượng"
 
-#: camlibs/ptp2/ptp.c:4874
+#: camlibs/ptp2/ptp.c:4931
 msgid "Initiate capture"
 msgstr "Bắt đầu bắt"
 
-#: camlibs/ptp2/ptp.c:4875
+#: camlibs/ptp2/ptp.c:4932
 msgid "Format storage"
 msgstr "Định dạng kho"
 
-#: camlibs/ptp2/ptp.c:4876
+#: camlibs/ptp2/ptp.c:4933
 msgid "Reset device"
 msgstr "Đặt lại thiết bị"
 
-#: camlibs/ptp2/ptp.c:4877
+#: camlibs/ptp2/ptp.c:4934
 msgid "Self test device"
 msgstr "Tự thử thiết bị"
 
-#: camlibs/ptp2/ptp.c:4878
+#: camlibs/ptp2/ptp.c:4935
 msgid "Set object protection"
 msgstr "Đặt sự bảo vệ đối tượng"
 
-#: camlibs/ptp2/ptp.c:4879
+#: camlibs/ptp2/ptp.c:4936
 msgid "Power down device"
 msgstr "Tắt thiết bị"
 
-#: camlibs/ptp2/ptp.c:4880
+#: camlibs/ptp2/ptp.c:4937
 msgid "Get device property description"
 msgstr "Lấy mô tả thuộc tính thiết bị"
 
-#: camlibs/ptp2/ptp.c:4881
+#: camlibs/ptp2/ptp.c:4938
 msgid "Get device property value"
 msgstr "Lấy giá trị thuộc tính thiết bị"
 
-#: camlibs/ptp2/ptp.c:4882
+#: camlibs/ptp2/ptp.c:4939
 msgid "Set device property value"
 msgstr "Đặt giá trị thuộc tính thiết bị"
 
-#: camlibs/ptp2/ptp.c:4883
+#: camlibs/ptp2/ptp.c:4940
 msgid "Reset device property value"
 msgstr "Đặt lại giá trị thuộc tính thiết bị"
 
-#: camlibs/ptp2/ptp.c:4884
+#: camlibs/ptp2/ptp.c:4941
 msgid "Terminate open capture"
 msgstr "Kết thúc bắt mở"
 
-#: camlibs/ptp2/ptp.c:4885
+#: camlibs/ptp2/ptp.c:4942
 msgid "Move object"
 msgstr "Chuyển đối tượng"
 
-#: camlibs/ptp2/ptp.c:4886
+#: camlibs/ptp2/ptp.c:4943
 msgid "Copy object"
 msgstr "Chép đối tượng"
 
-#: camlibs/ptp2/ptp.c:4887
+#: camlibs/ptp2/ptp.c:4944
 msgid "Get partial object"
 msgstr "Lấy đối tượng bộ phạn"
 
-#: camlibs/ptp2/ptp.c:4888
+#: camlibs/ptp2/ptp.c:4945
 msgid "Initiate open capture"
 msgstr "Bắt đầu bắt mở"
 
-#: camlibs/ptp2/ptp.c:4895
+#: camlibs/ptp2/ptp.c:4952
 msgid "Get object properties supported"
 msgstr "Lấy các thuộc tính đối tượng đã hỗ trợ"
 
-#: camlibs/ptp2/ptp.c:4896
+#: camlibs/ptp2/ptp.c:4953
 msgid "Get object property description"
 msgstr "Lấy mô tả thuộc tính đối tượng"
 
-#: camlibs/ptp2/ptp.c:4897
+#: camlibs/ptp2/ptp.c:4954
 msgid "Get object property value"
 msgstr "Lấy giá trị thuộc tính đối tượng"
 
-#: camlibs/ptp2/ptp.c:4898
+#: camlibs/ptp2/ptp.c:4955
 msgid "Set object property value"
 msgstr "Đặt giá trị thuộc tính đối tượng"
 
-#: camlibs/ptp2/ptp.c:4899
+#: camlibs/ptp2/ptp.c:4956
 msgid "Get object property list"
 msgstr "Lấy danh sách thuộc tính đối tượng"
 
-#: camlibs/ptp2/ptp.c:4900
+#: camlibs/ptp2/ptp.c:4957
 msgid "Set object property list"
 msgstr "Đặt danh sách thuộc tính đối tượng"
 
-#: camlibs/ptp2/ptp.c:4901
+#: camlibs/ptp2/ptp.c:4958
 msgid "Get interdependent property description"
 msgstr "Lấy mô tả thuộc tính phụ thuộc vào nhau"
 
-#: camlibs/ptp2/ptp.c:4902
+#: camlibs/ptp2/ptp.c:4959
 msgid "Send object property list"
 msgstr "Gửi danh sách thuộc tính đối tượng"
 
-#: camlibs/ptp2/ptp.c:4903
+#: camlibs/ptp2/ptp.c:4960
 msgid "Get object references"
 msgstr "Lấy các tham chiếu đối tượng"
 
-#: camlibs/ptp2/ptp.c:4904
+#: camlibs/ptp2/ptp.c:4961
 msgid "Set object references"
 msgstr "Đặt các tham chiếu đối tượng"
 
-#: camlibs/ptp2/ptp.c:4905
+#: camlibs/ptp2/ptp.c:4962
 msgid "Update device firmware"
 msgstr "Cập nhật phần vững thiết bị"
 
-#: camlibs/ptp2/ptp.c:4906
+#: camlibs/ptp2/ptp.c:4963
 msgid "Skip to next position in playlist"
 msgstr "Nhảy tới vị trí kế trong danh mục nhạc"
 
-#: camlibs/ptp2/ptp.c:4909
+#: camlibs/ptp2/ptp.c:4966
 msgid "Get secure time challenge"
 msgstr "Lấy yêu cầu giờ bảo mật"
 
-#: camlibs/ptp2/ptp.c:4910
+#: camlibs/ptp2/ptp.c:4967
 msgid "Get secure time response"
 msgstr "Lấy đáp ứng giờ bảo mật"
 
-#: camlibs/ptp2/ptp.c:4911
+#: camlibs/ptp2/ptp.c:4968
 msgid "Set license response"
 msgstr "Đặt đáp ứng giấy phép"
 
-#: camlibs/ptp2/ptp.c:4912
+#: camlibs/ptp2/ptp.c:4969
 msgid "Get sync list"
 msgstr "Lấy danh sách đồng bộ"
 
-#: camlibs/ptp2/ptp.c:4913
+#: camlibs/ptp2/ptp.c:4970
 msgid "Send meter challenge query"
 msgstr "Gửi truy vấn yêu cầu cái đo"
 
-#: camlibs/ptp2/ptp.c:4914
+#: camlibs/ptp2/ptp.c:4971
 msgid "Get meter challenge"
 msgstr "Lấy yêu cầu cái đo"
 
-#: camlibs/ptp2/ptp.c:4915
+#: camlibs/ptp2/ptp.c:4972
 msgid "Get meter response"
 msgstr "Lấy đáp ứng cái đo"
 
-#: camlibs/ptp2/ptp.c:4916
+#: camlibs/ptp2/ptp.c:4973
 msgid "Clean data store"
 msgstr "Gột kho dữ liệu"
 
-#: camlibs/ptp2/ptp.c:4917
+#: camlibs/ptp2/ptp.c:4974
 msgid "Get license state"
 msgstr "Lấy tình trạng giấy phép"
 
-#: camlibs/ptp2/ptp.c:4918
+#: camlibs/ptp2/ptp.c:4975
 msgid "Send WMDRM-PD Command"
 msgstr "Gửi lệnh WMDRM-PD"
 
-#: camlibs/ptp2/ptp.c:4919
+#: camlibs/ptp2/ptp.c:4976
 msgid "Send WMDRM-PD Request"
 msgstr "Gửi yêu cầu WMDRM-PD"
 
-#: camlibs/ptp2/ptp.c:4922
+#: camlibs/ptp2/ptp.c:4979
 msgid "Report Added/Deleted Items"
 msgstr "Thông báo các mục đã Thêm/Xoá"
 
-#: camlibs/ptp2/ptp.c:4923
+#: camlibs/ptp2/ptp.c:4980
 msgid "Report Acquired Items"
 msgstr "Thông báo các mục đã giành được"
 
-#: camlibs/ptp2/ptp.c:4924
+#: camlibs/ptp2/ptp.c:4981
 msgid "Get transferable playlist types"
 msgstr "Lấy các kiểu danh mục phát có thể truyền"
 
-#: camlibs/ptp2/ptp.c:4927
+#: camlibs/ptp2/ptp.c:4984
 msgid "Send WMDRM-PD Application Request"
 msgstr "Gửi yêu cầu ứng dụng WMDRM-PD"
 
-#: camlibs/ptp2/ptp.c:4928
+#: camlibs/ptp2/ptp.c:4985
 msgid "Get WMDRM-PD Application Response"
 msgstr "Lấy trả lời ứng dụng WMDRM-PD"
 
-#: camlibs/ptp2/ptp.c:4929
+#: camlibs/ptp2/ptp.c:4986
 msgid "Enable trusted file operations"
 msgstr "Bật các thao tác tập tin đã tin cậy"
 
-#: camlibs/ptp2/ptp.c:4930
+#: camlibs/ptp2/ptp.c:4987
 msgid "Disable trusted file operations"
 msgstr "Tắt các thao tác tập tin đã tin cậy"
 
-#: camlibs/ptp2/ptp.c:4931
+#: camlibs/ptp2/ptp.c:4988
 msgid "End trusted application session"
 msgstr "Kết thúc phiên chạy ứng dụng tin cậy"
 
-#: camlibs/ptp2/ptp.c:4934
+#: camlibs/ptp2/ptp.c:4991
 msgid "Open Media Session"
 msgstr "Mở phiên chạy ảnh/nhạc"
 
-#: camlibs/ptp2/ptp.c:4935
+#: camlibs/ptp2/ptp.c:4992
 msgid "Close Media Session"
 msgstr "Đóng buổi hợp ảnh/nhạc"
 
-#: camlibs/ptp2/ptp.c:4936
+#: camlibs/ptp2/ptp.c:4993
 msgid "Get Next Data Block"
 msgstr "Lấy khối dữ liệu kế"
 
-#: camlibs/ptp2/ptp.c:4937
+#: camlibs/ptp2/ptp.c:4994
 msgid "Set Current Time Position"
 msgstr "Đặt vị trí giờ hiện thời"
 
-#: camlibs/ptp2/ptp.c:4940
+#: camlibs/ptp2/ptp.c:4997
 msgid "Send Registration Request"
 msgstr "Gửi yêu cầu đăng ký"
 
-#: camlibs/ptp2/ptp.c:4941
+#: camlibs/ptp2/ptp.c:4998
 msgid "Get Registration Response"
 msgstr "Lấy đáp ứng đăng ký"
 
-#: camlibs/ptp2/ptp.c:4942
+#: camlibs/ptp2/ptp.c:4999
 msgid "Get Proximity Challenge"
 msgstr "Lấy yêu cầu trạng thái gần"
 
-#: camlibs/ptp2/ptp.c:4943
+#: camlibs/ptp2/ptp.c:5000
 msgid "Send Proximity Response"
 msgstr "Gửi đáp ứng trạng thái gần"
 
-#: camlibs/ptp2/ptp.c:4944
+#: camlibs/ptp2/ptp.c:5001
 msgid "Send WMDRM-ND License Request"
 msgstr "Gửi yêu cầu giấy phép WMDRM-ND"
 
-#: camlibs/ptp2/ptp.c:4945
+#: camlibs/ptp2/ptp.c:5002
 msgid "Get WMDRM-ND License Response"
 msgstr "Lấy đáp ứng giấy phép WMDRM-ND"
 
-#: camlibs/ptp2/ptp.c:4948
+#: camlibs/ptp2/ptp.c:5005
 msgid "Process WFC Object"
 msgstr "Xử lý đối tượng WFC"
 
-#: camlibs/ptp2/ptp.c:4971
+#: camlibs/ptp2/ptp.c:5028
 #, c-format
 msgid "Unknown (%04x)"
 msgstr "Không rõ (%04x)"
@@ -11245,12 +11245,7 @@ msgstr "Máy ảnh này không thể bắt ô xem thử."
 msgid "The path '%s' is not absolute."
 msgstr "Đường dẫn « %s » không phải tuyệt đối."
 
-#: libgphoto2/gphoto2-filesys.c:744
-#, c-format
-msgid "Could not append '%s' to folder '%s' because this file already exists."
-msgstr "Không thể phụ thêm « %s » vào thư mục « %s » vì tập tin này đã có."
-
-#: libgphoto2/gphoto2-filesys.c:1109
+#: libgphoto2/gphoto2-filesys.c:1130
 #, c-format
 msgid ""
 "You have been trying to delete '%s' from folder '%s', but the filesystem "
@@ -11259,71 +11254,71 @@ msgstr ""
 "Bạn đã thử xoá « %s » khỏi thư mục « %s », nhưng mà hệ thống tập tin không "
 "hỗ trợ khả năng xoá tập tin."
 
-#: libgphoto2/gphoto2-filesys.c:1118
+#: libgphoto2/gphoto2-filesys.c:1139
 #, c-format
 msgid "Deleting '%s' from folder '%s'..."
 msgstr "Đang xoá « %s » khỏi thư mục « %s »..."
 
-#: libgphoto2/gphoto2-filesys.c:1246
+#: libgphoto2/gphoto2-filesys.c:1267
 #, c-format
 msgid ""
 "There are still subfolders in folder '%s/%s' that you are trying to remove."
 msgstr "Vẫn còn có thư mục con trong thư mục « %s/%s » bạn đang thử gỡ bỏ."
 
-#: libgphoto2/gphoto2-filesys.c:1251
+#: libgphoto2/gphoto2-filesys.c:1272
 #, c-format
 msgid "There are still files in folder '%s/%s' that you are trying to remove."
 msgstr "Vẫn còn có tập tin trong thư mục « %s/%s » bạn đang thử gỡ bỏ."
 
-#: libgphoto2/gphoto2-filesys.c:1287
+#: libgphoto2/gphoto2-filesys.c:1308
 msgid "The filesystem does not support upload of files."
 msgstr "Hệ thống tập tin này không hỗ trợ khả năng tải lên tập tin."
 
-#: libgphoto2/gphoto2-filesys.c:1340
+#: libgphoto2/gphoto2-filesys.c:1361
 #, c-format
 msgid ""
 "Folder '%s' only contains %i files, but you requested a file with number %i."
 msgstr ""
 "Thư mục « %s » chỉ chứa %i tập tin, còn bạn đã yêu cầu một tập tin có số %i."
 
-#: libgphoto2/gphoto2-filesys.c:1388
+#: libgphoto2/gphoto2-filesys.c:1409
 #, c-format
 msgid "File '%s' could not be found in folder '%s'."
 msgstr "Không tìm thấy tập tin « %s » trong thư mục « %s »."
 
-#: libgphoto2/gphoto2-filesys.c:1506
+#: libgphoto2/gphoto2-filesys.c:1526
 #, c-format
 msgid "Could not find file '%s'."
 msgstr "Không tìm thấy tập tin « %s »."
 
-#: libgphoto2/gphoto2-filesys.c:1632
+#: libgphoto2/gphoto2-filesys.c:1652
 msgid "The filesystem doesn't support getting files"
 msgstr "Hệ thống tập tin này không hỗ trợ khả năng lấy tập tin"
 
-#: libgphoto2/gphoto2-filesys.c:1665 libgphoto2/gphoto2-filesys.c:2166
-#: libgphoto2/gphoto2-filesys.c:2324
+#: libgphoto2/gphoto2-filesys.c:1685 libgphoto2/gphoto2-filesys.c:2186
+#: libgphoto2/gphoto2-filesys.c:2344
 #, c-format
 msgid "Unknown file type %i."
 msgstr "Không rõ kiểu tập tin %i."
 
-#: libgphoto2/gphoto2-filesys.c:1669
+#: libgphoto2/gphoto2-filesys.c:1689
 #, c-format
 msgid "Downloading '%s' from folder '%s'..."
 msgstr "Đang tải « %s » xuống thư mục « %s »..."
 
-#: libgphoto2/gphoto2-filesys.c:1924
+#: libgphoto2/gphoto2-filesys.c:1944
 msgid "The filesystem doesn't support getting file information"
 msgstr "Hệ thống tập tin này không hỗ trợ khả năng lấy thông tin về tập tin"
 
-#: libgphoto2/gphoto2-filesys.c:2434
+#: libgphoto2/gphoto2-filesys.c:2454
 msgid "The filesystem doesn't support setting file information"
 msgstr "Hệ thống tập tin này không hỗ trợ khả năng đặt thông tin về tập tin"
 
-#: libgphoto2/gphoto2-filesys.c:2456
+#: libgphoto2/gphoto2-filesys.c:2476
 msgid "Read-only file attributes like width and height can not be changed."
 msgstr "Không thể thay đổi thuộc tính tập tin chỉ đọc như độ rộng/cao."
 
-#: libgphoto2/gphoto2-filesys.c:2539
+#: libgphoto2/gphoto2-filesys.c:2559
 msgid "The filesystem doesn't support getting storage information"
 msgstr "Hệ thống tập tin này không hỗ trợ khả năng lấy thông tin cất giữ"
 
@@ -11382,6 +11377,10 @@ msgstr "Lỗi thư viện máy ảnh không rõ"
 #: libgphoto2/gphoto2-result.c:89
 msgid "Unknown error"
 msgstr "Lỗi không rõ"
+
+#~ msgid ""
+#~ "Could not append '%s' to folder '%s' because this file already exists."
+#~ msgstr "Không thể phụ thêm « %s » vào thư mục « %s » vì tập tin này đã có."
 
 #~ msgid "Foilage"
 #~ msgstr "Tán lá"

@@ -881,6 +881,29 @@ ptp_getobject_to_handler (PTPParams* params, uint32_t handle, PTPDataHandler *ha
 }
 
 /**
+ * ptp_canon_eos_getobject_to_handler:
+ * params:	PTPParams*
+ *		handle			- Object handle
+ *		PTPDataHandler*		- pointer datahandler
+ *
+ * Get object 'handle' from device and store the data in newly
+ * allocated 'object'.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+uint16_t
+ptp_canon_eos_getobject_to_handler (PTPParams* params, uint32_t handle, PTPDataHandler *handler)
+{
+	PTPContainer ptp;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code=PTP_OC_CANON_EOS_GetObject;
+	ptp.Param1=handle;
+	ptp.Nparam=1;
+	return ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, handler);
+}
+
+/**
  * ptp_getobject_tofd:
  * params:	PTPParams*
  *		handle			- Object handle
@@ -1838,6 +1861,40 @@ ptp_canon_eos_getstorageinfo (PTPParams* params, uint32_t p1, unsigned char **da
 	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, data, size);
 	/* FIXME: do stuff with data */
 	return ret;
+}
+
+uint16_t
+ptp_canon_eos_getobjectinfoex (
+	PTPParams* params, uint32_t storageid, uint32_t oid, uint32_t unk,
+	PTPCANONFolderEntry **entries, unsigned int *nrofentries
+) {
+	PTPContainer	ptp;
+	unsigned int	i, size = 0;
+	unsigned char	*data, *xdata;
+	uint16_t	ret;
+
+	data = NULL;
+	PTP_CNT_INIT(ptp);
+	ptp.Code 	= PTP_OC_CANON_EOS_GetObjectInfoEx;
+	ptp.Nparam	= 3;
+	ptp.Param1	= storageid;
+	ptp.Param2	= oid;
+	ptp.Param3	= unk;
+	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &data, &size);
+	if (ret != PTP_RC_OK)
+		return ret;
+
+	*nrofentries = dtoh32a(data);
+	*entries = malloc(*nrofentries * sizeof(PTPCANONFolderEntry));
+	if (!*entries)
+		return PTP_RC_GeneralError;
+
+	xdata = data+sizeof(uint32_t);
+	for (i=0;i<*nrofentries;i++) {
+		ptp_unpack_Canon_EOS_FE (params, &xdata[4], &((*entries)[i]));
+		xdata += dtoh32a(xdata);
+	}
+	return PTP_RC_OK;
 }
 
 /**

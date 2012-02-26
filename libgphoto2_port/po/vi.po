@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.9\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-22 22:21+0100\n"
 "PO-Revision-Date: 2010-04-16 21:48+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -444,7 +444,7 @@ msgstr "Không thể đặt tốc độ truyền thành %d"
 msgid "Could not open USB device (%m)."
 msgstr "Không thể mở thiết bị USB (%m)."
 
-#: usb/libusb.c:260 libusb1/libusb1.c:309
+#: usb/libusb.c:260 libusb1/libusb1.c:305
 msgid "Camera is already in use."
 msgstr "Máy ảnh đang được dùng."
 
@@ -458,7 +458,7 @@ msgstr "Thiết bị đính kèm trình điều khiển « %s » nên gỡ ra ng
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr "Không thể gỡ ra trình điều khiển hạt nhân « %s » của thiết bị máy ảnh."
 
-#: usb/libusb.c:273 libusb1/libusb1.c:323
+#: usb/libusb.c:273 libusb1/libusb1.c:321
 msgid "Could not query kernel driver of device."
 msgstr "Không thể truy vấn trình điều khiển hạt nhân của thiết bị."
 
@@ -498,12 +498,12 @@ msgstr "Không thể đặt cấu hình %d/%d (%m)"
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Không thể đặt altsetting (thiết lập xen kẽ) từ %d thành %d (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:764
+#: usb/libusb.c:713 libusb1/libusb1.c:763
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "Mã sản phẩm hay mã nhà sản xuất (0x%x, 0x%x) không phải hợp lệ."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:806
+#: usb/libusb.c:749 libusb1/libusb1.c:802
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -512,7 +512,7 @@ msgstr ""
 "Thiết bị USB (nhà sản xuất 0x%x, sản phẩm 0x%x) là một thiết bị lưu trữ hàng "
 "loạt, và có thể không hoạt động được với trình gphoto2. Tham khảo : %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:838
+#: usb/libusb.c:792 libusb1/libusb1.c:834
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -521,7 +521,7 @@ msgstr ""
 "Không tìm thấy thiết bị USB (nhà sản xuất 0x%x, sản phẩm 0x%x). Kiểm tra xem "
 "thiết bị này được kết nối đến máy tính."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1133
+#: usb/libusb.c:1090 libusb1/libusb1.c:1128
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -530,22 +530,22 @@ msgstr ""
 "Không tìm thấy thiết bị USB (hạng 0x%x, hạng con 0x%x, giao thức 0x%x). Kiểm "
 "tra xem thiết bị này được kết nối đến máy tính."
 
-#: libusb1/libusb1.c:300
+#: libusb1/libusb1.c:296
 #, fuzzy, c-format
 msgid "Could not open USB device (%s)."
 msgstr "Không thể mở thiết bị USB (%m)."
 
-#: libusb1/libusb1.c:315
+#: libusb1/libusb1.c:311
 #, fuzzy, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
 msgstr "Thiết bị đính kèm trình điều khiển « %s » nên gỡ ra ngay bây giờ."
 
-#: libusb1/libusb1.c:318
+#: libusb1/libusb1.c:314
 #, fuzzy
 msgid "Could not detach kernel driver of camera device."
 msgstr "Không thể gỡ ra trình điều khiển hạt nhân « %s » của thiết bị máy ảnh."
 
-#: libusb1/libusb1.c:331
+#: libusb1/libusb1.c:329
 #, fuzzy, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
@@ -556,27 +556,27 @@ msgstr ""
 "khác hoặc môđ-đun hạt nhân (v.d. %s) đang sử dụng thiết bị, và bạn có quyền "
 "đọc từ và ghi vào thiết bị này."
 
-#: libusb1/libusb1.c:353
+#: libusb1/libusb1.c:351
 #, fuzzy, c-format
 msgid "Could not release interface %d (%s)."
 msgstr "Không thể nhả giao diện %d (%m)."
 
-#: libusb1/libusb1.c:368
+#: libusb1/libusb1.c:366
 #, fuzzy, c-format
 msgid "Could not reset USB port (%s)."
 msgstr "Không thể đặt lại cổng USB (%m)."
 
-#: libusb1/libusb1.c:379
+#: libusb1/libusb1.c:377
 #, fuzzy
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Không thể gỡ ra trình điều khiển hạt nhân « %s » của thiết bị máy ảnh."
 
-#: libusb1/libusb1.c:628
+#: libusb1/libusb1.c:626
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Không thể đặt cấu hình %d/%d (%m)"
 
-#: libusb1/libusb1.c:667
+#: libusb1/libusb1.c:665
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "Không thể đặt altsetting (thiết lập xen kẽ) từ %d thành %d (%m)"

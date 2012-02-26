@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.11\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-22 22:21+0100\n"
 "PO-Revision-Date: 2011-12-01 17:44+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
@@ -457,7 +457,7 @@ msgstr "Nelze nastavit rychlost přenosu na %d"
 msgid "Could not open USB device (%m)."
 msgstr "Nelze otevřít zařízení USB (%m)."
 
-#: usb/libusb.c:260 libusb1/libusb1.c:309
+#: usb/libusb.c:260 libusb1/libusb1.c:305
 msgid "Camera is already in use."
 msgstr "Fotoaparát je již používán."
 
@@ -471,7 +471,7 @@ msgstr "Zařízení má připojeno ovladač „%s“, nyní se odpojuje."
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr "Nelze odpojit jaderný ovladač „%s“ zařízení fotoaparátu."
 
-#: usb/libusb.c:273 libusb1/libusb1.c:323
+#: usb/libusb.c:273 libusb1/libusb1.c:321
 msgid "Could not query kernel driver of device."
 msgstr "Nelze se dotázat jaderného ovladače zařízení."
 
@@ -511,12 +511,12 @@ msgstr "Nelze provést nastavení %d/%d (%m)"
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Nelze provést změnu nastavení %d na alternativní nastavení %d (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:764
+#: usb/libusb.c:713 libusb1/libusb1.c:763
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "Poskytnuté ID dodavatele nebo produktu (0x%x,0x%x) není platné."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:806
+#: usb/libusb.c:749 libusb1/libusb1.c:802
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -525,7 +525,7 @@ msgstr ""
 "Zařízení USB (výrobce 0x%x, výrobek 0x%x) je zařízení typu „master storage“ "
 "a možná nebude s gphoto2 fungovat. Příručka: %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:838
+#: usb/libusb.c:792 libusb1/libusb1.c:834
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -534,7 +534,7 @@ msgstr ""
 "Nelze najít zařízení USB (dodavatel 0x%x, produkt 0x%x). Zkontrolujte, že je "
 "toto zařízení připojeno k počítači."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1133
+#: usb/libusb.c:1090 libusb1/libusb1.c:1128
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -543,22 +543,22 @@ msgstr ""
 "Nelze najít zařízení USB (třída 0x%x, podtřída 0x%x, protokol 0x%x). "
 "Zkontrolujte, že je toto zařízení připojeno k počítači."
 
-#: libusb1/libusb1.c:300
+#: libusb1/libusb1.c:296
 #, fuzzy, c-format
 msgid "Could not open USB device (%s)."
 msgstr "Nelze otevřít zařízení USB (%m)."
 
-#: libusb1/libusb1.c:315
+#: libusb1/libusb1.c:311
 #, fuzzy, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
 msgstr "Zařízení má připojeno ovladač „%s“, nyní se odpojuje."
 
-#: libusb1/libusb1.c:318
+#: libusb1/libusb1.c:314
 #, fuzzy
 msgid "Could not detach kernel driver of camera device."
 msgstr "Nelze odpojit jaderný ovladač „%s“ zařízení fotoaparátu."
 
-#: libusb1/libusb1.c:331
+#: libusb1/libusb1.c:329
 #, fuzzy, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
@@ -569,27 +569,27 @@ msgstr ""
 "jaderný modul (např. %s) zařízení nepoužívá a že máte k zařízení přístup pro "
 "čtení a zápis."
 
-#: libusb1/libusb1.c:353
+#: libusb1/libusb1.c:351
 #, fuzzy, c-format
 msgid "Could not release interface %d (%s)."
 msgstr "Nelze uvolnit rozhraní %d (%m)."
 
-#: libusb1/libusb1.c:368
+#: libusb1/libusb1.c:366
 #, fuzzy, c-format
 msgid "Could not reset USB port (%s)."
 msgstr "Nelze resetovat port USB (%m)."
 
-#: libusb1/libusb1.c:379
+#: libusb1/libusb1.c:377
 #, fuzzy
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Nelze odpojit jaderný ovladač „%s“ zařízení fotoaparátu."
 
-#: libusb1/libusb1.c:628
+#: libusb1/libusb1.c:626
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Nelze provést nastavení %d/%d (%m)"
 
-#: libusb1/libusb1.c:667
+#: libusb1/libusb1.c:665
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "Nelze provést změnu nastavení %d na alternativní nastavení %d (%m)"

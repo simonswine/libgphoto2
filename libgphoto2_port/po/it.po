@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.9\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-22 22:21+0100\n"
 "PO-Revision-Date: 2010-04-26 10:43+0100\n"
 "Last-Translator: Marco Colombo <m.colombo@ed.ac.uk>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
@@ -455,7 +455,7 @@ msgstr "Impossibile impostare la velocità di trasmissione a %d"
 msgid "Could not open USB device (%m)."
 msgstr "Impossibile aprire il dispositivo USB (%m)."
 
-#: usb/libusb.c:260 libusb1/libusb1.c:309
+#: usb/libusb.c:260 libusb1/libusb1.c:305
 msgid "Camera is already in use."
 msgstr "La fotocamera è già in uso."
 
@@ -469,7 +469,7 @@ msgstr "Il dispositivo ha il driver \"%s\" collegato, scollegamento in corso."
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr "Impossibile scollegare il driver \"%s\" del kernel per il dispositivo."
 
-#: usb/libusb.c:273 libusb1/libusb1.c:323
+#: usb/libusb.c:273 libusb1/libusb1.c:321
 msgid "Could not query kernel driver of device."
 msgstr "Impossibile interrogare il driver del kernel per il dispositivo."
 
@@ -511,12 +511,12 @@ msgstr "Impossibile impostare la configurazione %d/%d (%m)"
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Impossibile impostare altsetting da %d a %d (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:764
+#: usb/libusb.c:713 libusb1/libusb1.c:763
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "L'id del vendor o del prodotto (0x%x,0x%x) fornito non è valido."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:806
+#: usb/libusb.c:749 libusb1/libusb1.c:802
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -526,7 +526,7 @@ msgstr ""
 "archiviazione di massa, e potrebbe non funzionare con gphoto2. Riferimento: "
 "%s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:838
+#: usb/libusb.c:792 libusb1/libusb1.c:834
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -535,7 +535,7 @@ msgstr ""
 "Impossibile trovare il dispositivo USB (vendor 0x%x, prodotto 0x%x). "
 "Assicurarsi che il dispositivo sia connesso al computer."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1133
+#: usb/libusb.c:1090 libusb1/libusb1.c:1128
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -544,22 +544,22 @@ msgstr ""
 "Impossibile trovare il dispositivo USB (classe 0x%x, sottoclasse 0x%x, "
 "protocollo 0x%x). Assicurarsi che il dispositivo sia connesso al computer."
 
-#: libusb1/libusb1.c:300
+#: libusb1/libusb1.c:296
 #, fuzzy, c-format
 msgid "Could not open USB device (%s)."
 msgstr "Impossibile aprire il dispositivo USB (%m)."
 
-#: libusb1/libusb1.c:315
+#: libusb1/libusb1.c:311
 #, fuzzy, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
 msgstr "Il dispositivo ha il driver \"%s\" collegato, scollegamento in corso."
 
-#: libusb1/libusb1.c:318
+#: libusb1/libusb1.c:314
 #, fuzzy
 msgid "Could not detach kernel driver of camera device."
 msgstr "Impossibile scollegare il driver \"%s\" del kernel per il dispositivo."
 
-#: libusb1/libusb1.c:331
+#: libusb1/libusb1.c:329
 #, fuzzy, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
@@ -570,29 +570,29 @@ msgstr ""
 "programma o un modulo del kernel (come %s) stia usando il device e che si "
 "abbia accesso in lettura e scrittura al device."
 
-#: libusb1/libusb1.c:353
+#: libusb1/libusb1.c:351
 #, fuzzy, c-format
 msgid "Could not release interface %d (%s)."
 msgstr "Impossibile rilasciare l'interfaccia %d (%m)."
 
 # FIXME
-#: libusb1/libusb1.c:368
+#: libusb1/libusb1.c:366
 #, fuzzy, c-format
 msgid "Could not reset USB port (%s)."
 msgstr "Impossibile reimpostare la porta USB (%m)."
 
-#: libusb1/libusb1.c:379
+#: libusb1/libusb1.c:377
 #, fuzzy
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Impossibile scollegare il driver \"%s\" del kernel per il dispositivo."
 
-#: libusb1/libusb1.c:628
+#: libusb1/libusb1.c:626
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Impossibile impostare la configurazione %d/%d (%m)"
 
 # FIXME
-#: libusb1/libusb1.c:667
+#: libusb1/libusb1.c:665
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "Impossibile impostare altsetting da %d a %d (%m)"

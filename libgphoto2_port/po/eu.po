@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: eu\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-22 22:21+0100\n"
 "PO-Revision-Date: 2005-05-14 13:32+0200\n"
 "Last-Translator: Iñaki Larrañaga  <dooteo@euskalgnu.org>\n"
 "Language-Team:  <itzulpena@euskalgnu.org>\n"
@@ -444,7 +444,7 @@ msgstr "Ezin izan da %d(r)en baudio-tasa ezarri"
 msgid "Could not open USB device (%m)."
 msgstr "Ezin izan da USB gailua ireki (%m)."
 
-#: usb/libusb.c:260 libusb1/libusb1.c:309
+#: usb/libusb.c:260 libusb1/libusb1.c:305
 msgid "Camera is already in use."
 msgstr "Kamera jadanik erabiltzen ari da"
 
@@ -458,7 +458,7 @@ msgstr "Gailuak '%s' kontrolatzailea erantsita du, askatu orain."
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr "Ezin izan da kamera gailuaren kerneleko '%s' kontrolatzailea askatu"
 
-#: usb/libusb.c:273 libusb1/libusb1.c:323
+#: usb/libusb.c:273 libusb1/libusb1.c:321
 msgid "Could not query kernel driver of device."
 msgstr "Ezin izan da gailuaren kontrolatzailea kernelari eskatu"
 
@@ -498,13 +498,13 @@ msgstr "Ezin izan da %d/%d konfigurazioa ezarri (%m)."
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Ezin izan da %d/%d aukerazko konfigurazioa ezarri (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:764
+#: usb/libusb.c:713 libusb1/libusb1.c:763
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr ""
 "Zehaztutako hornitzailearen edo produktuaren IDa (0x%x,0x%x) ez da baliozkoa."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:806
+#: usb/libusb.c:749 libusb1/libusb1.c:802
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -513,7 +513,7 @@ msgstr ""
 "USB gailua (0x%x hornitzailea, 0x%x produktua) biltegiratze-gailua da, eta "
 "ez du gphoto2-rekin funtzionatuko. Erreferentzia: %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:838
+#: usb/libusb.c:792 libusb1/libusb1.c:834
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -522,7 +522,7 @@ msgstr ""
 "Ezin izan da USB gailua (0x%x hornitzailea, 0x%x produktua) aurkitu. Ziurta "
 "zaitez gailua ordenagailuari konektatuta dagoela."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1133
+#: usb/libusb.c:1090 libusb1/libusb1.c:1128
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -531,22 +531,22 @@ msgstr ""
 "Ezin izan da USB gailua aurkitu (0x%x klasea, 0x%x azpiklasea, 0x%x "
 "protokoloa). Ziurta zaitez gailua ordenagailura konektatuta dagoela."
 
-#: libusb1/libusb1.c:300
+#: libusb1/libusb1.c:296
 #, fuzzy, c-format
 msgid "Could not open USB device (%s)."
 msgstr "Ezin izan da USB gailua ireki (%m)."
 
-#: libusb1/libusb1.c:315
+#: libusb1/libusb1.c:311
 #, fuzzy, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
 msgstr "Gailuak '%s' kontrolatzailea erantsita du, askatu orain."
 
-#: libusb1/libusb1.c:318
+#: libusb1/libusb1.c:314
 #, fuzzy
 msgid "Could not detach kernel driver of camera device."
 msgstr "Ezin izan da kamera gailuaren kerneleko '%s' kontrolatzailea askatu"
 
-#: libusb1/libusb1.c:331
+#: libusb1/libusb1.c:329
 #, fuzzy, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
@@ -557,27 +557,27 @@ msgstr ""
 "batek edo kerneleko modulo batek (%s bezalakoak) gailua erabiltzen ari ez "
 "dela, eta gailuan irakurtzeko/idazteko baimenak dituzula."
 
-#: libusb1/libusb1.c:353
+#: libusb1/libusb1.c:351
 #, fuzzy, c-format
 msgid "Could not release interface %d (%s)."
 msgstr "Ezin izan da %d interfazea askatu (%m)."
 
-#: libusb1/libusb1.c:368
+#: libusb1/libusb1.c:366
 #, fuzzy, c-format
 msgid "Could not reset USB port (%s)."
 msgstr "Ezin izan da USB ataka itxi (%m)."
 
-#: libusb1/libusb1.c:379
+#: libusb1/libusb1.c:377
 #, fuzzy
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Ezin izan da kamera gailuaren kerneleko '%s' kontrolatzailea askatu"
 
-#: libusb1/libusb1.c:628
+#: libusb1/libusb1.c:626
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Ezin izan da %d/%d konfigurazioa ezarri (%m)."
 
-#: libusb1/libusb1.c:667
+#: libusb1/libusb1.c:665
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "Ezin izan da %d/%d aukerazko konfigurazioa ezarri (%m)"

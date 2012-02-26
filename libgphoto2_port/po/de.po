@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libexif 0.6.16\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-22 22:21+0100\n"
 "PO-Revision-Date: 2011-12-03 13:49+0100\n"
 "Last-Translator: Marcus Meissner\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -453,7 +453,7 @@ msgstr "Konnte Baudrate nicht auf %d setzen"
 msgid "Could not open USB device (%m)."
 msgstr "Konnte USB-Gerät nicht öffnen (%m)."
 
-#: usb/libusb.c:260 libusb1/libusb1.c:309
+#: usb/libusb.c:260 libusb1/libusb1.c:305
 msgid "Camera is already in use."
 msgstr "Kamera ist bereits in Benutzung."
 
@@ -467,7 +467,7 @@ msgstr "Gerät hat Kerneltreiber '%s' zugewiesen, löse Treiber jetzt."
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr "Konnte Kerneltreiber '%s' nicht vom Kamera Device lösen."
 
-#: usb/libusb.c:273 libusb1/libusb1.c:323
+#: usb/libusb.c:273 libusb1/libusb1.c:321
 msgid "Could not query kernel driver of device."
 msgstr "Konnte den Kerneltreiber des Gerätes nicht abfragen."
 
@@ -508,13 +508,13 @@ msgstr "Konnte Konfiguration %d/%d nicht setzen (%m)"
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Konnte Alternativ-Setting %d nicht auf %d setzen (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:764
+#: usb/libusb.c:713 libusb1/libusb1.c:763
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr ""
 "Die angegebene Hersteller- oder Produkt-ID (0x%x,0x%x) ist nicht gültig."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:806
+#: usb/libusb.c:749 libusb1/libusb1.c:802
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -524,7 +524,7 @@ msgstr ""
 "und wird von System direkt unterstützt (und deshalb nicht von gphoto2). "
 "Lesen Sie hierzu bitte %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:838
+#: usb/libusb.c:792 libusb1/libusb1.c:834
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -534,7 +534,7 @@ msgstr ""
 "Stellen Sie sicher, dass das Gerät ordnungsgemäß an den Computer "
 "angeschlossen ist."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1133
+#: usb/libusb.c:1090 libusb1/libusb1.c:1128
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -545,21 +545,21 @@ msgstr ""
 "Stellen Sie sicher, dass das Gerät ordnungsgemäß an den Computer "
 "angeschlossen ist."
 
-#: libusb1/libusb1.c:300
+#: libusb1/libusb1.c:296
 #, c-format
 msgid "Could not open USB device (%s)."
 msgstr "Konnte USB-Gerät nicht öffnen (%s)."
 
-#: libusb1/libusb1.c:315
+#: libusb1/libusb1.c:311
 #, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
 msgstr "Gerät hat Kerneltreiber '%d' zugewiesen, löse Treiber jetzt."
 
-#: libusb1/libusb1.c:318
+#: libusb1/libusb1.c:314
 msgid "Could not detach kernel driver of camera device."
 msgstr "Konnte Kerneltreiber nicht vom Kamera Device lösen."
 
-#: libusb1/libusb1.c:331
+#: libusb1/libusb1.c:329
 #, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
@@ -571,26 +571,26 @@ msgstr ""
 "anderes Programm oder Kernelmodul (z.B. %s) das Gerät verwendet und Sie \n"
 "Lese- und Schreibrechte für das Gerät haben."
 
-#: libusb1/libusb1.c:353
+#: libusb1/libusb1.c:351
 #, c-format
 msgid "Could not release interface %d (%s)."
 msgstr "Konnte Schnittstelle %d nicht freigeben (%s)."
 
-#: libusb1/libusb1.c:368
+#: libusb1/libusb1.c:366
 #, c-format
 msgid "Could not reset USB port (%s)."
 msgstr "Konnte USB-Port nicht resetten (%s)."
 
-#: libusb1/libusb1.c:379
+#: libusb1/libusb1.c:377
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Konnte Kerneltreiber nicht vom Kamera Device lösen."
 
-#: libusb1/libusb1.c:628
+#: libusb1/libusb1.c:626
 #, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Konnte Konfiguration %d/%d nicht setzen (%s)"
 
-#: libusb1/libusb1.c:667
+#: libusb1/libusb1.c:665
 #, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "Konnte Alternativ-Setting %d nicht auf %d setzen (%s)"

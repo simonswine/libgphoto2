@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.7\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-22 22:21+0100\n"
 "PO-Revision-Date: 2009-09-23 04:04+0900\n"
 "Last-Translator: Tadashi Jokagi <elf2000@users.sourceforge.net>\n"
 "Language-Team: Japanese <translation-team-ja@lists.sourceforge.net>\n"
@@ -452,7 +452,7 @@ msgstr "ボーレートを %d にセットできませんでした。"
 msgid "Could not open USB device (%m)."
 msgstr "USB デバイスを開くことが出来ませんでした (%m)。"
 
-#: usb/libusb.c:260 libusb1/libusb1.c:309
+#: usb/libusb.c:260 libusb1/libusb1.c:305
 msgid "Camera is already in use."
 msgstr "既にカメラは使用中です。"
 
@@ -466,7 +466,7 @@ msgstr "ドライバ '%s' がデバイスを使用しています。今すぐ解
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr "Kernel ドライバ '%s' を解放できませんでした。"
 
-#: usb/libusb.c:273 libusb1/libusb1.c:323
+#: usb/libusb.c:273 libusb1/libusb1.c:321
 msgid "Could not query kernel driver of device."
 msgstr "Kernel のデバイス・ドライバを照会できませんでした。"
 
@@ -506,12 +506,12 @@ msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:764
+#: usb/libusb.c:713 libusb1/libusb1.c:763
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "提供ベンダーまたは製品 ID (0x%x,0x%x) は正しくありません。"
 
-#: usb/libusb.c:749 libusb1/libusb1.c:806
+#: usb/libusb.c:749 libusb1/libusb1.c:802
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -520,7 +520,7 @@ msgstr ""
 "USB デバイス (ベンダー:0x%x 製品: 0x%x) はマス・ストレージ用デバイスで、"
 "gphoto2 では取り扱えません。参考情報: %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:838
+#: usb/libusb.c:792 libusb1/libusb1.c:834
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -529,7 +529,7 @@ msgstr ""
 "USB デバイス (ベンダー:0x%x 製品: 0x%x) が見つかりませんでした。このデバイス"
 "がコンピュータに接続されているか確認して下さい。"
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1133
+#: usb/libusb.c:1090 libusb1/libusb1.c:1128
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -538,22 +538,22 @@ msgstr ""
 "USB デバイス (Class: 0x%x, SubClass: 0x%x, プロトコル: 0x%x) が見つかりません"
 "でした。このデバイスがコンピュータに接続されているか確認して下さい。"
 
-#: libusb1/libusb1.c:300
+#: libusb1/libusb1.c:296
 #, fuzzy, c-format
 msgid "Could not open USB device (%s)."
 msgstr "USB デバイスを開くことが出来ませんでした (%m)。"
 
-#: libusb1/libusb1.c:315
+#: libusb1/libusb1.c:311
 #, fuzzy, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
 msgstr "ドライバ '%s' がデバイスを使用しています。今すぐ解放します。"
 
-#: libusb1/libusb1.c:318
+#: libusb1/libusb1.c:314
 #, fuzzy
 msgid "Could not detach kernel driver of camera device."
 msgstr "Kernel ドライバ '%s' を解放できませんでした。"
 
-#: libusb1/libusb1.c:331
+#: libusb1/libusb1.c:329
 #, fuzzy, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
@@ -564,27 +564,27 @@ msgstr ""
 "が %s のような)  Kernel モジュールがこのデバイスを使用していないか確認して、"
 "そのデバイスの読み込み/書き込みをしてみて下さい。"
 
-#: libusb1/libusb1.c:353
+#: libusb1/libusb1.c:351
 #, fuzzy, c-format
 msgid "Could not release interface %d (%s)."
 msgstr "インタフェース %d を解放することが出来ませんでした (%m)。"
 
-#: libusb1/libusb1.c:368
+#: libusb1/libusb1.c:366
 #, fuzzy, c-format
 msgid "Could not reset USB port (%s)."
 msgstr "USB ポートをリセットすることが出来ませんでした (%m)。"
 
-#: libusb1/libusb1.c:379
+#: libusb1/libusb1.c:377
 #, fuzzy
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Kernel ドライバ '%s' を解放できませんでした。"
 
-#: libusb1/libusb1.c:628
+#: libusb1/libusb1.c:626
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
 
-#: libusb1/libusb1.c:667
+#: libusb1/libusb1.c:665
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
