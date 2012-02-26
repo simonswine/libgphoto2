@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-01-22 23:04+0100\n"
+"POT-Creation-Date: 2012-02-22 22:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -444,7 +444,7 @@ msgstr ""
 msgid "Could not open USB device (%m)."
 msgstr ""
 
-#: usb/libusb.c:260 libusb1/libusb1.c:309
+#: usb/libusb.c:260 libusb1/libusb1.c:305
 msgid "Camera is already in use."
 msgstr ""
 
@@ -458,7 +458,7 @@ msgstr ""
 msgid "Could not detach kernel driver '%s' of camera device."
 msgstr ""
 
-#: usb/libusb.c:273 libusb1/libusb1.c:323
+#: usb/libusb.c:273 libusb1/libusb1.c:321
 msgid "Could not query kernel driver of device."
 msgstr ""
 
@@ -495,47 +495,47 @@ msgstr ""
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr ""
 
-#: usb/libusb.c:713 libusb1/libusb1.c:764
+#: usb/libusb.c:713 libusb1/libusb1.c:763
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr ""
 
-#: usb/libusb.c:749 libusb1/libusb1.c:806
+#: usb/libusb.c:749 libusb1/libusb1.c:802
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
 "not function with gphoto2. Reference: %s"
 msgstr ""
 
-#: usb/libusb.c:792 libusb1/libusb1.c:838
+#: usb/libusb.c:792 libusb1/libusb1.c:834
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
 "is connected to the computer."
 msgstr ""
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1133
+#: usb/libusb.c:1090 libusb1/libusb1.c:1128
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
 "sure this device is connected to the computer."
 msgstr ""
 
-#: libusb1/libusb1.c:300
+#: libusb1/libusb1.c:296
 #, c-format
 msgid "Could not open USB device (%s)."
 msgstr ""
 
-#: libusb1/libusb1.c:315
+#: libusb1/libusb1.c:311
 #, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
 msgstr ""
 
-#: libusb1/libusb1.c:318
+#: libusb1/libusb1.c:314
 msgid "Could not detach kernel driver of camera device."
 msgstr ""
 
-#: libusb1/libusb1.c:331
+#: libusb1/libusb1.c:329
 #, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
@@ -543,26 +543,26 @@ msgid ""
 "the device."
 msgstr ""
 
-#: libusb1/libusb1.c:353
+#: libusb1/libusb1.c:351
 #, c-format
 msgid "Could not release interface %d (%s)."
 msgstr ""
 
-#: libusb1/libusb1.c:368
+#: libusb1/libusb1.c:366
 #, c-format
 msgid "Could not reset USB port (%s)."
 msgstr ""
 
-#: libusb1/libusb1.c:379
+#: libusb1/libusb1.c:377
 msgid "Could not reattach kernel driver of camera device."
 msgstr ""
 
-#: libusb1/libusb1.c:628
+#: libusb1/libusb1.c:626
 #, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr ""
 
-#: libusb1/libusb1.c:667
+#: libusb1/libusb1.c:665
 #, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr ""

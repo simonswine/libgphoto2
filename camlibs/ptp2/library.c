@@ -4355,7 +4355,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		return (GP_ERROR_BAD_PARAMETERS);
 
 	oi=&params->objectinfo[object_id];
-
 	if (oi->ModificationDate != 0) {
 		gp_file_set_mtime (file, oi->ModificationDate);
 	} else {
@@ -5285,6 +5284,87 @@ init_ptp_fs (Camera *camera, GPContext *context)
 		return PTP_RC_OK;
 	}
 
+	/* CANON EOS fast mode */
+	if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+	    ptp_operation_issupported(params, PTP_OC_CANON_EOS_GetObjectInfoEx)) {
+		unsigned int j,k;
+		PTPStorageIDs storageids;
+		PTPCANONFolderEntry *tmp = NULL;
+		PTPCANONFolderEntry *entries = NULL;
+		unsigned int nrofentries = 0, cursor = 0;
+		unsigned int nroftmp = 0;
+
+		params->handles.Handler = malloc(sizeof(params->handles.Handler[0]));
+		memset(params->handles.Handler,0,sizeof(params->handles.Handler[0]));
+		params->objectinfo = (PTPObjectInfo*)malloc(sizeof(PTPObjectInfo));
+		memset(params->objectinfo,0,sizeof(PTPObjectInfo));
+
+		ret = ptp_getstorageids(params, &storageids);
+
+		for (k=0;k<storageids.n;k++) {
+			gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "reading root directory of 0x%08x", storageids.Storage[k]);
+			ptp_canon_eos_getobjectinfoex (params, storageids.Storage[k], 0xffffffff, 0x100000, &tmp, &nroftmp);
+
+			entries = realloc(entries,sizeof(PTPCANONFolderEntry)*(nrofentries+nroftmp));
+			memcpy (entries+nrofentries, tmp, nroftmp*sizeof(PTPCANONFolderEntry));
+			params->handles.Handler = realloc (params->handles.Handler, sizeof(params->handles.Handler[0]) * (nrofentries+nroftmp));
+			params->objectinfo = realloc (params->objectinfo, sizeof(PTPObjectInfo) * (nrofentries+nroftmp));
+			/* convert read entries into objectinfos */
+			for (j=nrofentries;j<nrofentries+nroftmp;j++) {
+				memset (&params->objectinfo[j], 0, sizeof(PTPObjectInfo));
+				entries[j].StorageID 				= storageids.Storage[k];
+				params->objectinfo[j].StorageID			= storageids.Storage[k];
+
+				params->handles.Handler[j] 			= entries[j].ObjectHandle;
+				params->objectinfo[j].Filename			= strdup(entries[j].Filename);
+				params->objectinfo[j].ObjectFormat		= entries[j].ObjectFormatCode;
+				params->objectinfo[j].ProtectionStatus		= PTP_DPGS_Get; /* FIXME: check if ok */
+				params->objectinfo[j].ObjectCompressedSize	= entries[j].ObjectSize;
+				params->objectinfo[j].CaptureDate		= entries[j].Time;
+				params->objectinfo[j].ModificationDate		= entries[j].Time;
+				params->objectinfo[j].ParentObject		= 0; /* root */
+
+				debug_objectinfo(params, entries[j].ObjectHandle, &params->objectinfo[j]);
+			}
+			nrofentries += nroftmp;
+		}
+
+		do {
+			if (entries[cursor].ObjectFormatCode == PTP_OFC_Association) {
+				gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "reading directory of 0x%08x", entries[cursor].ObjectHandle);
+				ret = ptp_canon_eos_getobjectinfoex (params, storageids.Storage[0], entries[cursor].ObjectHandle, 0x100000, &tmp, &nroftmp);
+				gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "... %d entries", nroftmp);
+				entries = realloc(entries,sizeof(PTPCANONFolderEntry)*(nrofentries+nroftmp));
+				memcpy (entries+nrofentries, tmp, nroftmp*sizeof(PTPCANONFolderEntry));
+
+				params->handles.Handler = realloc (params->handles.Handler, sizeof(params->handles.Handler[0]) * (nrofentries+nroftmp));
+				params->objectinfo = realloc (params->objectinfo, sizeof(PTPObjectInfo) * (nrofentries+nroftmp));
+				/* convert read entries into objectinfos */
+				for (j=nrofentries;j<nrofentries+nroftmp;j++) {
+					memset (&params->objectinfo[j], 0, sizeof(PTPObjectInfo));
+					entries[j].StorageID 				= entries[cursor].StorageID;
+					params->objectinfo[j].StorageID			= entries[cursor].StorageID;
+					params->objectinfo[j].ParentObject		= entries[cursor].ObjectHandle;
+					params->handles.Handler[j] 			= entries[j].ObjectHandle;
+
+					params->objectinfo[j].Filename			= strdup(entries[j].Filename);
+					params->objectinfo[j].ObjectFormat		= entries[j].ObjectFormatCode;
+					params->objectinfo[j].ProtectionStatus		= PTP_DPGS_Get; /* FIXME: check if ok */
+					params->objectinfo[j].ObjectCompressedSize	= entries[j].ObjectSize;
+					params->objectinfo[j].CaptureDate		= entries[j].Time;
+					params->objectinfo[j].ModificationDate		= entries[j].Time;
+					debug_objectinfo(params, entries[j].ObjectHandle, &params->objectinfo[j]);
+				}
+				nrofentries += nroftmp;
+			}
+			cursor++;
+		} while (cursor < nrofentries);
+		params->handles.n = nrofentries;
+		gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "read %d entries", nrofentries);
+		free (storageids.Storage);
+		return PTP_RC_OK;
+	}
+
 #if 0
 	/* CANON also has fast directory retrieval. And it is mostly complete, so we can use it as full replacement */
 	/* Unfortunately this fails on the PowerShot A430. 
@@ -5856,8 +5936,19 @@ camera_init (Camera *camera, GPContext *context)
 #if 0
 		/* Marcus: this hides all files on the EOS 450D when triggered */
 		/* automatically enable capture mode on EOS cameras to populate property list */
-		if (ptp_operation_issupported(params, PTP_OC_CANON_EOS_RemoteRelease))
+		if (ptp_operation_issupported(params, PTP_OC_CANON_EOS_RemoteRelease)) {
 			camera_prepare_capture(camera,context);  
+		}
+#endif
+#if 1
+
+		if (ptp_operation_issupported(params, PTP_OC_CANON_EOS_SetRemoteMode)) {
+			ret = ptp_canon_eos_setremotemode(params, 1);
+			if (ret != PTP_RC_OK) {
+				gp_log (GP_LOG_ERROR,"ptp2/enable_remote_mode", "set remotemode 1 failed!");
+				return translate_ptp_result (ret);
+			}
+		}
 #endif
 		break;
 	case PTP_VENDOR_NIKON:

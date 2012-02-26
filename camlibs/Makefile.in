@@ -872,19 +872,19 @@ EXTRA_DIST = camlib.sym adc65/README.adc65 adc65/TODO adc65/Changelog \
 	canon/.indent.pro canon/ChangeLog canon/urb-interpret \
 	canon/README.canon canon/TODO casio/PROTOCOL.txt \
 	casio/ChangeLog clicksmart310/README.clicksmart310 \
-	digigr8/README.905C digigr8/README.9050 digigr8/README.913D \
-	digigr8/ChangeLog digita/ChangeLog dimera/CREDITS \
-	dimera/Protocol.txt dimera/ChangeLog dimera/TODO \
-	directory/ChangeLog enigma13/STATUS enigma13/protocol.txt \
-	enigma13/README.enigma13 enigma13/ChangeLog fuji/PROTOCOL \
-	fuji/ChangeLog gsmart300/README.gsmart300 gsmart300/ChangeLog \
-	hp215/ChangeLog hp215/PROTOCOL iclick/README.iclick \
-	iclick/ChangeLog jamcam/README.jamcam jamcam/ChangeLog \
-	jd11/jd11.html jd11/ChangeLog jl2005a/README.jl2005a \
-	jl2005a/ChangeLog jl2005c/README.jl2005c \
-	jl2005c/README.jl2005bcd-compression jl2005c/ChangeLog \
-	kodak/dc120/ChangeLog kodak/dc210/ChangeLog kodak/dc210/TODO \
-	kodak/dc240/ChangeLog kodak/dc3200/ChangeLog \
+	digigr8/README.905C digigr8/README.9050 digigr8/README.9051 \
+	digigr8/README.9052 digigr8/README.913D digigr8/ChangeLog \
+	digita/ChangeLog dimera/CREDITS dimera/Protocol.txt \
+	dimera/ChangeLog dimera/TODO directory/ChangeLog \
+	enigma13/STATUS enigma13/protocol.txt enigma13/README.enigma13 \
+	enigma13/ChangeLog fuji/PROTOCOL fuji/ChangeLog \
+	gsmart300/README.gsmart300 gsmart300/ChangeLog hp215/ChangeLog \
+	hp215/PROTOCOL iclick/README.iclick iclick/ChangeLog \
+	jamcam/README.jamcam jamcam/ChangeLog jd11/jd11.html \
+	jd11/ChangeLog jl2005a/README.jl2005a jl2005a/ChangeLog \
+	jl2005c/README.jl2005c jl2005c/README.jl2005bcd-compression \
+	jl2005c/ChangeLog kodak/dc120/ChangeLog kodak/dc210/ChangeLog \
+	kodak/dc210/TODO kodak/dc240/ChangeLog kodak/dc3200/ChangeLog \
 	kodak/ez200/Protocol.txt kodak/ez200/ez200-lsusb.txt \
 	kodak/ez200/ChangeLog kodak/CAMERAS konica/EXPERTS \
 	konica/qm150.txt konica/README.konica konica/ChangeLog \
@@ -928,14 +928,14 @@ camlibdoc_DATA = adc65/README.adc65 agfa-cl20/README.agfa-cl20 \
 	aox/README.aox ax203/README.ax203-compression \
 	ax203/README.ax203 canon/README.canon \
 	clicksmart310/README.clicksmart310 digigr8/README.905C \
-	digigr8/README.9050 digigr8/README.913D \
-	enigma13/README.enigma13 gsmart300/README.gsmart300 \
-	iclick/README.iclick jamcam/README.jamcam \
-	jl2005a/README.jl2005a jl2005c/README.jl2005c \
-	jl2005c/README.jl2005bcd-compression konica/README.konica \
-	largan/lmini/README.largan-lmini lg_gsm/README.lg_gsm \
-	mars/README.mars minolta/dimagev/README.minolta-dimagev \
-	mustek/README.mustek \
+	digigr8/README.9050 digigr8/README.9051 digigr8/README.9052 \
+	digigr8/README.913D enigma13/README.enigma13 \
+	gsmart300/README.gsmart300 iclick/README.iclick \
+	jamcam/README.jamcam jl2005a/README.jl2005a \
+	jl2005c/README.jl2005c jl2005c/README.jl2005bcd-compression \
+	konica/README.konica largan/lmini/README.largan-lmini \
+	lg_gsm/README.lg_gsm mars/README.mars \
+	minolta/dimagev/README.minolta-dimagev mustek/README.mustek \
 	panasonic/coolshot/README.panasonic-coolshot \
 	panasonic/l859/README.panasonic-l859 \
 	panasonic/README.panasonic pccam300/README.pccam300 \
