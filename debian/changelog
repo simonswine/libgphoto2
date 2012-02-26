@@ -1,9 +1,9 @@
-libgphoto2 (2.4.13-1) UNRELEASED; urgency=low
+libgphoto2 (2.4.13-1) unstable; urgency=low
 
   * New upstream version
   * Standards-Version bump to 3.9.3, no changes needed
 
- -- David Paleino <dapal@debian.org>  Sun, 26 Feb 2012 18:14:44 +0100
+ -- David Paleino <dapal@debian.org>  Sun, 26 Feb 2012 18:14:57 +0100
 
 libgphoto2 (2.4.12-1) unstable; urgency=low
 
