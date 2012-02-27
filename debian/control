@@ -81,7 +81,6 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends:
  ${shlibs:Depends}
  , ${misc:Depends}
- , adduser
 Recommends: ${udev-hotplug}
  , libgphoto2-l10n (>= ${source:Version})
 Suggests: gphoto2 (>= 2.1.1)
