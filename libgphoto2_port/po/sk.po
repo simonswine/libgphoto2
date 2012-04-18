@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.10\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-02-22 22:21+0100\n"
+"POT-Creation-Date: 2012-03-31 00:03+0200\n"
 "PO-Revision-Date: 2010-08-17 14:52+0100\n"
 "Last-Translator: Ivan Masár <helix84@centrum.sk>\n"
 "Language-Team: Slovak <sk-i18n@lists.linux.sk>\n"
@@ -491,22 +491,22 @@ msgstr "Nebolo možné reštartovať port USB (%m)."
 msgid "Could not close USB port (%m)."
 msgstr "Nebolo možné zatvoriť port USB (%m)."
 
-#: usb/libusb.c:588
+#: usb/libusb.c:590
 #, c-format
 msgid "Could not set config %d/%d (%m)"
 msgstr "Nebolo možné nastaviť konfiguráciu %d/%d (%m)"
 
-#: usb/libusb.c:621
+#: usb/libusb.c:623
 #, c-format
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Nebolo možné nastaviť alternatívne nastavenie z %d na %d (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:763
+#: usb/libusb.c:715 libusb1/libusb1.c:765
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "Zadaný ID dodávateľa alebo produktu (0x%x,0x%x) nie je platný."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:802
+#: usb/libusb.c:751 libusb1/libusb1.c:804
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -515,7 +515,7 @@ msgstr ""
 "Zariadenie USB (dodávateľ 0x%x, produkt 0x%x) je hromadné úložné zariadenie "
 "a nemusí s gphoto2 fungovať. Odkaz: %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:834
+#: usb/libusb.c:794 libusb1/libusb1.c:836
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -524,7 +524,7 @@ msgstr ""
 "Nebolo možné nájsť USB zariadenie (dodávateľ 0x%x, produkt 0x%x). Uistite "
 "sa, že je toto zariadenie pripojené k počítaču."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1128
+#: usb/libusb.c:1092 libusb1/libusb1.c:1130
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -574,12 +574,12 @@ msgstr "Nebolo možné reštartovať port USB (%m)."
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Nebolo možné odpojiť ovládač zariadenia fotoaparátu „%s“."
 
-#: libusb1/libusb1.c:626
+#: libusb1/libusb1.c:628
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Nebolo možné nastaviť konfiguráciu %d/%d (%m)"
 
-#: libusb1/libusb1.c:665
+#: libusb1/libusb1.c:667
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "Nebolo možné nastaviť alternatívne nastavenie z %d na %d (%m)"

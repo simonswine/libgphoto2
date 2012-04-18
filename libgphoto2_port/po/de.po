@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libexif 0.6.16\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-02-22 22:21+0100\n"
+"POT-Creation-Date: 2012-03-31 00:03+0200\n"
 "PO-Revision-Date: 2011-12-03 13:49+0100\n"
 "Last-Translator: Marcus Meissner\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -498,23 +498,23 @@ msgstr "Konnte USB-Port nicht resetten (%m)."
 msgid "Could not close USB port (%m)."
 msgstr "Konnte USB-Port nicht schließen (%m)."
 
-#: usb/libusb.c:588
+#: usb/libusb.c:590
 #, c-format
 msgid "Could not set config %d/%d (%m)"
 msgstr "Konnte Konfiguration %d/%d nicht setzen (%m)"
 
-#: usb/libusb.c:621
+#: usb/libusb.c:623
 #, c-format
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Konnte Alternativ-Setting %d nicht auf %d setzen (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:763
+#: usb/libusb.c:715 libusb1/libusb1.c:765
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr ""
 "Die angegebene Hersteller- oder Produkt-ID (0x%x,0x%x) ist nicht gültig."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:802
+#: usb/libusb.c:751 libusb1/libusb1.c:804
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -524,7 +524,7 @@ msgstr ""
 "und wird von System direkt unterstützt (und deshalb nicht von gphoto2). "
 "Lesen Sie hierzu bitte %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:834
+#: usb/libusb.c:794 libusb1/libusb1.c:836
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -534,7 +534,7 @@ msgstr ""
 "Stellen Sie sicher, dass das Gerät ordnungsgemäß an den Computer "
 "angeschlossen ist."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1128
+#: usb/libusb.c:1092 libusb1/libusb1.c:1130
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -585,12 +585,12 @@ msgstr "Konnte USB-Port nicht resetten (%s)."
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Konnte Kerneltreiber nicht vom Kamera Device lösen."
 
-#: libusb1/libusb1.c:626
+#: libusb1/libusb1.c:628
 #, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Konnte Konfiguration %d/%d nicht setzen (%s)"
 
-#: libusb1/libusb1.c:665
+#: libusb1/libusb1.c:667
 #, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "Konnte Alternativ-Setting %d nicht auf %d setzen (%s)"

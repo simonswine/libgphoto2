@@ -1,6 +1,6 @@
 /* config.c
  *
- * Copyright (C) 2003-2007 Marcus Meissner <marcus@jet.franken.de>
+ * Copyright (C) 2003-2012 Marcus Meissner <marcus@jet.franken.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -635,7 +635,9 @@ _get_Generic16Table(CONFIG_GET_ARGS, struct deviceproptableu16* tbl, int tblsize
 static int
 _put_Generic16Table(CONFIG_PUT_ARGS, struct deviceproptableu16* tbl, int tblsize) {
 	char *value;
-	int i, ret, intval;
+	int i, ret, intval, j;
+	int foundvalue = 0;
+	uint16_t	u16val = 0;
 
 	ret = gp_widget_get_value (widget, &value);
 	if (ret != GP_OK)
@@ -644,9 +646,30 @@ _put_Generic16Table(CONFIG_PUT_ARGS, struct deviceproptableu16* tbl, int tblsize
 		if (!strcmp(_(tbl[i].label),value) &&
 		    ((tbl[i].vendor_id == 0) || (tbl[i].vendor_id == camera->pl->params.deviceinfo.VendorExtensionID))
 		) {
-			propval->u16 = tbl[i].value;
-			return GP_OK;
+			u16val = tbl[i].value;
+			foundvalue = 1;
+		
+			if (dpd->FormFlag & PTP_DPFF_Enumeration) {
+				for (j = 0; j<dpd->FORM.Enum.NumberOfValues; j++) {
+					if (u16val == dpd->FORM.Enum.SupportedValue[j].u16) {
+						gp_log (GP_LOG_DEBUG, "ptp2/_put_Generic16Table", "FOUND right value for %s in the enumeration at val %d", value, u16val);
+						propval->u16 = u16val;
+						return GP_OK;
+					}
+				}
+				gp_log (GP_LOG_DEBUG, "ptp2/_put_Generic16Table", "did not find the right value for %s in the enumeration at val %d... continuing", value, u16val);
+				/* continue looking, but with this value as fallback */
+			} else {
+				gp_log (GP_LOG_DEBUG, "ptp2/_put_Generic16Table", "not an enumeration ... return %s as %d", value, u16val);
+				propval->u16 = u16val;
+				return GP_OK;
+			}
 		}
+	}
+	gp_log (GP_LOG_DEBUG, "ptp2/_put_Generic16Table", "Using fallback, not found in enum... return %s as %d", value, u16val);
+	if (foundvalue) {
+		propval->u16 = u16val;
+		return GP_OK;
 	}
 	if (!sscanf(value, _("Unknown value %04x"), &intval)) {
 		gp_log (GP_LOG_ERROR, "ptp2/config", "failed to find value %s in list", value);
@@ -1057,8 +1080,20 @@ _get_INT(CONFIG_GET_ARGS) {
 	case PTP_DTC_UINT32:
 		sprintf (value, "%u", dpd->CurrentValue.u32 );
 		break;
+	case PTP_DTC_INT32:
+		sprintf (value, "%d", dpd->CurrentValue.i32 );
+		break;
 	case PTP_DTC_UINT16:
 		sprintf (value, "%u", dpd->CurrentValue.u16 );
+		break;
+	case PTP_DTC_INT16:
+		sprintf (value, "%d", dpd->CurrentValue.i16 );
+		break;
+	case PTP_DTC_UINT8:
+		sprintf (value, "%u", dpd->CurrentValue.u8 );
+		break;
+	case PTP_DTC_INT8:
+		sprintf (value, "%d", dpd->CurrentValue.i8 );
 		break;
 	default:
 		sprintf (value,_("unexpected datatype %i"),dpd->DataType);
@@ -1990,32 +2025,38 @@ GENERIC16TABLE(Canon_ISO,canon_isospeed)
 /* see ptp-pack.c:ptp_unpack_EOS_ImageFormat */
 static struct deviceproptableu16 canon_eos_image_format[] = {
 	{ N_("RAW"),				0x0400, 0 },
-	{ N_("sRAW1"),				0x1400, 0 },
-	{ N_("sRAW2"),				0x2400, 0 },
+	{ N_("mRAW"),				0x1400, 0 },
+	{ N_("sRAW"),				0x2400, 0 },
 	{ N_("Large Fine JPEG"),		0x0300, 0 },
 	{ N_("Large Normal JPEG"),		0x0200, 0 },
 	{ N_("Medium Fine JPEG"),		0x1300, 0 },
 	{ N_("Medium Normal JPEG"),		0x1200, 0 },
 	{ N_("Small Fine JPEG"),		0x2300, 0 },
 	{ N_("Small Normal JPEG"),		0x2200, 0 },
+	{ N_("Small Fine JPEG"),		0xd300, 0 },
+	{ N_("Small Normal JPEG"),		0xd200, 0 },
+	{ N_("Smaller JPEG"),			0xe300, 0 },
+	{ N_("Tiny JPEG"),			0xf300, 0 },
 	{ N_("RAW + Large Fine JPEG"),		0x0403, 0 },
-	{ N_("sRAW1 + Large Fine JPEG"),	0x1403, 0 },
-	{ N_("sRAW2 + Large Fine JPEG"),	0x2403, 0 },
+	{ N_("mRAW + Large Fine JPEG"),		0x1403, 0 },
+	{ N_("sRAW + Large Fine JPEG"),		0x2403, 0 },
 	{ N_("RAW + Medium Fine JPEG"),		0x0413, 0 },
-	{ N_("sRAW1 + Medium Fine JPEG"),	0x1413, 0 },
-	{ N_("sRAW2 + Medium Fine JPEG"),	0x2413, 0 },
+	{ N_("mRAW + Medium Fine JPEG"),	0x1413, 0 },
+	{ N_("sRAW + Medium Fine JPEG"),	0x2413, 0 },
 	{ N_("RAW + Small Fine JPEG"),		0x0423, 0 },
-	{ N_("sRAW1 + Small Fine JPEG"),	0x1423, 0 },
-	{ N_("sRAW2 + Small Fine JPEG"),	0x2423, 0 },
+	{ N_("mRAW + Small Fine JPEG"),		0x1423, 0 },
+	{ N_("sRAW + Small Fine JPEG"),		0x2423, 0 },
 	{ N_("RAW + Large Normal JPEG"),	0x0402, 0 },
-	{ N_("sRAW1 + Large Normal JPEG"),	0x1402, 0 },
-	{ N_("sRAW2 + Large Normal JPEG"),	0x2402, 0 },
+	{ N_("mRAW + Large Normal JPEG"),	0x1402, 0 },
+	{ N_("sRAW + Large Normal JPEG"),	0x2402, 0 },
 	{ N_("RAW + Medium Normal JPEG"),	0x0412, 0 },
-	{ N_("sRAW1 + Medium Normal JPEG"),	0x1412, 0 },
-	{ N_("sRAW2 + Medium Normal JPEG"),	0x2412, 0 },
+	{ N_("mRAW + Medium Normal JPEG"),	0x1412, 0 },
+	{ N_("sRAW + Medium Normal JPEG"),	0x2412, 0 },
 	{ N_("RAW + Small Normal JPEG"),	0x0422, 0 },
-	{ N_("sRAW1 + Small Normal JPEG"),	0x1422, 0 },
-	{ N_("sRAW2 + Small Normal JPEG"),	0x2422, 0 },
+	{ N_("mRAW + Small Normal JPEG"),	0x1422, 0 },
+	{ N_("sRAW + Small Normal JPEG"),	0x2422, 0 },
+/* There are more RAW + 'smallish' JPEG combinations for at least the 5DM3 possible.
+   Axel was simply to lazy to exercise the combinatorial explosion. :-/ */
 };
 GENERIC16TABLE(Canon_EOS_ImageFormat,canon_eos_image_format)
 
@@ -2043,6 +2084,8 @@ static struct deviceproptableu16 canon_eos_drive_mode[] = {
 	{ N_("Continuous low speed"),	0x0005, 0 },
 	{ N_("Timer 10 sec"),		0x0010, 0 },
 	{ N_("Timer 2 sec"),		0x0011, 0 },
+	{ N_("Single silent"),		0x0013, 0 },
+	{ N_("Continuous silent"),	0x0014, 0 },
 };
 GENERIC16TABLE(Canon_EOS_DriveMode,canon_eos_drive_mode)
 
@@ -3176,8 +3219,9 @@ GENERIC16TABLE(FocusMode,focusmodes)
 
 static struct deviceproptableu16 eos_focusmodes[] = {
 	{ N_("One Shot"),	0x0000, 0 },
-	{ N_("AI Focus"),	0x0001, 0 },
-	{ N_("AI Servo"),	0x0002, 0 },
+	{ N_("AI Servo"),	0x0001, 0 },
+	{ N_("AI Focus"),	0x0002, 0 },
+	{ N_("Manual"),		0x0003, 0 },
 };
 GENERIC16TABLE(Canon_EOS_FocusMode,eos_focusmodes)
 
@@ -3328,8 +3372,8 @@ static struct deviceproptableu16 canon_aperture[] = {
 	{ "3.5",	0x0024, 0 },
 	{ "3.5",	0x0025, 0 }, /* (1/3)? */
 	{ "4",		0x0028, 0 },
-	{ "4.5",	0x002b, 0 }, /* (1/3)? */
 	{ "4.5",	0x002c, 0 },
+	{ "4.5",	0x002b, 0 }, /* (1/3)? */
 	{ "5",		0x002d, 0 }, /* 5.6 (1/3)??? */
 	{ "5.6",	0x0030, 0 },
 	{ "6.3",	0x0033, 0 },
@@ -4371,6 +4415,68 @@ _put_Canon_EOS_ViewFinder(CONFIG_PUT_ARGS) {
 }
 
 static int
+_get_Nikon_ViewFinder(CONFIG_GET_ARGS) {
+	int			val;
+	uint16_t		ret;
+	PTPPropertyValue	value;
+	PTPParams		*params = &(camera->pl->params);
+
+	gp_widget_new (GP_WIDGET_TOGGLE, _(menu->label), widget);
+	gp_widget_set_name (*widget, menu->name);
+	ret = ptp_getdevicepropvalue (params, PTP_DPC_NIKON_LiveViewStatus, &value, PTP_DTC_UINT8);
+	if (ret != PTP_RC_OK)
+		value.u8 = 0;
+	val = value.u8 ? 1 : 0;
+	gp_widget_set_value  (*widget, &val);
+	return (GP_OK);
+}
+
+static int
+_put_Nikon_ViewFinder(CONFIG_PUT_ARGS) {
+	int			val, ret;
+	uint16_t		res;
+	PTPParams		*params = &(camera->pl->params);
+	GPContext 		*context = ((PTPData *) params->data)->context;
+
+	if (!ptp_operation_issupported(params, PTP_OC_NIKON_StartLiveView))
+		return GP_ERROR_NOT_SUPPORTED;
+
+	ret = gp_widget_get_value (widget, &val);
+	if (ret != GP_OK)
+		return ret;
+	if (val) {
+		PTPPropertyValue	value;
+
+		res = ptp_getdevicepropvalue (params, PTP_DPC_NIKON_LiveViewStatus, &value, PTP_DTC_UINT8);
+		if (res != PTP_RC_OK) {
+			value.u8 = 0;
+			res = PTP_RC_OK;
+		}
+
+                if (!value.u8) {
+			value.u8 = 1;
+			res = ptp_setdevicepropvalue (params, PTP_DPC_NIKON_RecordingMedia, &value, PTP_DTC_UINT8);
+			if (res != PTP_RC_OK)
+				gp_log (GP_LOG_DEBUG, "ptp2/viewfinder_on", "set recordingmedia to 1 failed with 0x%04x", ret);
+
+			res = ptp_nikon_start_liveview (params);
+			if (res != PTP_RC_OK) {
+				gp_context_error (context, _("Nikon enable liveview failed: %x"), ret);
+				return translate_ptp_result (res);
+			}
+			while (ptp_nikon_device_ready(params) != PTP_RC_OK) usleep(50*1000)/*wait a bit*/;
+		}
+		return translate_ptp_result (res);
+	} else {
+		if (ptp_operation_issupported(params, PTP_OC_NIKON_EndLiveView)) {
+			res = ptp_nikon_end_liveview (params);
+			return translate_ptp_result (res);
+		}
+	}
+	return translate_ptp_result (ret);
+}
+
+static int
 _get_Canon_FocusLock(CONFIG_GET_ARGS) {
 	int val;
 
@@ -5042,6 +5148,7 @@ static struct submenu camera_actions_menu[] = {
 	{ N_("Canon EOS Zoom"),			"eoszoom",          0, PTP_VENDOR_CANON, PTP_OC_CANON_EOS_Zoom, _get_Canon_EOS_Zoom, _put_Canon_EOS_Zoom},
 	{ N_("Canon EOS Zoom Position"),	"eoszoomposition",  0, PTP_VENDOR_CANON, PTP_OC_CANON_EOS_ZoomPosition, _get_Canon_EOS_ZoomPosition, _put_Canon_EOS_ZoomPosition},
 	{ N_("Canon EOS Viewfinder"),		"eosviewfinder",    0, PTP_VENDOR_CANON, PTP_OC_CANON_EOS_GetViewFinderData, _get_Canon_EOS_ViewFinder, _put_Canon_EOS_ViewFinder},
+	{ N_("Nikon Viewfinder"),		"viewfinder",       0, PTP_VENDOR_NIKON, PTP_OC_NIKON_StartLiveView, _get_Nikon_ViewFinder, _put_Nikon_ViewFinder},
 	{ N_("Canon EOS Remote Release"),	"eosremoterelease",	0, PTP_VENDOR_CANON, PTP_OC_CANON_EOS_RemoteReleaseOn, _get_Canon_EOS_RemoteRelease, _put_Canon_EOS_RemoteRelease},
 	{ N_("CHDK Reboot"),			"chdk_reboot",		0, PTP_VENDOR_CANON, PTP_OC_CHDK, _get_Canon_CHDK_Reboot, _put_Canon_CHDK_Reboot},
 	{ N_("CHDK Script"),			"chdk_script",		0, PTP_VENDOR_CANON, PTP_OC_CHDK, _get_Canon_CHDK_Script, _put_Canon_CHDK_Script},
@@ -5101,6 +5208,7 @@ static struct submenu camera_settings_menu[] = {
 	{ N_("Artist"), "artist", PTP_DPC_CANON_EOS_Artist, PTP_VENDOR_CANON, PTP_DTC_STR, _get_STR, _put_STR},
 	{ N_("Copyright"), "copyright", PTP_DPC_CANON_EOS_Copyright, PTP_VENDOR_CANON, PTP_DTC_STR, _get_STR, _put_STR},
 	{ N_("Clean Sensor"), "cleansensor", PTP_DPC_NIKON_CleanImageSensor, PTP_VENDOR_CANON, PTP_DTC_UINT8, _get_Nikon_CleanSensor, _put_Nikon_CleanSensor},
+	{ N_("Custom Functions Ex"), "customfuncex", PTP_DPC_CANON_EOS_CustomFuncEx, PTP_VENDOR_CANON, PTP_DTC_STR, _get_STR, _put_STR},
 
 /* virtual */
 	{ N_("Fast Filesystem"), "fastfs", 0, PTP_VENDOR_NIKON, 0, _get_Nikon_FastFS, _put_Nikon_FastFS },
@@ -5180,7 +5288,7 @@ static struct submenu capture_settings_menu[] = {
 	{ N_("Focus Mode"), "focusmode", PTP_DPC_FocusMode, 0, PTP_DTC_UINT16, _get_FocusMode, _put_FocusMode},
 	/* Nikon DSLR have both PTP focus mode and Nikon specific focus mode */
 	{ N_("Focus Mode 2"), "focusmode2", PTP_DPC_NIKON_AutofocusMode, PTP_VENDOR_NIKON, PTP_DTC_UINT8, _get_Nikon_AFMode, _put_Nikon_AFMode},
-	{ N_("Focus Mode"), "focusmode", PTP_DPC_CANON_EOS_FocusMode, 0, PTP_DTC_UINT16, _get_Canon_EOS_FocusMode, _put_Canon_EOS_FocusMode},
+	{ N_("Focus Mode"), "focusmode", PTP_DPC_CANON_EOS_FocusMode, PTP_VENDOR_CANON, PTP_DTC_UINT16, _get_Canon_EOS_FocusMode, _put_Canon_EOS_FocusMode},
 	{ N_("Effect Mode"), "effectmode", PTP_DPC_EffectMode, 0, PTP_DTC_UINT16, _get_EffectMode, _put_EffectMode},
 	{ N_("Effect Mode"), "effectmode", PTP_DPC_NIKON_EffectMode, PTP_VENDOR_NIKON, PTP_DTC_UINT8, _get_NIKON_EffectMode, _put_NIKON_EffectMode},
 	{ N_("Exposure Program"), "expprogram", PTP_DPC_ExposureProgramMode, 0, PTP_DTC_UINT16, _get_ExposureProgram, _put_ExposureProgram},
@@ -5235,6 +5343,7 @@ static struct submenu capture_settings_menu[] = {
 	{ N_("Bracket Order"), "bracketorder", PTP_DPC_NIKON_BracketOrder, PTP_VENDOR_NIKON, PTP_DTC_UINT8, _get_Nikon_BracketOrder, _put_Nikon_BracketOrder},
 	{ N_("Burst Number"), "burstnumber", PTP_DPC_BurstNumber, 0, PTP_DTC_UINT16, _get_BurstNumber, _put_BurstNumber},
 	{ N_("Burst Interval"), "burstinterval", PTP_DPC_BurstNumber, 0, PTP_DTC_UINT16, _get_Milliseconds, _put_Milliseconds},
+	{ N_("Maximum Shots"), "maximumshots", PTP_DPC_NIKON_MaximumShots, PTP_VENDOR_NIKON, PTP_DTC_UINT8, _get_INT, _put_None},
 
 	/* Newer Nikons have UINT8 ranges */
 	{ N_("Auto White Balance Bias"), "autowhitebias", PTP_DPC_NIKON_WhiteBalanceAutoBias, PTP_VENDOR_NIKON, PTP_DTC_UINT8, _get_Nikon_UWBBias, _put_Nikon_UWBBias},

@@ -1147,7 +1147,12 @@ ptp_getdevicepropdesc (PTPParams* params, uint16_t propcode,
 	ptp.Nparam=1;
 	len=0;
 	ret=ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &dpd, &len);
-	if (ret == PTP_RC_OK) ptp_unpack_DPD(params, dpd, devicepropertydesc, len);
+	if (ret != PTP_RC_OK) {
+		free (dpd);
+		return ret;
+	}
+	if (!dpd) return PTP_RC_GeneralError;
+	ptp_unpack_DPD(params, dpd, devicepropertydesc, len);
 	free(dpd);
 	return ret;
 }
@@ -1666,6 +1671,13 @@ ptp_check_event (PTPParams *params) {
 		}
 		return PTP_RC_OK;
 	}
+	/* should not get here ... EOS has no normal PTP events and another queue handling. */
+	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+		ptp_operation_issupported(params, PTP_OC_CANON_EOS_GetEvent)
+	) {
+		return PTP_RC_OK;
+	}
+
 	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
 		ptp_operation_issupported(params, PTP_OC_CANON_CheckEvent)
 	) {
@@ -1970,6 +1982,15 @@ ptp_canon_eos_setdevicepropvalue (PTPParams* params,
 		if (!data) return PTP_RC_GeneralError;
 		params->canon_props[i].dpd.CurrentValue.u16 = value->u16;
 		ptp_pack_EOS_ImageFormat( params, data + 8, value->u16 );
+		break;
+	case PTP_DPC_CANON_EOS_CustomFuncEx:
+		/* special handling of CustomFuncEx properties */
+		ptp_debug (params, "ptp2/ptp_canon_eos_setdevicepropvalue: setting EOS prop %x to %s",propcode,value->str);
+		size = 8 + ptp_pack_EOS_CustomFuncEx( params, NULL, value->str );
+		data = malloc( size );
+		if (!data) return PTP_RC_GeneralError;
+		params->canon_props[i].dpd.CurrentValue.str = strdup( value->str );
+		ptp_pack_EOS_CustomFuncEx( params, data + 8, value->str );
 		break;
 	default:
 		if (datatype != PTP_DTC_STR) {

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port-2.4.11\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-02-22 22:21+0100\n"
+"POT-Creation-Date: 2012-03-31 00:03+0200\n"
 "PO-Revision-Date: 2011-05-16 14:03+0100\n"
 "Last-Translator: Dimitri Duc <dimitri.duc@gmail.com>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -501,23 +501,23 @@ msgstr "Impossible de réinitialiser le port USB (%m)."
 msgid "Could not close USB port (%m)."
 msgstr "Impossible de fermer le port USB (%m)."
 
-#: usb/libusb.c:588
+#: usb/libusb.c:590
 #, c-format
 msgid "Could not set config %d/%d (%m)"
 msgstr "Impossible de configurer %d/%d (%m)"
 
-#: usb/libusb.c:621
+#: usb/libusb.c:623
 #, c-format
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr ""
 "Impossible de définir un paramètre alternatif (altsetting) de %d à %d (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:763
+#: usb/libusb.c:715 libusb1/libusb1.c:765
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "L'identifiant fabricant ou produit (0x%x,0x%x) est invalide."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:802
+#: usb/libusb.c:751 libusb1/libusb1.c:804
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -527,7 +527,7 @@ msgstr ""
 "stockage de masse, et peut ne peut pas fonctionner avec gphoto2. Référence: "
 "%s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:834
+#: usb/libusb.c:794 libusb1/libusb1.c:836
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -536,7 +536,7 @@ msgstr ""
 "Impossible de trouver le périphérique USB (fabricant 0x%x, produit 0x%x). "
 "Assurez-vous qu'il est bien connecté à l'ordinateur."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1128
+#: usb/libusb.c:1092 libusb1/libusb1.c:1130
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -587,12 +587,12 @@ msgstr "Impossible de réinitialiser le port USB (%m)."
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Impossible de détaché le pilote '%s' du noyau. "
 
-#: libusb1/libusb1.c:626
+#: libusb1/libusb1.c:628
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "Impossible de configurer %d/%d (%m)"
 
-#: libusb1/libusb1.c:665
+#: libusb1/libusb1.c:667
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr ""

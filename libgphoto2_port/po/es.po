@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-02-22 22:21+0100\n"
+"POT-Creation-Date: 2012-03-31 00:03+0200\n"
 "PO-Revision-Date: 2002-06-18 22:59-0300\n"
 "Last-Translator: Fabian Mandelbaum <fabman@mandrakesoft.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -489,23 +489,23 @@ msgstr "No se pudo cerrar el puerto USB (%m)."
 msgid "Could not close USB port (%m)."
 msgstr "No se pudo cerrar el puerto USB (%m)."
 
-#: usb/libusb.c:588
+#: usb/libusb.c:590
 #, c-format
 msgid "Could not set config %d/%d (%m)"
 msgstr "No se pudo ajustar la configuración %d%d (%m)"
 
-#: usb/libusb.c:621
+#: usb/libusb.c:623
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "No se pudo configurar alternativa %d%d (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:763
+#: usb/libusb.c:715 libusb1/libusb1.c:765
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr ""
 "El fabricante o ID de producto proporcionado (0x%x, 0x%x) no es válido."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:802
+#: usb/libusb.c:751 libusb1/libusb1.c:804
 #, fuzzy, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -514,7 +514,7 @@ msgstr ""
 "No se pudo encontrar el dispositivo USB (fabricante 0x%x, producto 0x%x). "
 "Debe asegurarse que este dispositivo está conectado a la computadora."
 
-#: usb/libusb.c:792 libusb1/libusb1.c:834
+#: usb/libusb.c:794 libusb1/libusb1.c:836
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -523,7 +523,7 @@ msgstr ""
 "No se pudo encontrar el dispositivo USB (fabricante 0x%x, producto 0x%x). "
 "Debe asegurarse que este dispositivo está conectado a la computadora."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1128
+#: usb/libusb.c:1092 libusb1/libusb1.c:1130
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -574,12 +574,12 @@ msgstr "No se pudo cerrar el puerto USB (%m)."
 msgid "Could not reattach kernel driver of camera device."
 msgstr "No se pudo trabar el dispositivo"
 
-#: libusb1/libusb1.c:626
+#: libusb1/libusb1.c:628
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "No se pudo ajustar la configuración %d%d (%m)"
 
-#: libusb1/libusb1.c:665
+#: libusb1/libusb1.c:667
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "No se pudo configurar alternativa %d%d (%m)"

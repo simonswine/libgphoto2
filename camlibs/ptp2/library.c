@@ -1,7 +1,7 @@
 /* library.c
  *
  * Copyright (C) 2001-2005 Mariusz Woloszyn <emsi@ipartners.pl>
- * Copyright (C) 2003-2010 Marcus Meissner <marcus@jet.franken.de>
+ * Copyright (C) 2003-2012 Marcus Meissner <marcus@jet.franken.de>
  * Copyright (C) 2005 Hubert Figuiere <hfiguiere@teaser.fr>
  * Copyright (C) 2009 Axel Waggershauser <awagger@web.de>
  *
@@ -621,6 +621,8 @@ static struct {
 	{"Sony:DSC-W130 (PTP mode)",  0x054c, 0x0343, 0},
 	/* tux droid <gnutuxdroid@gmail.com> */
 	{"Sony:SLT-A55 (PTP mode)",   0x054c, 0x04a3, 0},
+	/* http://sourceforge.net/tracker/?func=detail&atid=358874&aid=3515558&group_id=8874 */
+	{"Sony:SLT-A35 (PTP mode)",   0x054c, 0x04a7, 0},
 	/* Rudi */
 	{"Sony:DSC-HX100V (PTP mode)",0x054c, 0x0543, 0},
 
@@ -717,7 +719,10 @@ static struct {
 	/* Graeme Wyatt <graeme.wyatt@nookawarra.com> */
 	{"Nikon:Coolpix L120 (PTP mode)", 0x04b0, 0x0185, PTP_CAP},
 	/* Kévin Ottens <ervin@ipsquad.net> */
-	{"Nikon:Coolpix S9100 (PTP mode)",0x04b0, 0x0186, 0},
+	{"Nikon:Coolpix S9100 (PTP mode)",0x04b0, 0x0186, PTP_CAP},
+
+	/* johnnolan@comcast.net */
+	{"Nikon:Coolpix AW100 (PTP mode)",0x04b0, 0x0188, PTP_CAP/*?*/},
 
 	/* Dale Pontius <DEPontius@edgehp.net> */
 	{"Nikon:Coolpix P7100 (PTP mode)",0x04b0, 0x018b, PTP_CAP},
@@ -730,6 +735,7 @@ static struct {
 	/* https://launchpad.net/bugs/63473 */
 	{"Nikon:Coolpix L1 (PTP mode)",   0x04b0, 0x0208, 0},
 	{"Nikon:Coolpix P4 (PTP mode)",   0x04b0, 0x020c, PTP_CAP},
+	{"Nikon:Coolpix S6000 (PTP mode)",0x04b0, 0x021e, 0},
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=3135935&group_id=8874&atid=358874 */
 	{"Nikon:Coolpix S8000 (PTP mode)",0x04b0, 0x021f, 0},
 	/* Aleksej Serdjukov <deletesoftware@yandex.ru> */
@@ -1095,6 +1101,8 @@ static struct {
 
 	/* IRC Reporter */
 	{"Canon:EOS 5D Mark II",		0x04a9, 0x3199, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
+	/* Axel Waggershauser <awagger@web.de> */
+	{"Canon:EOS 5D Mark III",		0x04a9, 0x323a, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
 	/* Thomas Tanner <thomas@tannerlab.com> */
 	{"Canon:EOS 7D",			0x04a9, 0x319a, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
 	/* mitch <debianuser@mll.dissimulo.com> */
@@ -1154,6 +1162,7 @@ static struct {
 	/* ErVito on IRC */
 	{"Canon:PowerShot A3100 IS",		0x04a9, 0x31f1, PTPBUG_DELETE_SENDS_EVENT},
 
+	{"Canon:PowerShot A3000 IS",		0x04a9, 0x31f2, PTPBUG_DELETE_SENDS_EVENT},
 	{"Canon:Digital IXUS 130",		0x04a9, 0x31f3, PTPBUG_DELETE_SENDS_EVENT},
 	/* Mark Voorhies <mvoorhie@yahoo.com> */
 	{"Canon:PowerShot SD1300 IS",		0x04a9, 0x31f4, PTPBUG_DELETE_SENDS_EVENT},
@@ -1167,6 +1176,9 @@ static struct {
 	{"Canon:EOS 1100D",			0x04a9, 0x3217, PTP_CAP|PTP_CAP_PREVIEW},
 	/* https://sourceforge.net/tracker/?func=detail&atid=358874&aid=3310995&group_id=8874 */
 	{"Canon:EOS 600D",			0x04a9, 0x3218, PTP_CAP|PTP_CAP_PREVIEW},
+
+	/* Juha Pesonen <juha.e.pesonen@gmail.com> */
+	{"Canon:PowerShot SX230HS",		0x04a9, 0x3228, PTPBUG_DELETE_SENDS_EVENT},
 
 	/* Konica-Minolta PTP cameras */
 	{"Konica-Minolta:DiMAGE A2 (PTP mode)",        0x132b, 0x0001, 0},
@@ -1270,6 +1282,12 @@ static struct {
 	{"Apple:iPod Touch 2G (PTP mode)",	0x05ac, 0x1293, 0},
 	/* Mark Lehrer <mark@knm.org> */
 	{"Apple:iPhone 3GS (PTP mode)",		0x05ac, 0x1294, 0},
+
+	/* Rasmus P */
+	{"Apple:iPhone 4 (PTP mode)",		0x05ac, 0x1297, 0},
+
+	{"Apple:iPod Touch 3rd Gen (PTP mode)",	0x05ac, 0x1299, 0},
+	{"Apple:iPad (PTP mode)",		0x05ac, 0x129a, 0},
 
 	/* https://sourceforge.net/tracker/index.php?func=detail&aid=1869653&group_id=158745&atid=809061 */
 	{"Pioneer:DVR-LX60D",			0x08e4, 0x0142, 0},
@@ -1789,6 +1807,7 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 		return GP_ERROR_NOT_SUPPORTED;
 	case PTP_VENDOR_NIKON: {
 		PTPPropertyValue	value;
+		int 			tries;
 
 		if (!ptp_operation_issupported(params, PTP_OC_NIKON_StartLiveView)) {
 			gp_context_error (context,
@@ -1811,48 +1830,56 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 				SET_CONTEXT_P(params, NULL);
 				return translate_ptp_result (ret);
 			}
-			while (ptp_nikon_device_ready(params) != PTP_RC_OK) /* empty */;
+			while (ptp_nikon_device_ready(params) != PTP_RC_OK)
+				usleep(20*1000);
 		}
-
-		ret = ptp_nikon_get_liveview_image (params , &data, &size);
-		if (ret == PTP_RC_OK) {
-			/* look for the JPEG SOI marker (0xFFD8) in data */
-			jpgStartPtr = (unsigned char*)memchr(data, 0xff, size);
-			while(jpgStartPtr && ((jpgStartPtr+1) < (data + size))) {
-				if(*(jpgStartPtr + 1) == 0xd8) { /* SOI found */
-					break;
-				} else { /* go on looking (starting at next byte) */
-					jpgStartPtr++;
-					jpgStartPtr = (unsigned char*)memchr(jpgStartPtr, 0xff, data + size - jpgStartPtr);
+		tries = 20;
+		while (tries--) {
+			ret = ptp_nikon_get_liveview_image (params , &data, &size);
+			if (ret == PTP_RC_OK) {
+				/* look for the JPEG SOI marker (0xFFD8) in data */
+				jpgStartPtr = (unsigned char*)memchr(data, 0xff, size);
+				while(jpgStartPtr && ((jpgStartPtr+1) < (data + size))) {
+					if(*(jpgStartPtr + 1) == 0xd8) { /* SOI found */
+						break;
+					} else { /* go on looking (starting at next byte) */
+						jpgStartPtr++;
+						jpgStartPtr = (unsigned char*)memchr(jpgStartPtr, 0xff, data + size - jpgStartPtr);
+					}
 				}
-			}
-			if(!jpgStartPtr) { /* no SOI -> no JPEG */
-				gp_context_error (context, _("Sorry, your Nikon camera does not seem to return a JPEG image in LiveView mode"));
-				return GP_ERROR;
-			}
-			/* if SOI found, start looking for EOI marker (0xFFD9) one byte after SOI
-			   (just to be sure we will not go beyond the end of the data array) */
-			jpgEndPtr = (unsigned char*)memchr(jpgStartPtr+1, 0xff, data+size-jpgStartPtr-1);
-			while(jpgEndPtr && ((jpgEndPtr+1) < (data + size))) {
-				if(*(jpgEndPtr + 1) == 0xd9) { /* EOI found */
-					jpgEndPtr += 2;
-					break;
-				} else { /* go on looking (starting at next byte) */
-					jpgEndPtr++;
-					jpgEndPtr = (unsigned char*)memchr(jpgEndPtr, 0xff, data + size - jpgEndPtr);
+				if(!jpgStartPtr) { /* no SOI -> no JPEG */
+					gp_context_error (context, _("Sorry, your Nikon camera does not seem to return a JPEG image in LiveView mode"));
+					return GP_ERROR;
 				}
+				/* if SOI found, start looking for EOI marker (0xFFD9) one byte after SOI
+				   (just to be sure we will not go beyond the end of the data array) */
+				jpgEndPtr = (unsigned char*)memchr(jpgStartPtr+1, 0xff, data+size-jpgStartPtr-1);
+				while(jpgEndPtr && ((jpgEndPtr+1) < (data + size))) {
+					if(*(jpgEndPtr + 1) == 0xd9) { /* EOI found */
+						jpgEndPtr += 2;
+						break;
+					} else { /* go on looking (starting at next byte) */
+						jpgEndPtr++;
+						jpgEndPtr = (unsigned char*)memchr(jpgEndPtr, 0xff, data + size - jpgEndPtr);
+					}
+				}
+				if(!jpgEndPtr) { /* no EOI -> no JPEG */
+					gp_context_error (context, _("Sorry, your Nikon camera does not seem to return a JPEG image in LiveView mode"));
+					return GP_ERROR;
+				}
+				gp_file_append (file, (char*)jpgStartPtr, jpgEndPtr-jpgStartPtr);
+				free (data); /* FIXME: perhaps handle the 128 byte header data too. */
+				gp_file_set_mime_type (file, GP_MIME_JPEG);     /* always */
+				/* Add an arbitrary file name so caller won't crash */
+				gp_file_set_name (file, "preview.jpg");
+				gp_file_set_mtime (file, time(NULL));
+				break;
 			}
-			if(!jpgEndPtr) { /* no EOI -> no JPEG */
-				gp_context_error (context, _("Sorry, your Nikon camera does not seem to return a JPEG image in LiveView mode"));
-				return GP_ERROR;
+			if (ret == PTP_RC_DeviceBusy) {
+				gp_log (GP_LOG_DEBUG, "ptp2/nikon_liveview", "busy, retrying after a bit of wait, try %d", tries);
+				usleep(10*1000);
+				continue;
 			}
-			gp_file_append (file, (char*)jpgStartPtr, jpgEndPtr-jpgStartPtr);
-			free (data); /* FIXME: perhaps handle the 128 byte header data too. */
-			gp_file_set_mime_type (file, GP_MIME_JPEG);     /* always */
-			/* Add an arbitrary file name so caller won't crash */
-			gp_file_set_name (file, "preview.jpg");
-			gp_file_set_mtime (file, time(NULL));
-		} else {
 			SET_CONTEXT_P(params, NULL);
 			return translate_ptp_result (ret);
 		}
@@ -2873,6 +2900,42 @@ camera_wait_for_event (Camera *camera, int timeout,
 			CPR (context, ptp_check_event (params));
 			if (ptp_get_one_event(params, &event)) {
 				gp_log (GP_LOG_DEBUG, "ptp","canon event: nparam=0x%X, C=0x%X, trans_id=0x%X, p1=0x%X, p2=0x%X, p3=0x%X", event.Nparam,event.Code,event.Transaction_ID, event.Param1, event.Param2, event.Param3);
+				switch (event.Code) {
+				case PTP_EC_CANON_RequestObjectTransfer: {
+					CameraFilePath *path;
+					PTPObjectInfo   oi;
+
+					newobject = event.Param1;
+					gp_log (GP_LOG_DEBUG, "ptp", "PTP_EC_CANON_RequestObjectTransfer, object handle=0x%X.",newobject);
+					/* FIXME: handle multiple images (as in BurstMode) */
+					ret = ptp_getobjectinfo (params, newobject, &oi);
+					if (ret != PTP_RC_OK) return translate_ptp_result (ret);
+
+					if (oi.ParentObject != 0) {
+						ret = add_object (camera, newobject, context);
+						if (ret != GP_OK)
+							return ret;
+						path = malloc (sizeof(CameraFilePath));
+						strcpy  (path->name,  oi.Filename);
+						sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)oi.StorageID);
+						get_folder_from_handle (camera, oi.StorageID, oi.ParentObject, path->folder);
+						/* delete last / or we get confused later. */
+						path->folder[ strlen(path->folder)-1 ] = '\0';
+						gp_filesystem_append (camera->fs, path->folder, path->name, context);
+
+					} else {
+						path = malloc (sizeof(CameraFilePath));
+						sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx",(unsigned long)oi.StorageID);
+						sprintf (path->name, "capt%04d.jpg", capcnt++);
+						add_objectid_and_upload (camera, path, context, newobject, &oi);
+					}
+					*eventdata = path;
+					*eventtype = GP_EVENT_FILE_ADDED;
+					return GP_OK;
+				}
+				default:
+					break;
+				}
 				goto handleregular;
 			}
 			if (_timeout_passed (&event_start, timeout))
@@ -3789,6 +3852,10 @@ folder_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 			PTPStorageIDs storageids;
 
 			CPR (context, ptp_getstorageids(params, &storageids));
+			if (!storageids.n) {
+				/* happens on Samsung Galaxy S2, fall back to default store. */
+				CR (gp_list_append (list, STORAGE_FOLDER_PREFIX"00010001", NULL));
+			}
 			for (i=0; i<storageids.n; i++) {
 				char fname[PTP_MAXSTRLEN];
 
@@ -5127,7 +5194,7 @@ debug_objectinfo(PTPParams *params, uint32_t oid, PTPObjectInfo *oi) {
 int
 init_ptp_fs (Camera *camera, GPContext *context)
 {
-	int i, id, nroot = 0;
+	int i, id, nroot = 0, nonroot = 0;
 	PTPParams *params = &camera->pl->params;
 	char buf[1024];
 	uint16_t ret;
@@ -5485,6 +5552,16 @@ init_ptp_fs (Camera *camera, GPContext *context)
 				}
 				gp_log (GP_LOG_DEBUG, "ptp2/mtpfast", "objectsize %u", xpl->propval.u32);
 				break;
+			case PTP_OPC_AssociationType:
+				if (xpl->datatype != PTP_DTC_UINT16) {
+					gp_log (GP_LOG_ERROR, "ptp2/mtpfast", "assoctype has type 0x%x???", xpl->datatype);
+					break;
+				}
+				oinfos[i].AssociationType = xpl->propval.u16;
+				if (xpl->propval.u16 == 0)
+					nroot++;
+				gp_log (GP_LOG_DEBUG, "ptp2/mtpfast", "assoctype 0x%x", xpl->propval.u16);
+				break;
 			case PTP_OPC_StorageID:
 				if (xpl->datatype != PTP_DTC_UINT32) {
 					gp_log (GP_LOG_ERROR, "ptp2/mtpfast", "storageid has type 0x%x???", xpl->datatype);
@@ -5568,6 +5645,8 @@ fallback:
 #endif
 		if (params->objectinfo[i].ParentObject == 0)
 			nroot++;
+		else
+			nonroot++;
 
                 if (	!params->objectinfo[i].Filename ||
 			!strlen (params->objectinfo[i].Filename)
@@ -5581,6 +5660,31 @@ fallback:
 		10+(90*i)/params->handles.n);
 	}
 	gp_context_progress_stop (context, id);
+
+	if (!nonroot && params->handles.n) {
+		for (i = 0; i < params->handles.n; i++) {
+			int j;
+			PTPObjectHandles nhandles;
+
+			if (params->objectinfo[i].AssociationType != 1)
+				continue;
+			CPR (context, ptp_getobjecthandles (params, 0xffffffff, 0x000000, params->handles.Handler[i], &nhandles));
+			if (nhandles.n == 0)
+				continue;
+			for (j=0;j<nhandles.n;j++) {
+				/* linear search probably not necessary ... */
+#if 0
+				int k;
+				for (k = 0; k < params->handles.n; k++)
+					if (nhandles.Handler[j] == params->handles.Handler[k])
+						break;
+				if (k < params->handles.n)
+					continue;
+#endif
+				add_object (camera, nhandles.Handler[j], context);
+			}
+		}
+	}
 
 	/* for older Canons we now retrieve their object flags, to allow
 	 * "new" image handling. This is not yet a substitute for regular

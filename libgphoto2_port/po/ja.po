@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgphoto2_port 2.4.7\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-02-22 22:21+0100\n"
+"POT-Creation-Date: 2012-03-31 00:03+0200\n"
 "PO-Revision-Date: 2009-09-23 04:04+0900\n"
 "Last-Translator: Tadashi Jokagi <elf2000@users.sourceforge.net>\n"
 "Language-Team: Japanese <translation-team-ja@lists.sourceforge.net>\n"
@@ -496,22 +496,22 @@ msgstr "USB ポートをリセットすることが出来ませんでした (%m)
 msgid "Could not close USB port (%m)."
 msgstr "USB ポートを閉じることが出来ませんでした (%m)。"
 
-#: usb/libusb.c:588
+#: usb/libusb.c:590
 #, c-format
 msgid "Could not set config %d/%d (%m)"
 msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
 
-#: usb/libusb.c:621
+#: usb/libusb.c:623
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:763
+#: usb/libusb.c:715 libusb1/libusb1.c:765
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "提供ベンダーまたは製品 ID (0x%x,0x%x) は正しくありません。"
 
-#: usb/libusb.c:749 libusb1/libusb1.c:802
+#: usb/libusb.c:751 libusb1/libusb1.c:804
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -520,7 +520,7 @@ msgstr ""
 "USB デバイス (ベンダー:0x%x 製品: 0x%x) はマス・ストレージ用デバイスで、"
 "gphoto2 では取り扱えません。参考情報: %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:834
+#: usb/libusb.c:794 libusb1/libusb1.c:836
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -529,7 +529,7 @@ msgstr ""
 "USB デバイス (ベンダー:0x%x 製品: 0x%x) が見つかりませんでした。このデバイス"
 "がコンピュータに接続されているか確認して下さい。"
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1128
+#: usb/libusb.c:1092 libusb1/libusb1.c:1130
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -579,12 +579,12 @@ msgstr "USB ポートをリセットすることが出来ませんでした (%m)
 msgid "Could not reattach kernel driver of camera device."
 msgstr "Kernel ドライバ '%s' を解放できませんでした。"
 
-#: libusb1/libusb1.c:626
+#: libusb1/libusb1.c:628
 #, fuzzy, c-format
 msgid "Could not set config %d/%d (%s)"
 msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
 
-#: libusb1/libusb1.c:665
+#: libusb1/libusb1.c:667
 #, fuzzy, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
 msgstr "設定 %d/%d を反映することが出来ませんでした (%m)。"
