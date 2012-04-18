@@ -1,8 +1,11 @@
 libgphoto2 (2.4.14-1) UNRELEASED; urgency=low
 
   * New upstream release
+  * Patches refreshed:
+    - dropped 00-format_security.patch, 01-support_udev_175.patch
+      and 02-fix_source_typos.patch -- merged upstream
 
- -- David Paleino <dapal@debian.org>  Wed, 18 Apr 2012 17:29:24 +0200
+ -- David Paleino <dapal@debian.org>  Wed, 18 Apr 2012 17:44:33 +0200
 
 libgphoto2 (2.4.13-2) unstable; urgency=low
 
