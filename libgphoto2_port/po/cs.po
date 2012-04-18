@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the libgphoto2 package.
 #
 # Miloslav Trmac <mitr@volny.cz>, 2003.
-# Marek Černocký <marek@manet.cz>, 2011.
+# Marek Černocký <marek@manet.cz>, 2011, 2012.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: libgphoto2_port 2.4.11\n"
+"Project-Id-Version: libgphoto2_port 2.4.13\n"
 "Report-Msgid-Bugs-To: gphoto-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2012-02-22 22:21+0100\n"
-"PO-Revision-Date: 2011-12-01 17:44+0100\n"
+"POT-Creation-Date: 2012-03-31 00:03+0200\n"
+"PO-Revision-Date: 2012-04-07 21:39+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "Language: cs\n"
@@ -54,28 +54,28 @@ msgid "Using ltdl to load io-drivers from '%s'..."
 msgstr "Používá se ltdl k načtení V/V ovladačů z „%s“…"
 
 #: libgphoto2_port/gphoto2-port-info-list.c:314
-#, fuzzy, c-format
+#, c-format
 msgid "Counting entry (%i available)..."
 msgid_plural "Counting entries (%i available)..."
-msgstr[0] "Počítají se záznamy (%i dostupných)…"
-msgstr[1] "Počítají se záznamy (%i dostupných)…"
+msgstr[0] "Počítají se záznamy (%i dostupný)…"
+msgstr[1] "Počítají se záznamy (%i dostupné)…"
 msgstr[2] "Počítají se záznamy (%i dostupných)…"
 
 #: libgphoto2_port/gphoto2-port-info-list.c:326
-#, fuzzy, c-format
+#, c-format
 msgid "%i regular entry available."
 msgid_plural "%i regular entries available."
-msgstr[0] "Dostupných je %i běžných záznamů."
-msgstr[1] "Dostupných je %i běžných záznamů."
+msgstr[0] "Dostupný je %i běžný záznam."
+msgstr[1] "Dostupné jsou %i běžné záznamy."
 msgstr[2] "Dostupných je %i běžných záznamů."
 
 #: libgphoto2_port/gphoto2-port-info-list.c:359
-#, fuzzy, c-format
+#, c-format
 msgid "Looking for path '%s' (%i entry available)..."
 msgid_plural "Looking for path '%s' (%i entries available)..."
-msgstr[0] "Hledá se cesta „%s“ (%i záznamů dostupných)…"
-msgstr[1] "Hledá se cesta „%s“ (%i záznamů dostupných)…"
-msgstr[2] "Hledá se cesta „%s“ (%i záznamů dostupných)…"
+msgstr[0] "Hledá se cesta „%s“ (%i dostupný záznam)…"
+msgstr[1] "Hledá se cesta „%s“ (%i dostupné záznamy)…"
+msgstr[2] "Hledá se cesta „%s“ (%i dostupných záznamů)…"
 
 #: libgphoto2_port/gphoto2-port-info-list.c:373
 #, c-format
@@ -243,61 +243,61 @@ msgid "Freeing port..."
 msgstr "Uvolňuje se port…"
 
 #: libgphoto2_port/gphoto2-port.c:358
-#, fuzzy, c-format
+#, c-format
 msgid "Writing %i=0x%x byte to port..."
 msgid_plural "Writing %i=0x%x bytes to port..."
-msgstr[0] "Zapisuje s %i=0x%x bajtů na port…"
-msgstr[1] "Zapisuje s %i=0x%x bajtů na port…"
-msgstr[2] "Zapisuje s %i=0x%x bajtů na port…"
+msgstr[0] "Zapisuje se %i=0x%x bajt na port…"
+msgstr[1] "Zapisují se %i=0x%x bajty na port…"
+msgstr[2] "Zapisuje se %i=0x%x bajtů na port…"
 
 #: libgphoto2_port/gphoto2-port.c:373
-#, fuzzy, c-format
+#, c-format
 msgid "Could only write %i out of %i byte"
 msgid_plural "Could only write %i out of %i bytes"
-msgstr[0] "Je možné zapsat pouze %i z %i bajtů"
+msgstr[0] "Je možné zapsat pouze %i z %i bajtu"
 msgstr[1] "Je možné zapsat pouze %i z %i bajtů"
 msgstr[2] "Je možné zapsat pouze %i z %i bajtů"
 
 #: libgphoto2_port/gphoto2-port.c:398
-#, fuzzy, c-format
+#, c-format
 msgid "Reading %i=0x%x byte from port..."
 msgid_plural "Reading %i=0x%x bytes from port..."
-msgstr[0] "Čte se %i=0x%x bajtů z portu…"
-msgstr[1] "Čte se %i=0x%x bajtů z portu…"
+msgstr[0] "Čte se %i=0x%x bajt z portu…"
+msgstr[1] "Čtou se %i=0x%x bajty z portu…"
 msgstr[2] "Čte se %i=0x%x bajtů z portu…"
 
 #: libgphoto2_port/gphoto2-port.c:412 libgphoto2_port/gphoto2-port.c:453
 #: libgphoto2_port/gphoto2-port.c:493 libgphoto2_port/gphoto2-port.c:929
 #: libgphoto2_port/gphoto2-port.c:1012 libgphoto2_port/gphoto2-port.c:1097
-#, fuzzy, c-format
+#, c-format
 msgid "Could only read %i out of %i byte"
 msgid_plural "Could only read %i out of %i bytes"
-msgstr[0] "Je možné přečíst pouze %i z %i bajtů"
+msgstr[0] "Je možné přečíst pouze %i z %i bajtu"
 msgstr[1] "Je možné přečíst pouze %i z %i bajtů"
 msgstr[2] "Je možné přečíst pouze %i z %i bajtů"
 
 #: libgphoto2_port/gphoto2-port.c:439
-#, fuzzy, c-format
+#, c-format
 msgid "Reading %i=0x%x byte from interrupt endpoint..."
 msgid_plural "Reading %i=0x%x bytes from interrupt endpoint..."
-msgstr[0] "Čte se %i=0x%x bajtů z koncového bodu přerušení…"
-msgstr[1] "Čte se %i=0x%x bajtů z koncového bodu přerušení…"
+msgstr[0] "Čte se %i=0x%x bajt z koncového bodu přerušení…"
+msgstr[1] "Čtou se %i=0x%x bajty z koncového bodu přerušení…"
 msgstr[2] "Čte se %i=0x%x bajtů z koncového bodu přerušení…"
 
 #: libgphoto2_port/gphoto2-port.c:505
-#, fuzzy, c-format
+#, c-format
 msgid "Reading %i=0x%x byte from interrupt endpoint (fast)..."
 msgid_plural "Reading %i=0x%x bytes from interrupt endpoint (fast)..."
-msgstr[0] "Čte se %i=0x%x bajtů z koncového bodu přerušení (zrychleně)…"
-msgstr[1] "Čte se %i=0x%x bajtů z koncového bodu přerušení (zrychleně)…"
+msgstr[0] "Čte se %i=0x%x bajt z koncového bodu přerušení (zrychleně)…"
+msgstr[1] "Čtou se %i=0x%x bajty z koncového bodu přerušení (zrychleně)…"
 msgstr[2] "Čte se %i=0x%x bajtů z koncového bodu přerušení (zrychleně)…"
 
 #: libgphoto2_port/gphoto2-port.c:533
-#, fuzzy, c-format
+#, c-format
 msgid "Setting timeout to %i millisecond..."
 msgid_plural "Setting timeout to %i milliseconds..."
-msgstr[0] "Nastavuje se časové omezení na %i milisekund…"
-msgstr[1] "Nastavuje se časové omezení na %i milisekund…"
+msgstr[0] "Nastavuje se časové omezení na %i milisekundu…"
+msgstr[1] "Nastavuje se časové omezení na %i milisekundy…"
 msgstr[2] "Nastavuje se časové omezení na %i milisekund…"
 
 #: libgphoto2_port/gphoto2-port.c:571
@@ -337,11 +337,11 @@ msgid "Setting pin %i (%s: '%s') to '%s'..."
 msgstr "Nastavuje se vývod %i (%s: „%s“) na „%s“…"
 
 #: libgphoto2_port/gphoto2-port.c:748
-#, fuzzy, c-format
+#, c-format
 msgid "Sending break (%i millisecond)..."
 msgid_plural "Sending break (%i milliseconds)..."
-msgstr[0] "Posílá se přerušení (%i milisekund)…"
-msgstr[1] "Posílá se přerušení (%i milisekund)…"
+msgstr[0] "Posílá se přerušení (%i milisekunda)…"
+msgstr[1] "Posílá se přerušení (%i milisekundy)…"
 msgstr[2] "Posílá se přerušení (%i milisekund)…"
 
 #: libgphoto2_port/gphoto2-port.c:776
@@ -484,7 +484,7 @@ msgid ""
 msgstr ""
 "Nelze přidělit rozhraní %d (%m). Zkontrolujte, že žádný jiný program nebo "
 "jaderný modul (např. %s) zařízení nepoužívá a že máte k zařízení přístup pro "
-"čtení a zápis."
+"čtení a pro zápis."
 
 #: usb/libusb.c:299
 #, c-format
@@ -501,22 +501,22 @@ msgstr "Nelze resetovat port USB (%m)."
 msgid "Could not close USB port (%m)."
 msgstr "Nelze zavřít port USB (%m)."
 
-#: usb/libusb.c:588
+#: usb/libusb.c:590
 #, c-format
 msgid "Could not set config %d/%d (%m)"
 msgstr "Nelze provést nastavení %d/%d (%m)"
 
-#: usb/libusb.c:621
+#: usb/libusb.c:623
 #, c-format
 msgid "Could not set altsetting from %d to %d (%m)"
 msgstr "Nelze provést změnu nastavení %d na alternativní nastavení %d (%m)"
 
-#: usb/libusb.c:713 libusb1/libusb1.c:763
+#: usb/libusb.c:715 libusb1/libusb1.c:765
 #, c-format
 msgid "The supplied vendor or product id (0x%x,0x%x) is not valid."
 msgstr "Poskytnuté ID dodavatele nebo produktu (0x%x,0x%x) není platné."
 
-#: usb/libusb.c:749 libusb1/libusb1.c:802
+#: usb/libusb.c:751 libusb1/libusb1.c:804
 #, c-format
 msgid ""
 "USB device (vendor 0x%x, product 0x%x) is a mass storage device, and might "
@@ -525,7 +525,7 @@ msgstr ""
 "Zařízení USB (výrobce 0x%x, výrobek 0x%x) je zařízení typu „master storage“ "
 "a možná nebude s gphoto2 fungovat. Příručka: %s"
 
-#: usb/libusb.c:792 libusb1/libusb1.c:834
+#: usb/libusb.c:794 libusb1/libusb1.c:836
 #, c-format
 msgid ""
 "Could not find USB device (vendor 0x%x, product 0x%x). Make sure this device "
@@ -534,7 +534,7 @@ msgstr ""
 "Nelze najít zařízení USB (dodavatel 0x%x, produkt 0x%x). Zkontrolujte, že je "
 "toto zařízení připojeno k počítači."
 
-#: usb/libusb.c:1090 libusb1/libusb1.c:1128
+#: usb/libusb.c:1092 libusb1/libusb1.c:1130
 #, c-format
 msgid ""
 "Could not find USB device (class 0x%x, subclass 0x%x, protocol 0x%x). Make "
@@ -544,55 +544,53 @@ msgstr ""
 "Zkontrolujte, že je toto zařízení připojeno k počítači."
 
 #: libusb1/libusb1.c:296
-#, fuzzy, c-format
+#, c-format
 msgid "Could not open USB device (%s)."
-msgstr "Nelze otevřít zařízení USB (%m)."
+msgstr "Nelze otevřít zařízení USB (%s)."
 
 #: libusb1/libusb1.c:311
-#, fuzzy, c-format
+#, c-format
 msgid "Device has a kernel driver attached (%d), detaching it now."
-msgstr "Zařízení má připojeno ovladač „%s“, nyní se odpojuje."
+msgstr "Zařízení má připojeno jaderný ovladač (%d), nyní se odpojuje."
 
 #: libusb1/libusb1.c:314
-#, fuzzy
 msgid "Could not detach kernel driver of camera device."
-msgstr "Nelze odpojit jaderný ovladač „%s“ zařízení fotoaparátu."
+msgstr "Nelze odpojit jaderný ovladač zařízení fotoaparátu."
 
 #: libusb1/libusb1.c:329
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Could not claim interface %d (%s). Make sure no other program or kernel "
 "module (such as %s) is using the device and you have read/write access to "
 "the device."
 msgstr ""
-"Nelze přidělit rozhraní %d (%m). Zkontrolujte, že žádný jiný program nebo "
+"Nelze přidělit rozhraní %d (%s). Zkontrolujte, že žádný jiný program nebo "
 "jaderný modul (např. %s) zařízení nepoužívá a že máte k zařízení přístup pro "
-"čtení a zápis."
+"čtení a pro zápis."
 
 #: libusb1/libusb1.c:351
-#, fuzzy, c-format
+#, c-format
 msgid "Could not release interface %d (%s)."
-msgstr "Nelze uvolnit rozhraní %d (%m)."
+msgstr "Nelze uvolnit rozhraní %d (%s)."
 
 #: libusb1/libusb1.c:366
-#, fuzzy, c-format
+#, c-format
 msgid "Could not reset USB port (%s)."
-msgstr "Nelze resetovat port USB (%m)."
+msgstr "Nelze resetovat port USB (%s)."
 
 #: libusb1/libusb1.c:377
-#, fuzzy
 msgid "Could not reattach kernel driver of camera device."
-msgstr "Nelze odpojit jaderný ovladač „%s“ zařízení fotoaparátu."
+msgstr "Nelze odpojit jaderný ovladač zařízení fotoaparátu."
 
-#: libusb1/libusb1.c:626
-#, fuzzy, c-format
+#: libusb1/libusb1.c:628
+#, c-format
 msgid "Could not set config %d/%d (%s)"
-msgstr "Nelze provést nastavení %d/%d (%m)"
+msgstr "Nelze provést nastavení %d/%d (%s)"
 
-#: libusb1/libusb1.c:665
-#, fuzzy, c-format
+#: libusb1/libusb1.c:667
+#, c-format
 msgid "Could not set altsetting from %d to %d (%s)"
-msgstr "Nelze provést změnu nastavení %d na alternativní nastavení %d (%m)"
+msgstr "Nelze provést změnu nastavení %d na %d (%s)"
 
 #: disk/disk.c:179 disk/disk.c:237 disk/disk.c:286 disk/disk.c:318
 #: disk/disk.c:341
@@ -633,6 +631,3 @@ msgstr "USB rozhraní typu „Mass Storage raw SCSI“"
 #, c-format
 msgid "Could not send scsi command to: '%s' (%m)."
 msgstr "Nelze odeslat příkaz SCSI na: „%s“ (%m)."
-
-#~ msgid "msg_read"
-#~ msgstr "msg_read"

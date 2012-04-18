@@ -39,7 +39,8 @@ check_PROGRAMS =
 TESTS =
 noinst_PROGRAMS = sample-autodetect$(EXEEXT) \
 	sample-multi-detect$(EXEEXT) lunkwill-canon-capture$(EXEEXT) \
-	sample-owner$(EXEEXT) sample-preview$(EXEEXT)
+	sample-owner$(EXEEXT) sample-preview$(EXEEXT) \
+	sample-tether$(EXEEXT)
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/installcheck.mk
 subdir = examples
@@ -120,6 +121,13 @@ sample_preview_DEPENDENCIES =  \
 	$(top_builddir)/libgphoto2_port/libgphoto2_port/libgphoto2_port.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
+am_sample_tether_OBJECTS = sample-tether.$(OBJEXT) context.$(OBJEXT)
+sample_tether_OBJECTS = $(am_sample_tether_OBJECTS)
+sample_tether_LDADD = $(LDADD)
+sample_tether_DEPENDENCIES = $(top_builddir)/libgphoto2/libgphoto2.la \
+	$(top_builddir)/libgphoto2_port/libgphoto2_port/libgphoto2_port.la \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/auto-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -135,10 +143,12 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(lunkwill_canon_capture_SOURCES) \
 	$(sample_autodetect_SOURCES) $(sample_multi_detect_SOURCES) \
-	$(sample_owner_SOURCES) $(sample_preview_SOURCES)
+	$(sample_owner_SOURCES) $(sample_preview_SOURCES) \
+	$(sample_tether_SOURCES)
 DIST_SOURCES = $(lunkwill_canon_capture_SOURCES) \
 	$(sample_autodetect_SOURCES) $(sample_multi_detect_SOURCES) \
-	$(sample_owner_SOURCES) $(sample_preview_SOURCES)
+	$(sample_owner_SOURCES) $(sample_preview_SOURCES) \
+	$(sample_tether_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 am__tty_colors = \
@@ -187,8 +197,10 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FLEX = @FLEX@
+GETTEXT_MACRO_VERSION = @GETTEXT_MACRO_VERSION@
 GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
 GMSGFMT = @GMSGFMT@
+GMSGFMT_015 = @GMSGFMT_015@
 GREP = @GREP@
 GTKDOC = @GTKDOC@
 HAVE_DOT = @HAVE_DOT@
@@ -200,6 +212,7 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
+INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
 LIBEXIF_CFLAGS = @LIBEXIF_CFLAGS@
@@ -230,8 +243,8 @@ MAIL_GPHOTO_TRANSLATION = @MAIL_GPHOTO_TRANSLATION@
 MAIL_GPHOTO_USER = @MAIL_GPHOTO_USER@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
-MKINSTALLDIRS = @MKINSTALLDIRS@
 MSGFMT = @MSGFMT@
+MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -267,6 +280,8 @@ URL_USB_MASSSTORAGE = @URL_USB_MASSSTORAGE@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
 XGETTEXT = @XGETTEXT@
+XGETTEXT_015 = @XGETTEXT_015@
+XGETTEXT_EXTRA_OPTIONS = @XGETTEXT_EXTRA_OPTIONS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -351,6 +366,7 @@ sample_owner_SOURCES = sample-owner.c samples.h context.c config.c
 sample_multi_detect_SOURCES = sample-multi-detect.c samples.h autodetect.c context.c config.c
 lunkwill_canon_capture_SOURCES = lunkwill-canon-capture.c context.c samples.h config.c
 sample_preview_SOURCES = preview.c samples.h context.c config.c
+sample_tether_SOURCES = sample-tether.c samples.h context.c
 LDADD = $(top_builddir)/libgphoto2/libgphoto2.la \
 	$(top_builddir)/libgphoto2_port/libgphoto2_port/libgphoto2_port.la \
 	$(LIBLTDL) \
@@ -424,6 +440,9 @@ sample-owner$(EXEEXT): $(sample_owner_OBJECTS) $(sample_owner_DEPENDENCIES)
 sample-preview$(EXEEXT): $(sample_preview_OBJECTS) $(sample_preview_DEPENDENCIES) 
 	@rm -f sample-preview$(EXEEXT)
 	$(LINK) $(sample_preview_OBJECTS) $(sample_preview_LDADD) $(LIBS)
+sample-tether$(EXEEXT): $(sample_tether_OBJECTS) $(sample_tether_DEPENDENCIES) 
+	@rm -f sample-tether$(EXEEXT)
+	$(LINK) $(sample_tether_OBJECTS) $(sample_tether_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -439,6 +458,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample-autodetect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample-multi-detect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample-owner.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sample-tether.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
