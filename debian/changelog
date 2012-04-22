@@ -1,9 +1,9 @@
-libgphoto2 (2.4.14-2) UNRELEASED; urgency=low
+libgphoto2 (2.4.14-2) unstable; urgency=low
 
   * Fix installation paths for libgphoto2-2-dev, so that they also
     work on Hurd, thanks to Pino Toscano (Closes: #670049)
 
- -- David Paleino <dapal@debian.org>  Sun, 22 Apr 2012 19:06:38 +0200
+ -- David Paleino <dapal@debian.org>  Sun, 22 Apr 2012 19:07:07 +0200
 
 libgphoto2 (2.4.14-1) unstable; urgency=low
 
