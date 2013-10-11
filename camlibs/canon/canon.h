@@ -688,10 +688,11 @@ int canon_int_capture_preview (Camera *camera, unsigned char **data, unsigned in
 int canon_int_get_disk_name_info(Camera *camera, const char *name,int *capacity,int *available, GPContext *context);
 
 int canon_int_list_directory (Camera *camera, const char *folder, CameraList *list, const canonDirlistFunctionBits flags, GPContext *context);
+int canon_int_get_info_func (Camera *camera, const char *folder, const char *filename, CameraFileInfo * info, GPContext *context);
 
 int canon_int_get_file(Camera *camera, const char *name, unsigned char **data, unsigned int *length, GPContext *context);
 int canon_int_get_thumbnail(Camera *camera, const char *name, unsigned char **retdata, unsigned int *length, GPContext *context);
-int canon_int_put_file(Camera *camera, CameraFile *file, char *destname, char *destpath, GPContext *context);
+int canon_int_put_file(Camera *camera, CameraFile *file, const char *filename, const char *destname, const char *destpath, GPContext *context);
 int canon_int_wait_for_event (Camera *camera, int timeout, CameraEventType *eventtype, void **eventdata, GPContext *context);
 int canon_int_set_file_attributes(Camera *camera, const char *file, const char *dir, canonDirentAttributeBits attrs, GPContext *context);
 int canon_int_delete_file(Camera *camera, const char *name, const char *dir, GPContext *context);
@@ -713,6 +714,7 @@ int canon_int_end_remote_control(Camera *camera, GPContext *context);
 int canon_int_set_beep(Camera *camera, canonBeepMode beep_mode, GPContext *context);
 int canon_int_set_flash(Camera *camera, canonFlashMode flash_mode, GPContext *context);
 int canon_int_set_zoom(Camera *camera, unsigned char zoom_level, GPContext *context);
+int canon_int_get_zoom(Camera *camera, unsigned char *zoom_level, unsigned char *zoom_max, GPContext *context);
 
 /*
  * introduced for capturing

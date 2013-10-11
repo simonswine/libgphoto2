@@ -16,6 +16,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#define _BSD_SOURCE
+
 #include "config.h"
 #include <gphoto2/gphoto2-port-library.h>
 
@@ -212,6 +214,7 @@ gp_port_library_list (GPPortInfoList *list)
 		return GP_OK;
 
 	while ((dirent = readdir (dir))) {
+		char path[4096];
 		if (dirent->d_name[0] != 's' ||
 		    dirent->d_name[1] != 'd' ||
 		    dirent->d_name[2] < 'a' ||
@@ -222,12 +225,13 @@ gp_port_library_list (GPPortInfoList *list)
 				&vendor_id, &product_id) != GP_OK)
 			continue; /* Not a usb device */
 
-		info.type = GP_PORT_USB_DISK_DIRECT;
-		snprintf (info.path, sizeof (info.path),
+		gp_port_info_new (&info);
+		gp_port_info_set_type (info, GP_PORT_USB_DISK_DIRECT);
+		snprintf (path, sizeof (path),
 			  "usbdiskdirect:/dev/%s",
 			  dirent->d_name);
-		snprintf (info.name, sizeof (info.name),
-			  _("USB Mass Storage direct IO"));
+		gp_port_info_set_path (info, path);
+		gp_port_info_set_name (info, _("USB Mass Storage direct IO"));
 		CHECK (gp_port_info_list_append (list, info))
 	}
 	closedir (dir);

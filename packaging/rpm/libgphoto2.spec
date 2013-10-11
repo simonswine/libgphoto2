@@ -1,6 +1,6 @@
 ########################################################################
 #
-# $Id: package.spec.in 12088 2009-05-16 22:25:13Z marcusmeissner $
+# $Id: package.spec.in 12090 2009-05-16 22:28:39Z marcusmeissner $
 #
 # RPM spec file for libgphoto2
 #
@@ -14,14 +14,14 @@
 ####################################
 Summary: Software for accessing digital cameras
 Name: libgphoto2
-Version: 2.4.14
+Version: 2.5.2
 Release: 2
 License: LGPL
 Group: Applications/Multimedia
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 # sources only available from sf.net - but not wgettable.
-# Source: http://www.gphoto.org/dist/libgphoto2-2.4.14.tar.gz
-Source: http://prdownloads.sourceforge.net/gphoto/libgphoto2-2.4.14.tar.gz
+# Source: http://www.gphoto.org/dist/libgphoto2-2.5.2.tar.gz
+Source: http://prdownloads.sourceforge.net/gphoto/libgphoto2-2.5.2.tar.gz
 Url: http://www.gphoto.org/
 ExcludeArch: s390 s390x
 Provides: libgphoto2
@@ -34,6 +34,7 @@ BuildRequires: findutils perl
 
 # the following requirements are optional
 #BuildRequires: gtk-doc
+Requires: libusb >= 0.1.8
 BuildRequires: libusb-devel >= 0.1.8
 
 ####################################
@@ -109,7 +110,7 @@ find $RPM_BUILD_ROOT -name '*.la' | \
 #find html -name '*.sgml' | xargs rm
 
 
-%find_lang libgphoto2-2
+%find_lang libgphoto2-6
 # FIXME: Update this manually as long as libgphoto2_port has a
 #        different build system.
 %find_lang libgphoto2_port-0

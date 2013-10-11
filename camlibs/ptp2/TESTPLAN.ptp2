@@ -132,8 +132,8 @@ Nikon DSLR series (currently: Nikon D90)
 
         --capture-image-and-download -F 3 -I 5
 		- via SDRAM (capturetarget=0)
-			- JPEG						TODO
-			- JPEG + RAW					TODO (but not in correct order, JPGs are behind/IGNORE)
+			- JPEG						PASS
+			- JPEG + RAW					PASS (but not in correct order, JPGs are behind/IGNORE)
 		- via Card (capturetarget=1)
 			- JPEG						PASS
 			- JPEG + RAW					PASS
@@ -143,6 +143,7 @@ Nikon DSLR series (currently: Nikon D90)
 
         time gphoto2 --capture-image-and-download -F 5 -I 1
                 - via SDRAM (capturetarget=0)
+			- 						FAIL (endless repeat)
 
                 - via CARD (capturetarget=1)
 			- real    32.7		libgphoto2 2.4.11 baseline
@@ -187,6 +188,4 @@ Nikon DSLR series (currently: Nikon D90)
 
 
 Samsung Galaxy S2
-	- gphoto2 -L  							PASS (...exceeds directory size limit ...)
-	- download mp3							PASS
-	- upload mp3							PASS
+	-- gphoto2 -L  							TODO

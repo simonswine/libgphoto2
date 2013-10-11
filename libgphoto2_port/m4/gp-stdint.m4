@@ -1,7 +1,7 @@
 dnl AC_NEED_STDINT_H ( HEADER-TO-GENERATE )
-dnl Copyright 2001-2002 by Dan Fandrich <dan@coneharvesters.com>
-dnl This file may be copied and used freely without restrictions.  No warranty
-dnl is expressed or implied.
+dnl Originally written 2001 by Dan Fandrich <dan@coneharvesters.com>
+dnl My contribution is hereby placed into the public domain.
+dnl No warranty is expressed or implied.
 dnl
 dnl Look for a header file that defines size-specific integer types like the
 dnl ones recommended to be in stdint.h in the C99 standard (e.g. uint32_t).
@@ -31,12 +31,10 @@ fi
 dnl Look for a header file that defines size-specific integer types
 AC_DEFUN([AX_NEED_STDINT_H],
 [
-changequote(, )dnl
-ac_dir=`echo "$1"|sed 's%/[^/][^/]*$%%'`
-changequote([, ])dnl
+ac_dir=`AS_DIRNAME(["$1"])`
 if test "$ac_dir" != "$1" && test "$ac_dir" != .; then
   # The file is in a subdirectory.
-  test ! -d "$ac_dir" && mkdir "$ac_dir"
+  test ! -d "$ac_dir" && AS_MKDIR_P(["$ac_dir"])
 fi
 
 AX_CHECK_DEFINED_TYPE(uint8_t,

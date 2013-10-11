@@ -782,7 +782,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	gp_file_append(file, xdata, picsize);
 	free(xdata);
 	gp_file_set_mime_type (file, GP_MIME_UNKNOWN);
-	gp_file_set_name (file, filename);
 	return (GP_OK);
 }
 
@@ -885,6 +884,7 @@ file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 	CameraFileInfo  info;
 	unsigned char reply[6];
 	int i, numpics, ret;
+	char fn[20];
 
 	numpics = _get_number_images(camera);
 	if (numpics < GP_OK)
@@ -893,12 +893,12 @@ file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 #if 1
 	for (i=0;i<numpics;i++) {
 		/* we also get the fs info for free, so just set it */
-		info.file.fields = GP_FILE_INFO_TYPE | GP_FILE_INFO_NAME |
+		info.file.fields = GP_FILE_INFO_TYPE |
 				GP_FILE_INFO_WIDTH | GP_FILE_INFO_HEIGHT |
 				GP_FILE_INFO_SIZE;
 		strcpy(info.file.type,GP_MIME_UNKNOWN);
-		sprintf(info.file.name,"blink%03i.raw",i);
-		ret = gp_filesystem_append(fs, "/", info.file.name, context);
+		sprintf(fn,"blink%03i.raw",i);
+		ret = gp_filesystem_append(fs, "/", fn, context);
 		if (ret != GP_OK)
 			return ret;
 		do {

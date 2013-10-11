@@ -13,6 +13,9 @@
 /* Define to 1 if you have the <asm/io.h> header file. */
 #undef HAVE_ASM_IO_H
 
+/* Define if there is asm .symver support. */
+#undef HAVE_ASM_SYMVERS
+
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
@@ -42,14 +45,14 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* Define to 1 if you have the `flock' function. */
+#undef HAVE_FLOCK
+
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
 
 /* Define if you have GNU regex. */
 #undef HAVE_GNU_REGEX
-
-/* defined if HAL is available */
-#undef HAVE_HAL
 
 /* Define if you have the iconv() function. */
 #undef HAVE_ICONV
@@ -96,9 +99,6 @@
 /* whether we have regex.h */
 #undef HAVE_REGEX
 
-/* Define if we have the resmgr library. */
-#undef HAVE_RESMGR
-
 /* Define if you have TIOCM_TRS. */
 #undef HAVE_RTS_IOCTL
 
@@ -141,6 +141,9 @@
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/file.h> header file. */
+#undef HAVE_SYS_FILE_H
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H

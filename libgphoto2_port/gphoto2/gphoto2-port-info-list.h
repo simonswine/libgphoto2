@@ -50,14 +50,8 @@ typedef enum {
  * This is not to be confused with the driver configurable port settings
  * in \ref GPPortSettings.
  */
-typedef struct _GPPortInfo {
-	GPPortType type;	/**< \brief The type of this port. */
-	char name[64];		/**< \brief The name of this port (usb:) */
-	char path[64];		/**< \brief The path of this port (whatever is after the :) */
-
-	/* Private */
-	char library_filename[1024];	/**< \brief Internal pathname of the port driver. Do not use outside of the port library. */
-} GPPortInfo;
+struct _GPPortInfo;
+typedef struct _GPPortInfo *GPPortInfo;
 
 #include <gphoto2/gphoto2-port.h>
 
@@ -69,6 +63,16 @@ extern "C" {
 #include <gphoto2/gphoto2-port-log.h>
 extern const StringFlagItem gpi_gphoto_port_type_map[];
 #endif
+
+int gp_port_info_new (GPPortInfo *info);
+int gp_port_info_get_name (GPPortInfo info, char **name);
+int gp_port_info_set_name (GPPortInfo info, const char *name);
+int gp_port_info_get_path (GPPortInfo info, char **path);
+int gp_port_info_set_path (GPPortInfo info, const char *path);
+int gp_port_info_get_type (GPPortInfo info, GPPortType *type);
+int gp_port_info_set_type (GPPortInfo info, const GPPortType type);
+int gp_port_info_get_library_filename (GPPortInfo info, char **lib);
+int gp_port_info_set_library_filename (GPPortInfo info, char *lib);
 
 /* Internals are private */
 typedef struct _GPPortInfoList GPPortInfoList;
@@ -89,8 +93,17 @@ int gp_port_info_list_get_info (GPPortInfoList *list, int n, GPPortInfo *info);
 
 const char *gp_port_message_codeset (const char*);
 
-/* DEPRECATED */
-typedef GPPortInfo gp_port_info;
+/**
+ * Name of the environment variable which may contain the path where
+ * to look for the IO libs. If this environment variable is not defined,
+ * use the compiled-in default constant.
+ *
+ * \internal Internal use only.
+ */
+#ifdef _GPHOTO2_INTERNAL_CODE
+#define IOLIBDIR_ENV "IOLIBS"
+#endif /* _GPHOTO2_INTERNAL_CODE */
+
 
 #ifdef __cplusplus
 }

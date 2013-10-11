@@ -18,6 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#define _BSD_SOURCE
+
 #include "config.h"
 
 #include <stdio.h>
@@ -149,11 +151,10 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	info->preview.fields = GP_FILE_INFO_WIDTH | GP_FILE_INFO_HEIGHT; 
 	
 	CR (ricoh_get_pic_name (camera, context, n, &name));
-	strcpy (info->file.name, name);
 	CR (ricoh_get_pic_date (camera, context, n, &info->file.mtime));
 	CR (ricoh_get_pic_size (camera, context, n, &info->file.size));
 	strcpy (info->file.type, GP_MIME_EXIF);
-	info->file.fields = GP_FILE_INFO_NAME | GP_FILE_INFO_SIZE | GP_FILE_INFO_MTIME
+	info->file.fields = GP_FILE_INFO_SIZE | GP_FILE_INFO_MTIME
 		| GP_FILE_INFO_TYPE;
 	
 	return (GP_OK);
@@ -187,7 +188,7 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		return (GP_ERROR_NOT_SUPPORTED);
 	}
 
-	gp_file_set_data_and_size (file, data, size);
+	gp_file_set_data_and_size (file, (char*)data, size);
 
 	return (GP_OK);
 }
@@ -278,19 +279,17 @@ camera_capture (Camera *camera, CameraCaptureType type,
 }
 
 static int
-put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
-	       void *user_data, GPContext *context)
+put_file_func (CameraFilesystem *fs, const char *folder, const char *name,
+	       CameraFileType type, CameraFile *file, void *user_data, GPContext *context)
 {
-	const char *data, *name;
+	const char *data;
 	unsigned long int size;
 	Camera *camera = user_data;
 
+	if (type != GP_FILE_TYPE_NORMAL)
+		return GP_ERROR_BAD_PARAMETERS;
 	CR (gp_file_get_data_and_size (file, &data, &size));
-	CR (gp_file_get_name (file, &name));
-
-	CR (ricoh_put_file (camera, context, name, data, size));
-
-	return (GP_OK);
+	return ricoh_put_file (camera, context, name, data, size);
 }
 
 #undef N_ELEMENTS
@@ -388,35 +387,35 @@ static struct {
 #undef R_ADD_RADIO
 #define R_ADD_RADIO(ca,co,s,type,n,Name)				\
 {									\
-	CameraWidget *w = NULL;						\
-	type v;								\
-	unsigned int i;							\
+	CameraWidget *__w = NULL;					\
+	type __v;							\
+	unsigned int __i;						\
 									\
-	CR (gp_widget_new (GP_WIDGET_RADIO, _(Name), &w));		\
-	CR (gp_widget_set_name (w, (Name)));				\
-	CR (gp_widget_append ((s), w));					\
-	CR (ricoh_get_##n ((ca), (co), &v));				\
-	for (i = 0; i < N_ELEMENTS (ricoh_##n##s); i++) {		\
-		CR (gp_widget_add_choice (w, _(ricoh_##n##s[i].name)));	\
-		if (v == ricoh_##n##s[i].n)				\
-			CR (gp_widget_set_value (w,			\
-				_(ricoh_##n##s[i].name)));		\
+	CR (gp_widget_new (GP_WIDGET_RADIO, _(Name), &__w));		\
+	CR (gp_widget_set_name (__w, (Name)));				\
+	CR (gp_widget_append ((s), __w));				\
+	CR (ricoh_get_##n ((ca), (co), &__v));				\
+	for (__i = 0; __i < N_ELEMENTS (ricoh_##n##s); __i++) {		\
+		CR (gp_widget_add_choice (__w, _(ricoh_##n##s[__i].name)));	\
+		if (__v == ricoh_##n##s[__i].n)				\
+			CR (gp_widget_set_value (__w,			\
+				_(ricoh_##n##s[__i].name)));		\
 	}								\
 }
 
 #undef R_CHECK_RADIO
 #define R_CHECK_RADIO(c,co,wi,n,Name)					\
 {									\
-	CameraWidget *w = NULL;						\
-	const char *v = NULL;						\
-	unsigned int i;							\
+	CameraWidget *__w = NULL;					\
+	const char *__v = NULL;						\
+	unsigned int __i;						\
 									\
-        CR (gp_widget_get_child_by_name (wi, Name, &w));		\
-	if (gp_widget_changed (w)) {					\
-		CR (gp_widget_get_value (w, &v));			\
-		for (i = 0; i < N_ELEMENTS (ricoh_##n##s); i++)		\
-			if (!strcmp (v, _(ricoh_##n##s[i].name))) {	\
-				CR (ricoh_set_##n (c, co, ricoh_##n##s[i].n));		\
+        CR (gp_widget_get_child_by_name (wi, Name, &__w));		\
+	if (gp_widget_changed (__w)) {					\
+		CR (gp_widget_get_value (__w, &__v));			\
+		for (__i = 0; __i < N_ELEMENTS (ricoh_##n##s); __i++)	\
+			if (!strcmp (__v, _(ricoh_##n##s[__i].name))) {	\
+				CR (ricoh_set_##n (c, co, ricoh_##n##s[__i].n));		\
 				break;					\
 			}						\
 	}								\

@@ -2,7 +2,7 @@
  * This program does the equivalent of:
  * gphoto2 --wait-event-and-download
  *
- * compile with: gcc -Wall -o sample-tether sample-tether.c context.c -lgphoto2 
+ * compile with: gcc -Wall -o sample-tether sample-tether.c context.c -lgphoto2
  *
  */
 
@@ -18,11 +18,9 @@
 
 #include "samples.h"
 
-
-static void errordumper(GPLogLevel level, const char *domain, const char *format,
-                 va_list args, void *data) {
-  vfprintf(stdout, format, args);
-  fprintf(stdout, "\n");
+static void errordumper(GPLogLevel level, const char *domain, const char *str,
+                 void *data) {
+  fprintf(stdout, "%s\n", str);
 }
 
 static void

@@ -19,6 +19,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#define _BSD_SOURCE
+
 #include <config.h>
 
 #include <stdlib.h>
@@ -258,7 +260,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		/* Unsupported format, fallthrough to raw */
 	case GP_FILE_TYPE_RAW:
 		gp_file_set_mime_type (file, GP_MIME_RAW);
-		gp_file_set_name (file, filename);
 		gp_file_adjust_name_for_mime_type (file);
 	        gp_file_set_data_and_size (file, (char *)frame_data, datasize);
 		return (GP_OK);
@@ -296,7 +297,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	ptr += w*h*3;
 
 	gp_file_set_mime_type (file, GP_MIME_PPM);
-	gp_file_set_name (file, filename);
 	gp_file_set_data_and_size (file, (char *)ppm, ppmsize);
 	free (frame_data);
         return GP_OK;

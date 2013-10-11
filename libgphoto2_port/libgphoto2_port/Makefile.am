@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libgphoto2_port.la
 
 libgphoto2_port_la_CPPFLAGS = 		\
-	-I$(srcdir) 			\
+	-I$(srcdir) -I$(top_srcdir)	\
 	$(AM_CPPFLAGS) $(CPPFLAGS)	\
 	$(LTDLINCL)					
 
@@ -26,7 +26,7 @@ libgphoto2_port_la_CPPFLAGS = 		\
 
 libgphoto2_port_la_LDFLAGS = \
 	-no-undefined \
-	-export-symbols $(srcdir)/libgphoto2_port.sym \
+	@VERSIONMAPLDFLAGS@ \
 	-version-info @LIBGPHOTO2_PORT_VERSION_INFO@
 
 libgphoto2_port_la_LIBADD = \
@@ -39,6 +39,7 @@ libgphoto2_port_la_LIBADD = \
 
 libgphoto2_port_la_SOURCES =		\
 	gphoto2-port-info-list.c	\
+	gphoto2-port-info.h		\
 	gphoto2-port-log.c		\
 	gphoto2-port-version.c		\
 	gphoto2-port.c 			\
@@ -48,14 +49,14 @@ libgphoto2_port_la_SOURCES =		\
 libgphoto2_port_la_DEPENDENCIES = \
 	$(top_srcdir)/gphoto2/gphoto2-port-version.h		\
 	$(top_srcdir)/gphoto2/gphoto2-port-library.h		\
-	$(srcdir)/libgphoto2_port.sym
+	$(srcdir)/libgphoto2_port.ver
 
 # Note: If you have problem with this file not being put into
 #       the source tarball correctly at "make dist", this may
 #       be the result of tar not creating archives with >99
 #       characters of path length.
 EXTRA_DIST = \
-	libgphoto2_port.sym
+	libgphoto2_port.ver
 
 ../libltdl/libltdlc.la:
 	cd ../libltdl && $(MAKE) libltdlc.la

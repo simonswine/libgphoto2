@@ -1,7 +1,7 @@
 /* library.c
  *
  * Copyright (C) 2001-2005 Mariusz Woloszyn <emsi@ipartners.pl>
- * Copyright (C) 2003-2012 Marcus Meissner <marcus@jet.franken.de>
+ * Copyright (C) 2003-2013 Marcus Meissner <marcus@jet.franken.de>
  * Copyright (C) 2005 Hubert Figuiere <hfiguiere@teaser.fr>
  * Copyright (C) 2009 Axel Waggershauser <awagger@web.de>
  *
@@ -20,6 +20,7 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
+
 #define _BSD_SOURCE
 #include "config.h"
 
@@ -103,7 +104,7 @@ static int capture_timeout = USB_TIMEOUT_CAPTURE;
  * it's used to omit storage pseudofolder and remove trailing '/'
  */
 
-#define find_folder_handle(fn,s,p,d)	{			\
+#define find_folder_handle(params,fn,s,p)	{		\
 		{						\
 		int len=strlen(fn);				\
 		char *backfolder=malloc(len);			\
@@ -111,7 +112,7 @@ static int capture_timeout = USB_TIMEOUT_CAPTURE;
 		memcpy(backfolder,fn+1, len);			\
 		if (backfolder[len-2]=='/') backfolder[len-2]='\0';\
 		if ((tmpfolder=strchr(backfolder+1,'/'))==NULL) tmpfolder="/";\
-		p=folder_to_handle(tmpfolder+1,s,0,(Camera *)d);\
+		p=folder_to_handle(params, tmpfolder+1,s,0,NULL);\
 		free(backfolder);				\
 		}						\
 }
@@ -127,7 +128,7 @@ static int capture_timeout = USB_TIMEOUT_CAPTURE;
 			return (GP_ERROR);			\
 		}						\
 }
-int init_ptp_fs (Camera *camera, GPContext *context);
+uint16_t ptp_list_folder (PTPParams *params, uint32_t storage, uint32_t handle);
 
 typedef int (*getfunc_t)(CameraFilesystem*, const char*, const char *, CameraFileType, CameraFile *, void *, GPContext *);
 typedef int (*putfunc_t)(CameraFilesystem*, const char*, CameraFile*, void*, GPContext*);
@@ -269,11 +270,88 @@ translate_ptp_result (short result)
 	}
 }
 
+static void
+print_debug_deviceinfo (PTPParams*params, PTPDeviceInfo *di)
+{
+	unsigned int i;
+
+	GP_DEBUG ("Device info:");
+	GP_DEBUG ("Manufacturer: %s",di->Manufacturer);
+	GP_DEBUG ("  Model: %s", di->Model);
+	GP_DEBUG ("  device version: %s", di->DeviceVersion);
+	GP_DEBUG ("  serial number: '%s'",di->SerialNumber);
+	GP_DEBUG ("Vendor extension ID: 0x%08x",di->VendorExtensionID);
+	GP_DEBUG ("Vendor extension version: %d",di->VendorExtensionVersion);
+	GP_DEBUG ("Vendor extension description: %s",di->VendorExtensionDesc);
+	GP_DEBUG ("Functional Mode: 0x%04x",di->FunctionalMode);
+	GP_DEBUG ("PTP Standard Version: %d",di->StandardVersion);
+	GP_DEBUG ("Supported operations:");
+	for (i=0; i<di->OperationsSupported_len; i++)
+		GP_DEBUG ("  0x%04x", di->OperationsSupported[i]);
+	GP_DEBUG ("Events Supported:");
+	for (i=0; i<di->EventsSupported_len; i++)
+		GP_DEBUG ("  0x%04x", di->EventsSupported[i]);
+	GP_DEBUG ("Device Properties Supported:");
+	for (i=0; i<di->DevicePropertiesSupported_len; i++)
+		GP_DEBUG ("  0x%04x", di->DevicePropertiesSupported[i]);
+}
+
 void
 fixup_cached_deviceinfo (Camera *camera, PTPDeviceInfo *di) {
 	CameraAbilities a;
+	PTPParams	*params = &camera->pl->params;
 
         gp_camera_get_abilities(camera, &a);
+
+	/* XML style Olympus E series control? */
+	if (	di->Manufacturer && !strcmp(di->Manufacturer,"OLYMPUS") &&
+		(params->device_flags & DEVICE_FLAG_OLYMPUS_XML_WRAPPED)
+	) {
+		PTPDeviceInfo	ndi, newdi, *outerdi;
+		uint16_t	ret;
+		int		i;
+
+		ret = ptp_getdeviceinfo (params, &params->outer_deviceinfo);
+		if (ret != PTP_RC_OK)
+			return;
+		outerdi = &params->outer_deviceinfo;
+
+		ret = ptp_olympus_getdeviceinfo (&camera->pl->params, &ndi);
+		if (ret != PTP_RC_OK)
+			return;
+
+		/* Now merge the XML (inner) and outer (PictBridge) Deviceinfo. */
+		memcpy (&newdi, outerdi, sizeof(PTPDeviceInfo));
+
+		/* dup the strings */
+		if (outerdi->VendorExtensionDesc)	newdi.VendorExtensionDesc = strdup (outerdi->VendorExtensionDesc);
+		if (outerdi->Manufacturer)		newdi.Manufacturer = strdup (outerdi->Manufacturer);
+		if (outerdi->Model)			newdi.Model = strdup (outerdi->Model);
+		if (outerdi->DeviceVersion)		newdi.DeviceVersion = strdup (outerdi->DeviceVersion);
+		if (outerdi->SerialNumber)		newdi.SerialNumber = strdup (outerdi->SerialNumber);
+
+		/* Dup and merge the lists */
+#define DI_MERGE(x) \
+		newdi.x = malloc(sizeof(outerdi->x[0])*(ndi.x##_len + outerdi->x##_len));	\
+		for (i = 0; i < outerdi->x##_len ; i++) 					\
+			newdi.x[i] = outerdi->x[i];						\
+		for (i = 0; i < ndi.x##_len ; i++)						\
+			newdi.x[i+outerdi->x##_len] = ndi.x[i];					\
+		newdi.x##_len = ndi.x##_len + outerdi->x##_len;
+
+		DI_MERGE(OperationsSupported);
+		DI_MERGE(EventsSupported);
+		DI_MERGE(DevicePropertiesSupported);
+		DI_MERGE(CaptureFormats);
+		DI_MERGE(ImageFormats);
+
+		gp_log (GP_LOG_DEBUG, "olympus", "Dumping Olympus Deviceinfo");
+
+		print_debug_deviceinfo (&camera->pl->params, &newdi);
+		ptp_free_DI (di);
+		memcpy (di, &newdi, sizeof(newdi));
+		return;
+	}
 
 	/* for USB class matches on unknown cameras... */
 	if (!a.usb_vendor && di->Manufacturer) {
@@ -285,7 +363,6 @@ fixup_cached_deviceinfo (Camera *camera, PTPDeviceInfo *di) {
 	if (	(di->VendorExtensionID == PTP_VENDOR_MICROSOFT) &&
 		di->Manufacturer
 	) {
-		camera->pl->bugs |= PTP_MTP;
 		if (strstr (di->Manufacturer,"Canon"))
 			di->VendorExtensionID = PTP_VENDOR_CANON;
 		if (strstr (di->Manufacturer,"Nikon"))
@@ -297,7 +374,7 @@ fixup_cached_deviceinfo (Camera *camera, PTPDeviceInfo *di) {
 		(camera->port->type == GP_PORT_USB) &&
 		(a.usb_vendor == 0x4a9)
 	) {
-		camera->pl->bugs |= PTP_MTP;
+		/*camera->pl->bugs |= PTP_MTP;*/
 		di->VendorExtensionID = PTP_VENDOR_CANON;
 	}
 
@@ -306,7 +383,7 @@ fixup_cached_deviceinfo (Camera *camera, PTPDeviceInfo *di) {
 		(camera->port->type == GP_PORT_USB) &&
 		(a.usb_vendor == 0x4b0)
 	) {
-		camera->pl->bugs |= PTP_MTP;
+		/*camera->pl->bugs |= PTP_MTP;*/
 		di->VendorExtensionID = PTP_VENDOR_NIKON;
 	}
 
@@ -365,7 +442,7 @@ static struct {
 	const char *model;
 	unsigned short usb_vendor;
 	unsigned short usb_product;
-	unsigned long known_bugs;
+	unsigned long device_flags;
 } models[] = {
 	/*
 	 * The very first PTP camera (with special firmware only), also
@@ -510,7 +587,7 @@ static struct {
 	{"HP:PhotoSmart ... ", 		 0x03f0, 0x4002, 0},
 #endif
 	{"HP:PhotoSmart 812 (PTP mode)", 0x03f0, 0x4202, 0},
-	{"HP:PhotoSmart 850 (PTP mode)", 0x03f0, 0x4302, PTPBUG_DUPE_FILE},
+	{"HP:PhotoSmart 850 (PTP mode)", 0x03f0, 0x4302, 0},
 	/* HP PhotoSmart 935: T. Kaproncai, 25 Jul 2003*/
 	{"HP:PhotoSmart 935 (PTP mode)", 0x03f0, 0x4402, 0},
 	/* HP:PhotoSmart 945: T. Jelbert, 2004/03/29	*/
@@ -615,16 +692,35 @@ static struct {
 	{"Sony:DSC-S730 (PTP mode)",  0x054c, 0x0296, 0},
 	/* Fernando Santoro <fernando.lopezjr@gmail.com> */
 	{"Sony:DSC-A100 (PTP mode)",  0x054c, 0x02c0, 0},
+	/* Sam Tseng <samtz1223@gmail.com> */
+	{"Sony:DSC-A900 (PTP mode)",  0x054c, 0x02e7, 0}, /* PTP_CAP via Sony RCC */
 	/* new id?! Reported by Ruediger Oertel. */
 	{"Sony:DSC-W200 (PTP mode)",  0x054c, 0x02f8, 0},
+	/* Martin Vala <vala.martin@gmail.com> */
+	{"Sony:SLT-A350 (PTP mode)",   0x054c, 0x0321, 0},
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=1946931&group_id=8874&atid=308874 */
 	{"Sony:DSC-W130 (PTP mode)",  0x054c, 0x0343, 0},
 	/* tux droid <gnutuxdroid@gmail.com> */
 	{"Sony:SLT-A55 (PTP mode)",   0x054c, 0x04a3, 0},
 	/* http://sourceforge.net/tracker/?func=detail&atid=358874&aid=3515558&group_id=8874 */
 	{"Sony:SLT-A35 (PTP mode)",   0x054c, 0x04a7, 0},
+	/* t.ludewig@gmail.com */
+	{"Sony:DSC-RX100 (PTP mode)", 0x054c, 0x052a, 0},
+	/* Stuart Nettleton <snettlet@gmail.com> */
+	{"Sony:DSC-RX1 (PTP mode)",   0x054c, 0x052b, 0},
+	/* t.ludewig@gmail.com */
+	{"Sony:SLT-A65V (PTP mode)",  0x054c, 0x0574, 0},
 	/* Rudi */
 	{"Sony:DSC-HX100V (PTP mode)",0x054c, 0x0543, 0},
+
+	/* t.ludewig@gmail.com */
+	{"Sony:DSC-HX200V (PTP mode)",0x054c, 0x061f, 0},
+
+	/* t.ludewig@gmail.com */
+	{"Sony:DSC-HX300 (PTP mode)", 0x054c, 0x06ee, 0},
+
+	/* t.ludewig@gmail.com */
+	{"Sony:NEX-3N (PTP mode)",    0x054c, 0x072f, 0},
 
 	/* Nikon Coolpix 2500: M. Meissner, 05 Oct 2003 */
 	{"Nikon:Coolpix 2500 (PTP mode)", 0x04b0, 0x0109, 0},
@@ -640,7 +736,7 @@ static struct {
 	/* Nikon Coolpix 885: S. Anderson, 19 nov 2002 */
 	{"Nikon:Coolpix 885 (PTP mode)",  0x04b0, 0x0112, 0},
 	/* Nikon Coolpix 5000, Firmware v1.7 or later */
-	{"Nikon:Coolpix 5000 (PTP mode)", 0x04b0, 0x0113, PTP_CAP},
+	{"Nikon:Coolpix 5000 (PTP mode)", 0x04b0, 0x0113, PTP_CAP|PTP_NO_CAPTURE_COMPLETE},
 	/* Nikon Coolpix 3100 */
 	{"Nikon:Coolpix 3100 (PTP mode)", 0x04b0, 0x0115, 0},
 	/* Nikon Coolpix 2100 */
@@ -694,6 +790,9 @@ static struct {
 	{"Nikon:Coolpix P5100 (PTP mode)", 0x04b0, 0x0163, 0},
 	/* https://sourceforge.net/tracker/index.php?func=detail&aid=2589245&group_id=8874&atid=108874 */
 	{"Nikon:Coolpix P50 (PTP mode)",  0x04b0, 0x0169, 0},
+	/* Clodoaldo <clodoaldo.pinto.neto@gmail.com> via
+         * https://bugs.kde.org/show_bug.cgi?id=315268 */
+	{"Nikon:Coolpix P80 (PTP mode)",  0x04b0, 0x016b, PTP_CAP|PTP_NIKON_BROKEN_CAP},
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=2951663&group_id=8874&atid=358874 */
 	{"Nikon:Coolpix P6000 (PTP mode)",0x04b0, 0x016f, PTP_CAP|PTP_NIKON_BROKEN_CAP},
 	/*   http://bugs.debian.org/520752 */
@@ -715,7 +814,7 @@ static struct {
 	{"Nikon:Coolpix L110 (PTP mode)", 0x04b0, 0x017e, PTP_CAP},
 
 	/* miguel@rozsas.eng.br */
-	{"Nikon:Coolpix P500 (PTP mode)", 0x04b0, 0x0184, 0},
+	{"Nikon:Coolpix P500 (PTP mode)", 0x04b0, 0x0184, PTP_CAP},
 	/* Graeme Wyatt <graeme.wyatt@nookawarra.com> */
 	{"Nikon:Coolpix L120 (PTP mode)", 0x04b0, 0x0185, PTP_CAP},
 	/* Kévin Ottens <ervin@ipsquad.net> */
@@ -727,6 +826,11 @@ static struct {
 	/* Dale Pontius <DEPontius@edgehp.net> */
 	{"Nikon:Coolpix P7100 (PTP mode)",0x04b0, 0x018b, PTP_CAP},
 
+	/* t.ludewig@gmail.com */
+	{"Nikon:Coolpix L820  (PTP mode)",0x04b0, 0x0192, PTP_CAP},
+	/* https://sourceforge.net/p/gphoto/feature-requests/429/ */
+	{"Nikon:Coolpix S9500 (PTP mode)",0x04b0, 0x0193, PTP_CAP},
+
 	{"Nikon:Coolpix SQ (PTP mode)",   0x04b0, 0x0202, 0},
 	/* lars marowski bree, 16.8.2004 */
 	{"Nikon:Coolpix 4200 (PTP mode)", 0x04b0, 0x0204, 0},
@@ -735,11 +839,32 @@ static struct {
 	/* https://launchpad.net/bugs/63473 */
 	{"Nikon:Coolpix L1 (PTP mode)",   0x04b0, 0x0208, 0},
 	{"Nikon:Coolpix P4 (PTP mode)",   0x04b0, 0x020c, PTP_CAP},
+	/* Bo Masser <bo@massers.se> */
+	{"Nikon:Coolpix S620 (PTP mode)", 0x04b0, 0x021c, 0},
 	{"Nikon:Coolpix S6000 (PTP mode)",0x04b0, 0x021e, 0},
 	/* http://sourceforge.net/tracker/index.php?func=detail&aid=3135935&group_id=8874&atid=358874 */
 	{"Nikon:Coolpix S8000 (PTP mode)",0x04b0, 0x021f, 0},
 	/* Aleksej Serdjukov <deletesoftware@yandex.ru> */
 	{"Nikon:Coolpix S5100 (PTP mode)",0x04b0, 0x0220, 0},
+	/* wlady.cs@gmail.com */
+	{"Nikon:Coolpix P300 (PTP mode)", 0x04b0, 0x0221, 0},
+	/* t.ludewig@gmail.com */
+	{"Nikon:Coolpix S8200",           0x04b0, 0x0222, 0},
+	{"Nikon:Coolpix P510 (PTP mode)", 0x04b0, 0x0223, 0},
+	/* Bernhard Schiffner <bernhard@schiffner-limbach.de> */
+	{"Nikon:Coolpix P7700 (PTP mode)",0x04b0, 0x0225, 0},
+
+	/* t.ludewig@gmail.com */
+	/* N CP A seems capture capable, but does not list vendor commands */
+	/* Reports 0x400d aka CaptureComplete event ... but has no 
+	 * vendor commands? yeah right ... */
+	{"Nikon:Coolpix A (PTP mode)",	  0x04b0, 0x0226, 0}, /* PTP_CAP */
+
+	/* t.ludewig@gmail.com */
+	/* Also reports 0x400d aka CaptureComplete event ... but has no 
+	 * vendor commands? yeah right... */
+	{"Nikon:Coolpix P520 (PTP mode)", 0x04b0, 0x0228, 0}, /* PTP_CAP */
+
 	/* Nikon Coolpix 2000 */
 	{"Nikon:Coolpix 2000 (PTP mode)", 0x04b0, 0x0302, 0},
 	/* From IRC reporter. */
@@ -760,8 +885,17 @@ static struct {
 	{"Nikon:Coolpix S3000 (PTP mode)",0x04b0, 0x031b, PTP_CAP},
 	/* christian.moll@tudor.lu */
 	{"Nikon:Coolpix S3100 (PTP mode)",0x04b0, 0x0320, PTP_CAP},
+	/* Teemu rytilahti of KDE */
+	{"Nikon:Coolpix S2500 (PTP mode)",0x04b0, 0x0321, PTP_CAP},
 	/* Fabio <ctrlaltca@gmail.com> */
 	{"Nikon:Coolpix L23 (PTP mode)",  0x04b0, 0x0324, PTP_CAP},
+	/* "M.-A. DARCHE" <ma.darche@cynode.org> */
+	{"Nikon:Coolpix S3300 (PTP mode)",0x04b0, 0x032a, PTP_CAP},
+	/* sakax <sakamotox@gmail.com> */
+	{"Nikon:Coolpix S2600 (PTP mode)",0x04b0, 0x032d, PTP_CAP},
+
+	/* t.ludewig@gmail.com */
+	{"Nikon:Coolpix S01",  		  0x04b0, 0x0337, PTP_CAP},
 
 	/* Nikon D100 has a PTP mode: westin 2002.10.16 */
 	{"Nikon:DSC D100 (PTP mode)",     0x04b0, 0x0402, 0},
@@ -781,6 +915,8 @@ static struct {
 	{"Nikon:DSC D80 (PTP mode)",      0x04b0, 0x0412, PTP_CAP},
 	/* Huy Hoang <hoang027@umn.edu> */
 	{"Nikon:DSC D40 (PTP mode)",      0x04b0, 0x0414, PTP_CAP},
+	/* Mark de Ruijter <mark@ridersoft.net> */
+	{"Nikon:DSC D2Xs (PTP mode)",     0x04b0, 0x0416, PTP_CAP},
 	/* Luca Gervasi <luca.gervasi@gmail.com> */
 	{"Nikon:DSC D40x (PTP mode)",     0x04b0, 0x0418, PTP_CAP},
 	/* Andreas Jaeger <aj@suse.de>.
@@ -810,6 +946,29 @@ static struct {
 	/* IRC Reporter popolon */
 	{"Nikon:DSC D5100 (PTP mode)",    0x04b0, 0x0429, PTP_CAP|PTP_CAP_PREVIEW},
 
+	/* "François G." <francois@webcampak.com> */
+	{"Nikon:DSC D800",	          0x04b0, 0x042a, PTP_CAP|PTP_CAP_PREVIEW},
+
+	/* Christian Deckelmann of Xerox */
+	{"Nikon:DSC D4",	          0x04b0, 0x042b, PTP_CAP|PTP_CAP_PREVIEW},
+	/* t.ludewig@gmail.com */
+	{"Nikon:DSC D600",	          0x04b0, 0x042d, PTP_CAP|PTP_CAP_PREVIEW},
+	/* Roderick Stewart <roderick.stewart@gmail.com> */
+	{"Nikon:DSC D800E",               0x04b0, 0x042e, PTP_CAP|PTP_CAP_PREVIEW},
+	/* Simeon Pilgrim <simeon.pilgrim@gmail.com> */
+	{"Nikon:DSC D5200",               0x04b0, 0x042f, PTP_CAP|PTP_CAP_PREVIEW},
+
+	/* t.ludewig@gmail.com */
+	{"Nikon:DSC D7100",               0x04b0, 0x0430, PTP_CAP|PTP_CAP_PREVIEW},
+
+	/* http://sourceforge.net/tracker/?func=detail&aid=3536904&group_id=8874&atid=108874 */
+	{"Nikon:V1",    		  0x04b0, 0x0601, PTP_CAP},
+	/* https://sourceforge.net/tracker/?func=detail&atid=358874&aid=3556403&group_id=8874 */
+	{"Nikon:J1",    		  0x04b0, 0x0602, PTP_CAP},
+	/* https://bugzilla.novell.com/show_bug.cgi?id=814622 Martin Caj at SUSE */
+	{"Nikon:J2",    		  0x04b0, 0x0603, PTP_CAP},
+
+
 #if 0
 	/* Thomas Luzat <thomas.luzat@gmx.net> */
 	/* this was reported as not working, mass storage only:
@@ -836,6 +995,7 @@ static struct {
 	{"Panasonic:DMC-FS62",		  0x04da, 0x2374, 0},
 	{"Panasonic:DMC-TZ18",		  0x04da, 0x2374, 0},
 	{"Panasonic:DMC-TZ20",		  0x04da, 0x2374, 0},
+	{"Panasonic:DMC-LX7",		  0x04da, 0x2374, 0},
 	/* Constantin B <klochto@gmail.com> */
 	{"Panasonic:DMC-GF1",             0x04da, 0x2374, 0},
 
@@ -845,11 +1005,10 @@ static struct {
 	/* http://callendor.zongo.be/wiki/OlympusMju500 */
 	{"Olympus:mju 500",               0x07b4, 0x0113, 0},
 
-#if 0 /* OLYMPUS */
         /* Olympus wrap test code */
-	{"Olympus:X-925 (UMS mode)",      0x07b4, 0x0109, 0},
-	{"Olympus:E-520 (UMS mode)",      0x07b4, 0x0110, 0},
-	{"Olympus:E-1 (UMS mode)",        0x07b4, 0x0102, 0},
+	{"Olympus:E series (Control)",	  0x07b4, 0x0110, PTP_OLYMPUS_XML},
+#if 0 /* talks PTP via SCSI vendor command backchannel, like above. */
+	{"Olympus:E-410 (UMS 2 mode)",    0x07b4, 0x0118, 0}, /* not XML wrapped */
 #endif
 
 	/* From VICTOR <viaaurea@yahoo.es> */
@@ -871,6 +1030,10 @@ static struct {
 	{"Olympus:FE4000",                0x07b4, 0x0116, 0},
 	{"Olympus:X920",                  0x07b4, 0x0116, 0},
 	{"Olympus:X925",                  0x07b4, 0x0116, 0},
+
+	/* t.ludewig@gmail.com */
+	{"Olympus:SP-720UZ",		  0x07b4, 0x012f, 0},
+	{"Olympus:E-PL5",		  0x07b4, 0x012f, 0},
 
 	/* IRC report */
 	{"Casio:EX-Z120",                 0x07cf, 0x1042, 0},
@@ -1058,6 +1221,8 @@ static struct {
 
 	/* Martin Lasarsch at SUSE. MTP_PROPLIST returns just 0 entries */
 	{"Canon:Digital IXUS 90 IS",		0x04a9, 0x3174, PTPBUG_DELETE_SENDS_EVENT},
+	/* Daniel Moyne <daniel.moyne@free.fr> */
+	{"Canon:Powershot SD790 IS",		0x04a9, 0x3174, PTPBUG_DELETE_SENDS_EVENT},
 
 	/* https://sourceforge.net/tracker/?func=detail&aid=2722422&group_id=8874&atid=358874 */
 	{"Canon:Digital IXUS 85 IS",		0x04a9, 0x3174, PTPBUG_DELETE_SENDS_EVENT},
@@ -1072,7 +1237,7 @@ static struct {
 	{"Canon:PowerShot A580",		0x04a9, 0x3177, PTPBUG_DELETE_SENDS_EVENT},
 
 	/* https://sourceforge.net/tracker/index.php?func=detail&aid=2602638&group_id=8874&atid=108874 */
-	{"Canon:PowerShot A740",		0x04a9, 0x317a, PTP_CAP|PTPBUG_DELETE_SENDS_EVENT},
+	{"Canon:PowerShot A470",		0x04a9, 0x317a, PTP_CAP|PTPBUG_DELETE_SENDS_EVENT},
 	/* Michael Plucik <michaelplucik@googlemail.com> */
 	{"Canon:EOS 1000D",			0x04a9, 0x317b, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
 
@@ -1101,8 +1266,6 @@ static struct {
 
 	/* IRC Reporter */
 	{"Canon:EOS 5D Mark II",		0x04a9, 0x3199, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
-	/* Axel Waggershauser <awagger@web.de> */
-	{"Canon:EOS 5D Mark III",		0x04a9, 0x323a, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
 	/* Thomas Tanner <thomas@tannerlab.com> */
 	{"Canon:EOS 7D",			0x04a9, 0x319a, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
 	/* mitch <debianuser@mll.dissimulo.com> */
@@ -1117,6 +1280,9 @@ static struct {
 	/* Willy Tarreau <w@1wt.eu> */
 	{"Canon:PowerShot A2100 IS",		0x04a9, 0x31be, PTPBUG_DELETE_SENDS_EVENT},
 
+
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot D10",			0x04a9, 0x31bc, PTPBUG_DELETE_SENDS_EVENT},
 
 	{"Canon:PowerShot A480",		0x04a9, 0x31bf, PTPBUG_DELETE_SENDS_EVENT},
 
@@ -1158,6 +1324,8 @@ static struct {
 	{"Canon:PowerShot SD940 IS",		0x04a9, 0x31e6, PTPBUG_DELETE_SENDS_EVENT},
 	/* IRC reporter */
 	{"Canon:EOS 550D",			0x04a9, 0x31ea, PTP_CAP|PTP_CAP_PREVIEW},
+	/* Mauricio Pasquier Juan <mauricio@pasquierjuan.com.ar> */
+	{"Canon:Rebel T2i",			0x04a9, 0x31ea, PTP_CAP|PTP_CAP_PREVIEW},
 
 	/* ErVito on IRC */
 	{"Canon:PowerShot A3100 IS",		0x04a9, 0x31f1, PTPBUG_DELETE_SENDS_EVENT},
@@ -1177,8 +1345,54 @@ static struct {
 	/* https://sourceforge.net/tracker/?func=detail&atid=358874&aid=3310995&group_id=8874 */
 	{"Canon:EOS 600D",			0x04a9, 0x3218, PTP_CAP|PTP_CAP_PREVIEW},
 
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:IXUS 310IS",			0x04a9, 0x3225, PTPBUG_DELETE_SENDS_EVENT},
+
+	/* analemma88@gmail.com */
+	{"Canon:PowerShot A800",		0x04a9, 0x3226, PTPBUG_DELETE_SENDS_EVENT},
+
 	/* Juha Pesonen <juha.e.pesonen@gmail.com> */
 	{"Canon:PowerShot SX230HS",		0x04a9, 0x3228, PTPBUG_DELETE_SENDS_EVENT},
+
+	/* http://sourceforge.net/tracker/?func=detail&atid=358874&aid=3572477&group_id=8874 */
+	{"Canon:PowerShot SX220HS",		0x04a9, 0x322c, PTPBUG_DELETE_SENDS_EVENT},
+
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot G1 X",		0x04a9, 0x3233, PTPBUG_DELETE_SENDS_EVENT},
+	/* IRC reporter */
+	{"Canon:PowerShot S100",		0x04a9, 0x3236, PTPBUG_DELETE_SENDS_EVENT},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot SX40HS",		0x04a9, 0x3238, PTPBUG_DELETE_SENDS_EVENT},
+	/* Axel Waggershauser <awagger@web.de> */
+	{"Canon:EOS 5D Mark III",		0x04a9, 0x323a, PTP_CAP|PTP_CAP_PREVIEW|PTPBUG_DELETE_SENDS_EVENT},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:EOS 650D",			0x04a9, 0x323b, PTP_CAP|PTP_CAP_PREVIEW},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:Rebel T4i",			0x04a9, 0x323b, PTP_CAP|PTP_CAP_PREVIEW},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:EOS M",				0x04a9, 0x323d, 0/*PTP_CAP|PTP_CAP_PREVIEW ... might be unknown opcodes -Marcus */},
+	/* via https://bugs.kde.org/show_bug.cgi?id=311393 */
+	{"Canon:PowerShot A1300IS",		0x04a9, 0x323e, PTPBUG_DELETE_SENDS_EVENT},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot A4000IS",		0x04a9, 0x3243, PTPBUG_DELETE_SENDS_EVENT},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot SX240HS",		0x04a9, 0x3245, PTPBUG_DELETE_SENDS_EVENT},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot A2400IS",		0x04a9, 0x3249, PTPBUG_DELETE_SENDS_EVENT},
+	/* Coro Fe <corofecoro@gmail.com> */
+	{"Canon:PowerShot A2300IS",		0x04a9, 0x324a, PTPBUG_DELETE_SENDS_EVENT},
+
+	/* "François G." <francois@webcampak.com> */
+	{"Canon:EOS 6D",			0x04a9, 0x3250, PTP_CAP|PTP_CAP_PREVIEW},
+
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot S110",		0x04a9, 0x325b, PTPBUG_DELETE_SENDS_EVENT},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:PowerShot SX500IS",		0x04a9, 0x325c, PTPBUG_DELETE_SENDS_EVENT},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:EOS 100D",			0x04a9, 0x3270, PTP_CAP|PTP_CAP_PREVIEW},
+	/* "T. Ludewig" <t.ludewig@gmail.com> */
+	{"Canon:EOS 700D",			0x04a9, 0x3272, PTP_CAP|PTP_CAP_PREVIEW},
 
 	/* Konica-Minolta PTP cameras */
 	{"Konica-Minolta:DiMAGE A2 (PTP mode)",        0x132b, 0x0001, 0},
@@ -1244,9 +1458,22 @@ static struct {
 	{"Fuji:FinePix F80EXR",			0x04cb, 0x020e, 0},
 	/* salsaman <salsaman@gmail.com> */
 	{"Fuji:FinePix Z700EXR",		0x04cb, 0x020d, 0},
+	/* Gregor Voss <gregor.voss@gmx.de> */
+	{"Fuji:FinePix H20EXR",			0x04cb, 0x022d, 0},
+	/* https://sourceforge.net/tracker/index.php?func=detail&aid=3556692&group_id=8874&atid=108874 */
+	{"Fuji:FinePix S2950",			0x04cb, 0x0240, 0},
 	/* Luis Arias <kaaloo@gmail.com> */
 	{"Fuji:FinePix X10",			0x04cb, 0x0263, 0},
-
+	/* t.ludewig@gmail.com */
+	{"Fuji:FinePix S4300",			0x04cb, 0x0265, 0},
+	/* t.ludewig@gmail.com */
+	{"Fuji:FinePix X-S1",			0x04cb, 0x026e, 0},
+	/* t.ludewig@gmail.com */
+	{"Fuji:FinePix HS30EXR",		0x04cb, 0x0271, 0},
+	/* t.ludewig@gmail.com */
+	{"Fuji:FinePix XF1",			0x04cb, 0x0288, 0},
+	/* t.ludewig@gmail.com */
+	{"Fuji:FinePix X20",			0x04cb, 0x02a6, 0},
 
 	{"Ricoh:Caplio R5 (PTP mode)",          0x05ca, 0x0110, 0},
 	{"Ricoh:Caplio GX (PTP mode)",          0x05ca, 0x0325, 0},
@@ -1289,6 +1516,9 @@ static struct {
 	{"Apple:iPod Touch 3rd Gen (PTP mode)",	0x05ac, 0x1299, 0},
 	{"Apple:iPad (PTP mode)",		0x05ac, 0x129a, 0},
 
+	/* Don Cohen <don-sourceforge-xxzw@isis.cs3-inc.com> */
+	{"Apple:iPhone 4S (PTP mode)",		0x05ac, 0x12a0, 0},
+
 	/* https://sourceforge.net/tracker/index.php?func=detail&aid=1869653&group_id=158745&atid=809061 */
 	{"Pioneer:DVR-LX60D",			0x08e4, 0x0142, 0},
 
@@ -1297,6 +1527,12 @@ static struct {
 
 	/* IRC reporter */
 	{"Samsung:S5620",			0x04e8,	0x684a, 0},
+
+	/* Israel Barrientos <jbarrien@gmail.com> */
+	{"Samsung:NX1000",			0x04e8,	0x1384, 0},
+
+	/* This is a camera ... reported by TAN JIAN QI <JQTAN1@e.ntu.edu.sg */
+	{"Samsung:EK-GC100",			0x04e8,	0x6866, 0},
 };
 
 #include "device-flags.h"
@@ -1452,8 +1688,10 @@ is_mtp_capable(Camera *camera) {
 	PTPParams *params = &camera->pl->params;
 	if (params->deviceinfo.VendorExtensionID == PTP_VENDOR_MICROSOFT)
 		return 1;
+	/*
 	if (camera->pl->bugs & PTP_MTP)
 		return 1;
+	*/
 	return 0;
 }
 
@@ -1473,9 +1711,31 @@ camera_abilities (CameraAbilitiesList *list)
 		a.usb_product		= models[i].usb_product;
 		a.device_type		= GP_DEVICE_STILL_CAMERA;
 		a.operations		= GP_OPERATION_NONE;
-		if (models[i].known_bugs & PTP_CAP)
+
+		/* for now */
+		if (models[i].device_flags & PTP_OLYMPUS_XML)
+			a.status	= GP_DRIVER_STATUS_EXPERIMENTAL;
+
+		if (models[i].device_flags & PTP_CAP) {
 			a.operations |= GP_OPERATION_CAPTURE_IMAGE | GP_OPERATION_CONFIG;
-		if (models[i].known_bugs & PTP_CAP_PREVIEW)
+
+#if 0
+			/* not yet working, failed testcase */
+			/* Only Nikon *D* cameras for now -Marcus */
+			if (	(models[i].usb_vendor == 0x4b0) &&
+				strchr(models[i].model,'D')
+			)
+				a.operations |= GP_OPERATION_TRIGGER_CAPTURE;
+#endif
+#if 0
+			/* SX 100 IS ... works in sdram, not in card mode */
+			if (	(models[i].usb_vendor == 0x4a9) &&
+				(models[i].usb_product == 0x315e)
+			)
+				a.operations |= GP_OPERATION_TRIGGER_CAPTURE;
+#endif
+		}
+		if (models[i].device_flags & PTP_CAP_PREVIEW)
 			a.operations |= GP_OPERATION_CAPTURE_PREVIEW;
 		a.file_operations	= GP_FILE_OPERATION_PREVIEW |
 					GP_FILE_OPERATION_DELETE;
@@ -1509,7 +1769,8 @@ camera_abilities (CameraAbilitiesList *list)
 	a.usb_class = 6;
 	a.usb_subclass = 1;
 	a.usb_protocol = 1;
-	a.operations =	GP_OPERATION_CAPTURE_IMAGE | GP_OPERATION_CONFIG;
+	a.operations =	GP_OPERATION_CAPTURE_IMAGE | /*GP_OPERATION_TRIGGER_CAPTURE |*/
+			GP_OPERATION_CONFIG;
 	a.file_operations   = GP_FILE_OPERATION_PREVIEW|
 				GP_FILE_OPERATION_DELETE;
 	a.folder_operations = GP_FOLDER_OPERATION_PUT_FILE
@@ -1565,11 +1826,6 @@ camera_exit (Camera *camera, GPContext *context)
 		PTPParams *params = &camera->pl->params;
 		PTPContainer event;
 		SET_CONTEXT_P(params, context);
-#ifdef HAVE_ICONV
-		/* close iconv converters */
-		if (params->cd_ucs2_to_locale != (iconv_t)-1) iconv_close(params->cd_ucs2_to_locale);
-		if (params->cd_locale_to_ucs2 != (iconv_t)-1) iconv_close(params->cd_locale_to_ucs2);
-#endif
 		/* Disable EOS capture now, also end viewfinder mode. */
 		if (params->eos_captureenabled) {
 			if (camera->pl->checkevents) {
@@ -1587,6 +1843,7 @@ camera_exit (Camera *camera, GPContext *context)
 				ptp_canon_eos_end_viewfinder (params);
 			camera_unprepare_capture (camera, context);
 		}
+
 		if (camera->pl->checkevents)
 			ptp_check_event (params);
 		while (ptp_get_one_event (params, &event))
@@ -1594,12 +1851,21 @@ camera_exit (Camera *camera, GPContext *context)
 		/* close ptp session */
 		ptp_closesession (params);
 		ptp_free_params(params);
+
+#ifdef HAVE_ICONV
+		/* close iconv converters */
+		if (params->cd_ucs2_to_locale != (iconv_t)-1) iconv_close(params->cd_ucs2_to_locale);
+		if (params->cd_locale_to_ucs2 != (iconv_t)-1) iconv_close(params->cd_locale_to_ucs2);
+#endif
+
 		free (params->data);
 		free (camera->pl); /* also frees params */
 		params = NULL;
 		camera->pl = NULL;
 	}
-	if ((camera->port!=NULL) && (camera->port->type == GP_PORT_USB)) {
+	/* This code hangs USB 3 devices after the first bulk image transmission.
+         * For some unknown reason. */
+	if (0 && (camera->port!=NULL) && (camera->port->type == GP_PORT_USB)) {
 		/* clear halt */
 		gp_port_usb_clear_halt
 				(camera->port, GP_PORT_USB_ENDPOINT_IN);
@@ -1624,70 +1890,22 @@ camera_about (Camera *camera, CameraText *text, GPContext *context)
 	   "This driver supports cameras that support PTP or PictBridge(tm), and\n"
 	   "Media Players that support the Media Transfer Protocol (MTP).\n"
 	   "\n"
-	   "Enjoy!"), 2012);
+	   "Enjoy!"), 2013);
 	return (GP_OK);
-}
-
-static inline int
-handle_to_n (uint32_t handle, Camera *camera)
-{
-	int i;
-	for (i = 0; i < camera->pl->params.handles.n; i++)
-		if (camera->pl->params.handles.Handler[i]==handle) return i;
-	/* else not found */
-	return (PTP_HANDLER_SPECIAL);
-}
-
-static inline int
-storage_handle_to_n (uint32_t storage, uint32_t handle, Camera *camera)
-{
-	int i;
-	for (i = 0; i < camera->pl->params.handles.n; i++)
-		if (	(camera->pl->params.handles.Handler[i] == handle) &&
-			(camera->pl->params.objectinfo[i].StorageID == storage)
-		)
-			return i;
-	/* else not found */
-	return (PTP_HANDLER_SPECIAL);
 }
 
 static void debug_objectinfo(PTPParams *params, uint32_t oid, PTPObjectInfo *oi);
 
-/* add new object to internal driver structures. issued when creating
-folder, uploading objects, or captured images. */
+/* Add new object to internal driver structures. issued when creating
+ * folder, uploading objects, or captured images.
+ */
 static int
 add_object (Camera *camera, uint32_t handle, GPContext *context)
 {
-	int 		n;
-	uint16_t	ret;
+	PTPObject *ob;
 	PTPParams *params = &camera->pl->params;
 
-	/* increase number of objects */
-	n = ++params->handles.n;
-	/* realloc more space for camera->pl->params.objectinfo */
-	params->objectinfo = (PTPObjectInfo*)
-		realloc(params->objectinfo,
-			sizeof(PTPObjectInfo)*n);
-	/* realloc more space for params->handles.Handler */
-	params->handles.Handler= (uint32_t *)
-		realloc(params->handles.Handler,
-			sizeof(uint32_t)*n);
-	if (params->canon_flags) {
-		/* FIXME: should init the value to the current object value. */
-		params->canon_flags = realloc(params->canon_flags,sizeof(params->canon_flags[0])*n);
-		params->canon_flags[n-1] = 0;
-	}
-	/* clear objectinfo entry for new object and assign new handler */
-	memset(&params->objectinfo[n-1],0,sizeof(PTPObjectInfo));
-	params->handles.Handler[n-1]=handle;
-	/* get new obectinfo */
-	ret = ptp_getobjectinfo(params, handle, &params->objectinfo[n-1]);
-	if (ret != PTP_RC_OK) {
-		params->handles.n--;
-		return translate_ptp_result (ret);
-	}
-	debug_objectinfo (params, handle, &params->objectinfo[n-1]);
-	return (GP_OK);
+	return translate_ptp_result (ptp_object_want (params, handle, 0, &ob));
 }
 
 static int
@@ -1759,6 +1977,12 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 				}
 			}
 			ptp_free_devicepropdesc (&dpd);
+
+			/* Otherwise the camera will auto-shutdown */
+			ret = ptp_canon_eos_keepdeviceon (params);
+			if (ret != PTP_RC_OK)
+				return translate_ptp_result (ret);
+
 			params->eos_viewfinderenabled = 1;
 			while (tries--) {
 				/* Poll for camera events, but just call
@@ -1769,29 +1993,64 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 
 				ret = ptp_canon_eos_get_viewfinder_image (params , &data, &size);
 				if (ret == PTP_RC_OK) {
-					uint32_t	len = dtoh32a(data);
+					unsigned char	*xdata = data;
 
-					/* 4 byte len of jpeg data, 4 byte unknown */
-					/* JPEG blob */
-					/* stuff */
-					gp_log (GP_LOG_DEBUG,"ptp2_capture_eos_preview", "get_viewfinder_image unknown bytes: 0x%02x 0x%02x 0x%02x 0x%02x", data[4],data[5],data[6],data[7]);
+					/* returns multiple blobs, they are usually structured as
+					 * uint32 len
+					 * uint32 type
+					 * ... data ... 
+					 *
+					 * 1: JPEG preview
+					 */
 
-					if (len > size) len = size;
-					gp_file_append ( file, (char*)data+8, len );
-					gp_file_set_mime_type (file, GP_MIME_JPEG);     /* always */
-					/* Add an arbitrary file name so caller won't crash */
-					gp_file_set_name (file, "preview.jpg");
-					free (data);
-					SET_CONTEXT_P(params, NULL);
-					return GP_OK;
+					gp_log (GP_LOG_DEBUG,"ptp2_capture_eos_preview", "total size: len=%d", size);
+					while ((xdata-data) < size) {
+						uint32_t	len  = dtoh32a(xdata);
+						uint32_t	type = dtoh32a(xdata+4);
+
+						/* 4 byte len of jpeg data, 4 byte type */
+						/* JPEG blob */
+						/* stuff */
+						gp_log (GP_LOG_DEBUG,"ptp2_capture_eos_preview", "get_viewfinder_image header: len=%d type=%d", len, type);
+						if (type != 1) {
+							gp_log_data ("ptp2_capture_eos_preview", (char*)xdata, len);
+							xdata = xdata+len;
+							continue;
+						}
+
+						if (len > (size-(xdata-data))) {
+							len = size;
+							gp_log (GP_LOG_ERROR,"ptp2_capture_eos_preview", "len=%d larger than rest size %ld", len, (size-(xdata-data)));
+							break;
+						}
+						gp_file_append ( file, (char*)xdata+8, len-8 );
+						gp_file_set_mime_type (file, GP_MIME_JPEG);     /* always */
+						/* Add an arbitrary file name so caller won't crash */
+						gp_file_set_name (file, "preview.jpg");
+
+						/* dump the rest of the blobs */
+						xdata = xdata+len;
+						while ((xdata-data) < size) {
+							uint32_t	len  = dtoh32a(xdata);
+							uint32_t	type = dtoh32a(xdata+4);
+
+							gp_log (GP_LOG_DEBUG,"ptp2_capture_eos_preview", "get_viewfinder_image header: len=%d type=%d", len, type);
+							if (len > (size-(xdata-data))) {
+								len = size;
+								gp_log (GP_LOG_ERROR,"ptp2_capture_eos_preview", "len=%d larger than rest size %ld", len, (size-(xdata-data)));
+								break;
+							}
+							gp_log_data ("ptp2_capture_eos_preview", (char*)xdata, len);
+							xdata = xdata+len;
+						}
+						free (data);
+						SET_CONTEXT_P(params, NULL);
+						return GP_OK;
+					}
+					return GP_ERROR;
 				} else {
 					if ((ret == 0xa102) || (ret == PTP_RC_DeviceBusy)) { /* means "not there yet" ... so wait */
-						uint16_t xret;
-						xret = ptp_check_eos_events (params);
-						if (xret != PTP_RC_OK)
-							return translate_ptp_result (xret);
-						gp_context_idle (context);
-						usleep (50*1000);
+						usleep (1300);
 						continue;
 					}
 					gp_log (GP_LOG_ERROR,"ptp2_capture_eos_preview", "get_viewfinder_image failed: 0x%x", ret);
@@ -1902,20 +2161,21 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 
 static int
 get_folder_from_handle (Camera *camera, uint32_t storage, uint32_t handle, char *folder) {
-	int i, ret;
+	int ret;
+	PTPObject	*ob;
+	PTPParams 	*params = &camera->pl->params;
 
+	gp_log (GP_LOG_DEBUG, "ptp/get_folder_from_handle", "(%x,%x,%s)", storage, handle, folder);
 	if (handle == PTP_HANDLER_ROOT)
 		return GP_OK;
 
-	i = storage_handle_to_n (storage, handle, camera);
-	if (i == PTP_HANDLER_SPECIAL)
-		return (GP_ERROR_BAD_PARAMETERS);
-
-	ret = get_folder_from_handle (camera, storage, camera->pl->params.objectinfo[i].ParentObject, folder);
+	CPR (NULL, ptp_object_want (params, handle, PTPOBJECT_OBJECTINFO_LOADED, &ob));
+	ret = get_folder_from_handle (camera, storage, ob->oi.ParentObject, folder);
 	if (ret != GP_OK)
 		return ret;
-
-	strcat (folder, camera->pl->params.objectinfo[i].Filename);
+	/* now ob could be invalid, since we might have reallocated params->objects */
+	ptp_object_want (params, handle, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+	strcat (folder, ob->oi.Filename);
 	strcat (folder, "/");
 	return (GP_OK);
 }
@@ -1931,8 +2191,6 @@ add_objectid_and_upload (Camera *camera, CameraFilePath *path, GPContext *contex
 
 	ret = gp_file_new(&file);
 	if (ret!=GP_OK) return ret;
-	gp_file_set_type (file, GP_FILE_TYPE_NORMAL);
-	gp_file_set_name (file, path->name);
 	gp_file_set_mtime (file, time(NULL));
 	set_mimetype (camera, file, params->deviceinfo.VendorExtensionID, oi->ObjectFormat);
 	CPR (context, ptp_getobject(params, newobject, &ximage));
@@ -1950,7 +2208,7 @@ add_objectid_and_upload (Camera *camera, CameraFilePath *path, GPContext *contex
 		return ret;
 	}
 	gp_log (GP_LOG_DEBUG, "ptp/add_objectid_and_upload", "adding filedata to fs");
-	ret = gp_filesystem_set_file_noop(camera->fs, path->folder, file, context);
+	ret = gp_filesystem_set_file_noop(camera->fs, path->folder, path->name, GP_FILE_TYPE_NORMAL, file, context);
         if (ret != GP_OK) {
 		gp_file_free (file);
 		return ret;
@@ -1960,11 +2218,10 @@ add_objectid_and_upload (Camera *camera, CameraFilePath *path, GPContext *contex
 	gp_file_unref (file);
 
 	/* we also get the fs info for free, so just set it */
-	info.file.fields = GP_FILE_INFO_TYPE | GP_FILE_INFO_NAME |
+	info.file.fields = GP_FILE_INFO_TYPE |
 			GP_FILE_INFO_WIDTH | GP_FILE_INFO_HEIGHT |
 			GP_FILE_INFO_SIZE | GP_FILE_INFO_MTIME;
 	strcpy_mime (info.file.type, params->deviceinfo.VendorExtensionID, oi->ObjectFormat);
-	strcpy(info.file.name,path->name);
 	info.file.width		= oi->ImagePixWidth;
 	info.file.height	= oi->ImagePixHeight;
 	info.file.size		= oi->ObjectCompressedSize;
@@ -1978,7 +2235,7 @@ add_objectid_and_upload (Camera *camera, CameraFilePath *path, GPContext *contex
 	info.preview.height	= oi->ThumbPixHeight;
 	info.preview.size	= oi->ThumbCompressedSize;
 	gp_log (GP_LOG_DEBUG, "ptp/add_objectid_and_upload", "setting fileinfo in fs");
-	return gp_filesystem_set_info_noop(camera->fs, path->folder, info, context);
+	return gp_filesystem_set_info_noop(camera->fs, path->folder, path->name, info, context);
 }
 
 /**
@@ -2019,7 +2276,6 @@ camera_nikon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
                	_("Sorry, your camera does not support Nikon capture"));
 		return GP_ERROR_NOT_SUPPORTED;
 	}
-	init_ptp_fs (camera, context);
 	if (	ptp_property_issupported(params, PTP_DPC_StillCaptureMode)	&&
 		(PTP_RC_OK == ptp_getdevicepropdesc (params, PTP_DPC_StillCaptureMode, &propdesc))) {
 		PTPDevicePropDesc       burstdesc;
@@ -2043,24 +2299,6 @@ camera_nikon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 		ret = ptp_getdevicepropvalue (params, PTP_DPC_NIKON_LiveViewStatus, &propval, PTP_DTC_UINT8);
 		if (ret == PTP_RC_OK)
 			inliveview = propval.u8;
-#if 0
-		if (inliveview) {
-			ret = ptp_nikon_end_liveview (params);
-			if (ret != PTP_RC_OK) {
-				gp_context_error (context, _("Nikon disable liveview failed: %x"), ret);
-				SET_CONTEXT_P(params, NULL);
-				//return GP_ERROR;
-			}
-#if 0
-			ret = ptp_check_event (params);
-			if (ret != PTP_RC_OK) {
-				gp_context_error (context, _("Nikon disable liveview ended: %x"), ret);
-				SET_CONTEXT_P(params, NULL);
-				return translate_ptp_result (ret);
-			}
-#endif
-		}
-#endif
 	}
 
 	if (!inliveview && ptp_operation_issupported(params,PTP_OC_NIKON_AfCaptureSDRAM)) {
@@ -2076,13 +2314,23 @@ camera_nikon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 
 	CR (gp_port_set_timeout (camera->port, capture_timeout));
 
+	while ((ret = ptp_nikon_device_ready(params)) == PTP_RC_DeviceBusy) {
+		gp_context_idle (context);
+		/* do not drain all of the DSLRs compute time */
+		usleep(100*1000); /* 0.1 seconds */
+	}
+
+	if (ret != PTP_RC_OK) { /* e.g. out of focus gets reported here. */
+		report_result(context, ret, params->deviceinfo.VendorExtensionID);
+		return translate_ptp_result (ret);
+	}
+
 	newobject = 0xffff0001;
-	while (!((ptp_nikon_device_ready(params) == PTP_RC_OK) && hasc101)) {
+	while (1) {
 		PTPContainer	event;
 
 		/* Just busy loop until the camera is ready again. */
 		/* and wait for the 0xc101 event */
-		gp_context_idle (context);
 		CPR (context, ptp_check_event (params));
 		while (ptp_get_one_event(params, &event)) {
 			gp_log (GP_LOG_DEBUG , "ptp/nikon_capture", "event.Code is %x / param %lx", event.Code, (unsigned long)event.Param1);
@@ -2090,8 +2338,14 @@ camera_nikon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 				hasc101=1;
 				newobject = event.Param1;
 				if (!newobject) newobject = 0xffff0001;
+				break;
 			}
 		}
+		if (hasc101)
+			break;
+		gp_context_idle (context);
+		/* do not drain all of the DSLRs compute time */
+		usleep(50*1000); /* 0.1 seconds */
 	}
 	if (!newobject) newobject = 0xffff0001;
 
@@ -2108,9 +2362,11 @@ camera_nikon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 		if (oi.ParentObject != 0)
 			gp_log (GP_LOG_ERROR,"nikon_capture", "Parentobject is 0x%lx now?", (unsigned long)oi.ParentObject);
 		/* Happens on Nikon D70, we get Storage ID 0. So fake one. */
-		if (oi.StorageID == 0)
-			oi.StorageID = 0x00010001;
-		sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx",(unsigned long)oi.StorageID);
+		if (oi.StorageID == 0) {
+			strcpy (path->folder, "/");
+		} else {
+			sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx",(unsigned long)oi.StorageID);
+		}
 		if (oi.ObjectFormat != PTP_OFC_EXIF_JPEG) {
 			gp_log (GP_LOG_DEBUG,"nikon_capture", "raw? ofc is 0x%04x, name is %s", oi.ObjectFormat,oi.Filename);
 			sprintf (path->name, "capt%04d.nef", capcnt++);
@@ -2194,6 +2450,7 @@ camera_canon_eos_capture (Camera *camera, CameraCaptureType type, CameraFilePath
 	}
 
 	newobject = 0;
+	memset (&oi, 0, sizeof(oi));
 	while ((time(NULL)-capture_start)<=EOS_CAPTURE_TIMEOUT) {
 		int i;
 
@@ -2207,7 +2464,7 @@ camera_canon_eos_capture (Camera *camera, CameraCaptureType type, CameraFilePath
 			gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "entry type %04x", entry.type);
 			if (entry.type == PTP_CANON_EOS_CHANGES_TYPE_UNKNOWN) {
 				free (entry.u.info);
-				continue; /* in loop */
+				continue; /* in loop ... do not poll while draining the queue */
 			}
 			if (entry.type == PTP_CANON_EOS_CHANGES_TYPE_OBJECTTRANSFER) {
 				gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "Found new object! OID 0x%x, name %s", (unsigned int)entry.u.object.oid, entry.u.object.oi.Filename);
@@ -2268,11 +2525,9 @@ camera_canon_eos_capture (Camera *camera, CameraCaptureType type, CameraFilePath
 
 	ret = gp_file_new(&file);
 	if (ret!=GP_OK) return ret;
-	gp_file_set_type (file, GP_FILE_TYPE_NORMAL);
-	gp_file_set_name (file, path->name);
 	gp_file_set_mtime (file, time(NULL));
 
-	gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "trying to get object size=0x%x", oi.ObjectCompressedSize);
+	gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "trying to get object size=0x%lx", (unsigned long)oi.ObjectCompressedSize);
 	CPR (context, ptp_canon_eos_getpartialobject (params, newobject, 0, oi.ObjectCompressedSize, &ximage));
 	CPR (context, ptp_canon_eos_transfercomplete (params, newobject));
 	ret = gp_file_set_data_and_size(file, (char*)ximage, oi.ObjectCompressedSize);
@@ -2285,7 +2540,7 @@ camera_canon_eos_capture (Camera *camera, CameraCaptureType type, CameraFilePath
 		gp_file_free (file);
 		return ret;
 	}
-	ret = gp_filesystem_set_file_noop(camera->fs, path->folder, file, context);
+	ret = gp_filesystem_set_file_noop(camera->fs, path->folder, path->name, GP_FILE_TYPE_NORMAL, file, context);
 	if (ret != GP_OK) {
 		gp_file_free (file);
 		return ret;
@@ -2303,6 +2558,77 @@ _timeout_passed(struct timeval *start, int timeout) {
 	return ((curtime.tv_sec - start->tv_sec)*1000)+((curtime.tv_usec - start->tv_usec)/1000) >= timeout;
 }
 
+static int
+camera_olympus_xml_capture (Camera *camera, CameraCaptureType type, CameraFilePath *path,
+		GPContext *context)
+{
+	uint16_t	ret;
+	PTPParams	*params = &camera->pl->params;
+
+	gp_log (GP_LOG_DEBUG, "ptp2/usb", "olympus capture\n");
+
+	ret = ptp_olympus_capture (params, 3);
+	if (ret != PTP_RC_OK)
+		return translate_ptp_result (ret);
+
+	while (1) {
+		PTPContainer event;
+
+		ret = ptp_check_event(params);
+		if (ret != PTP_RC_OK)
+			break;
+
+		event.Code = 0;
+		while (ptp_get_one_event (params, &event)) {
+			gp_log (GP_LOG_DEBUG, "olympus", "capture 1: got event 0x%x (param1=%x)", event.Code, event.Param1);
+			if (event.Code == PTP_EC_Olympus_CaptureComplete) break;
+		}
+		if (event.Code == PTP_EC_Olympus_CaptureComplete)
+			break;
+	}
+	ret = ptp_olympus_capture (params, 0);
+	if (ret != PTP_RC_OK)
+		return translate_ptp_result (ret);
+	/* 0x1a000002 object id */
+	while (1) {
+		PTPContainer event;
+
+		ret = ptp_check_event(params);
+		if (ret != PTP_RC_OK) break;
+
+		event.Code = 0;
+		while (ptp_get_one_event (params, &event)) {
+			gp_log (GP_LOG_DEBUG, "olympus", "capture 2: got event 0x%x (param1=%x)", event.Code, event.Param1);
+			if (event.Code == PTP_EC_RequestObjectTransfer) {
+				PTPObjectInfo oi;
+
+				ret = ptp_getobjectinfo (params, event.Param1, &oi);
+				if (ret != PTP_RC_OK) {
+					gp_log (GP_LOG_ERROR, "olympus", "capture 2: no objectinfo for 0x%x, ret 0x%04x", event.Param1, ret);
+					return translate_ptp_result (ret);
+				}
+				debug_objectinfo(params, event.Param1, &oi);
+				/* We get usually
+				 * 0x1a000001 - folder
+				 * 0x1a000002 - image within that folder
+				 */
+
+				if (oi.ObjectFormat == PTP_OFC_Association)
+					continue;
+
+				if (oi.ObjectFormat == PTP_OFC_EXIF_JPEG) {
+					static int capcnt = 0;
+					sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)oi.StorageID);
+					sprintf (path->name, "capt%04d.jpg", capcnt++);
+					return add_objectid_and_upload (camera, path, context, event.Param1, &oi);
+				}
+				gp_log (GP_LOG_ERROR, "olympus", "capture 2: unknown OFC 0x%04x for 0x%x", oi.ObjectFormat, event.Param1);
+			}
+		}
+	}
+	return GP_ERROR;
+
+}
 /* To use:
  *	gphoto2 --set-config capture=on --config --capture-image
  *	gphoto2  -f /store_80000001 -p 1
@@ -2329,17 +2655,11 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 		return GP_ERROR_NOT_SUPPORTED;
 	}
 
-	if (!ptp_property_issupported(params, PTP_DPC_CANON_FlashMode)) {
-		/* did not call --set-config capture=on, do it for user */
-		ret = camera_prepare_capture (camera, context);
-		if (ret != GP_OK)
-			return ret;
-		if (!ptp_property_issupported(params, PTP_DPC_CANON_FlashMode)) {
-			gp_context_error (context,
-			_("Sorry, initializing your camera did not work. Please report this."));
-			return GP_ERROR_NOT_SUPPORTED;
-		}
-	}
+	/* did not call --set-config capture=on, do it for user */
+	ret = camera_prepare_capture (camera, context);
+	if (ret != GP_OK)
+		return ret;
+
 	if (!params->canon_event_mode) {
 		propval.u16 = 0;
 	        ret = ptp_getdevicepropvalue(params, PTP_DPC_CANON_EventEmulateMode, &propval, PTP_DTC_UINT16);
@@ -2409,13 +2729,14 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 	gp_port_get_timeout (camera->port, &timeout);
 	CR (gp_port_set_timeout (camera->port, capture_timeout));
 	while (!_timeout_passed(&event_start, capture_timeout)) {
-		/*usleep(100000);*/
 		gp_context_idle (context);
+		/* Make sure we do not poll USB interrupts after the capture complete event.
+		 * MacOS libusb 1 has non-timing out interrupts so we must avoid event reads that will not
+		 * result in anything.
+		 */
 		ret = ptp_check_event (params);
-		if (ret != PTP_RC_OK) {
-			gp_context_error (context, _("Canon Capture failed: 0x%04x"), ret);
-			return translate_ptp_result (ret);
-		}
+		if (ret != PTP_RC_OK)
+			break;
 
 		if (!ptp_get_one_event (params, &event)) {
 			/* FIXME: wait a bit? */
@@ -2426,16 +2747,15 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 		switch (event.Code) {
 		case PTP_EC_ObjectAdded: {
 			/* add newly created object to internal structures. this hopefully just is a new folder */
-			PTPObjectInfo	*obinfo;
-			int		j;
+			PTPObject	*ob;
 
+			gp_log (GP_LOG_DEBUG, "ptp", "Event ObjectAdded, object handle=0x%X.", newobject);
 			ret = add_object (camera, event.Param1, context);
 			if (ret != GP_OK)
 				break;
-			j = handle_to_n (event.Param1, camera);
-			obinfo = &params->objectinfo[j];
+			ptp_object_want (params, event.Param1, PTPOBJECT_OBJECTINFO_LOADED, &ob);
 			/* this might be just the folder add, ignore that. */
-			if (obinfo->ObjectFormat == PTP_OFC_Association) {
+			if (ob->oi.ObjectFormat == PTP_OFC_Association) {
 				/* new directory ... mark fs as to be refreshed */
 				gp_filesystem_reset (camera->fs); /* FIXME: implement more lightweight folder add */
 				break;
@@ -2450,8 +2770,8 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 			int j;
 
 			newobject = event.Param1;
-			gp_log (GP_LOG_DEBUG, "ptp", "PTP_EC_CANON_RequestObjectTransfer, object handle=0x%X.",newobject);
-
+			gp_log (GP_LOG_DEBUG, "ptp", "Event PTP_EC_CANON_RequestObjectTransfer, object handle=0x%X.", newobject);
+			/* drain the event queue further */
 			for (j=0;j<2;j++) {
 				ret = ptp_check_event (params);
 				while (ptp_get_one_event (params, &event) && !sawcapturecomplete) {
@@ -2470,30 +2790,33 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 			break;
 		}
 		case PTP_EC_CaptureComplete:
+			gp_log (GP_LOG_DEBUG, "ptp","Event: Capture complete.");
 			sawcapturecomplete = 1;
-			gp_log (GP_LOG_DEBUG, "ptp", "Event: capture complete.");
+			break;
+		default:
+			gp_log (GP_LOG_DEBUG, "ptp","Event unhandled: nparams=0x%X, code=0x%X, trans_id=0x%X, p1=0x%X, p2=0x%X, p3=0x%X",
+				event.Nparam, event.Code, event.Transaction_ID, event.Param1, event.Param2, event.Param3
+			);
 			break;
 		}
 		if (found == TRUE)
 			break;
 	}
 	CR (gp_port_set_timeout (camera->port, timeout));
-	/* wait for capture complete */
-	gettimeofday (&event_start, NULL);
-	while (!sawcapturecomplete && !_timeout_passed(&event_start, capture_timeout)) {
+	/* Catch event, attempt 2 */
+	while (!sawcapturecomplete) {
 		ret = ptp_check_event (params);
 		if (ret != PTP_RC_OK)
 			break;
 		while (ptp_get_one_event (params, &event)) {
-			gp_log (GP_LOG_DEBUG, "ptp", "Event: 0x%X (2)", event.Code);
-			if (event.Code == PTP_EC_CaptureComplete) {
+			if (event.Code==PTP_EC_CaptureComplete) {
+				gp_log (GP_LOG_DEBUG, "ptp", "Event: capture complete(2).");
 				sawcapturecomplete = 1;
 				break;
 			}
 		}
-		if (sawcapturecomplete)
-			break;
-		usleep(20*1000);
+		/* FIXME: wait backoff */
+		gp_log (GP_LOG_DEBUG, "ptp", "Event: 0x%X (2)", event.Code);
 	}
 	if (!found) {
 	    gp_log (GP_LOG_DEBUG, "ptp","ERROR: Capture timed out!");
@@ -2515,16 +2838,12 @@ camera_canon_capture (Camera *camera, CameraCaptureType type, CameraFilePath *pa
 	if (ret != PTP_RC_OK) return translate_ptp_result (ret);
 
 	if (oi.ParentObject != 0) {
-		int j;
 		if (xmode != CANON_TRANSFER_CARD) {
 			fprintf (stderr,"parentobject is 0x%x, but not in card mode?\n", oi.ParentObject);
 		}
-		j = handle_to_n (newobject, camera);
-		if (j == PTP_HANDLER_SPECIAL) { /* not added yet */
-			ret = add_object (camera, newobject, context);
-			if (ret != GP_OK)
-				return ret;
-		}
+		ret = add_object (camera, newobject, context);
+		if (ret != GP_OK)
+			return ret;
 		strcpy  (path->name,  oi.Filename);
 		sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)oi.StorageID);
 		get_folder_from_handle (camera, oi.StorageID, oi.ParentObject, path->folder);
@@ -2556,7 +2875,6 @@ camera_capture (Camera *camera, CameraCaptureType type, CameraFilePath *path,
 
 	SET_CONTEXT_P(params, context);
 	camera->pl->checkevents = TRUE;
-	init_ptp_fs (camera, context);
 
 	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_NIKON) &&
 		ptp_operation_issupported(params, PTP_OC_NIKON_Capture)
@@ -2565,6 +2883,10 @@ camera_capture (Camera *camera, CameraCaptureType type, CameraFilePath *path,
 		if ((GP_OK != gp_setting_get("ptp2","capturetarget",buf)) || !strcmp(buf,"sdram"))
 			return camera_nikon_capture (camera, type, path, context);
 	}
+
+	if (params->device_flags & DEVICE_FLAG_OLYMPUS_XML_WRAPPED)
+		return camera_olympus_xml_capture (camera, type, path, context);
+
 	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
 		ptp_operation_issupported(params, PTP_OC_CANON_InitiateCaptureInMemory)
 	) {
@@ -2612,7 +2934,7 @@ camera_capture (Camera *camera, CameraCaptureType type, CameraFilePath *path,
 	 */
 
 	/* The Nikon way: Does not send AddObject event ... so try else */
-	if ((params->deviceinfo.VendorExtensionID==PTP_VENDOR_NIKON) && NIKON_BROKEN_CAP(camera->pl)) {
+	if ((params->deviceinfo.VendorExtensionID==PTP_VENDOR_NIKON) && NIKON_BROKEN_CAP(params)) {
 		PTPObjectHandles	handles;
 		int tries = 5;
 
@@ -2629,16 +2951,14 @@ camera_capture (Camera *camera, CameraCaptureType type, CameraFilePath *path,
 			 */
 			newobject = 0;
 			for (i=0;i<handles.n;i++) {
-				int j;
-				for (j=0;j<params->handles.n;j++) {
-					if (params->handles.Handler[j] == handles.Handler[i])
-						break;
-				}
-				if (j==params->handles.n) {
-					newobject = handles.Handler[i];
-					add_object (camera, newobject, context);
-					break;
-				}
+				PTPObject	*ob;
+
+				ret = ptp_object_find (params, handles.Handler[i], &ob);
+				if (ret == PTP_RC_OK)
+					continue;
+				newobject = handles.Handler[i];
+				add_object (camera, newobject, context);
+				break;
 			}
 			free (handles.Handler);
 			if (newobject)
@@ -2668,26 +2988,20 @@ camera_capture (Camera *camera, CameraCaptureType type, CameraFilePath *path,
 			/* Perhaps from previous Canon based capture + delete. Ignore. */
 			break;
 		case PTP_EC_ObjectAdded: {
-			/* add newly created object to internal structures. but just once (think NEF+JPG) */
-			if (!newobject) {
-				PTPObjectInfo	*obinfo;
-				int		j;
-
-				res = add_object (camera, event.Param1, context);
-				if (res != GP_OK)
-					break;
-				j = handle_to_n (event.Param1, camera);
-				obinfo = &params->objectinfo[j];
-				/* this might be just the folder add, ignore that. */
-				if (obinfo->ObjectFormat == PTP_OFC_Association) {
-					/* new directory ... mark fs as to be refreshed */
-					gp_filesystem_reset (camera->fs); /* FIXME: implement more lightweight folder add */
-				} else {
-					/* new file */
-					newobject = event.Param1;
-					if (NO_CAPTURE_COMPLETE(camera->pl))
-						done=1;
-				}
+			PTPObject	*ob;
+			/* add newly created object to internal structures */
+			res = add_object (camera, event.Param1, context);
+			if (res != GP_OK)
+				break;
+			ptp_object_want (params, event.Param1, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+			/* this might be just the folder add, ignore that. */
+			if (ob->oi.ObjectFormat == PTP_OFC_Association) {
+				/* new directory ... mark fs as to be refreshed */
+				gp_filesystem_reset (camera->fs);
+			} else {
+				newobject = event.Param1;
+				if (NO_CAPTURE_COMPLETE(params))
+					done=1;
 			}
 			break;
 		}
@@ -2706,23 +3020,204 @@ out:
 	path->folder[0]='\0';
 
 	if (newobject != 0) {
-		int i;
+		PTPObject	*ob;
 
-		for (i = params->handles.n ; i--; ) {
-			PTPObjectInfo	*obinfo;
-
-			if (params->handles.Handler[i] != newobject)
-				continue;
-			obinfo = &params->objectinfo[i];
-			strcpy  (path->name,  obinfo->Filename);
-			sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)obinfo->StorageID);
-			get_folder_from_handle (camera, obinfo->StorageID, obinfo->ParentObject, path->folder);
-			/* delete last / or we get confused later. */
-			path->folder[ strlen(path->folder)-1 ] = '\0';
-			CR (gp_filesystem_append (camera->fs, path->folder, path->name, context));
-			break;
-		}
+		CPR (context, ptp_object_want (params, newobject, PTPOBJECT_OBJECTINFO_LOADED, &ob));
+		strcpy  (path->name,  ob->oi.Filename);
+		sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)ob->oi.StorageID);
+		get_folder_from_handle (camera, ob->oi.StorageID, ob->oi.ParentObject, path->folder);
+		/* delete last / or we get confused later. */
+		path->folder[ strlen(path->folder)-1 ] = '\0';
+		CR (gp_filesystem_append (camera->fs, path->folder, path->name, context));
 	}
+	return GP_OK;
+}
+
+static int
+camera_trigger_capture (Camera *camera, GPContext *context)
+{
+	PTPParams *params = &camera->pl->params;
+	uint16_t	ret;
+	char buf[1024];
+
+	SET_CONTEXT_P(params, context);
+
+	strcpy (buf, "UNKNOWN");
+	gp_setting_get("ptp2","capturetarget",buf);
+
+	/* Nikon */
+	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_NIKON) &&
+		ptp_operation_issupported(params, PTP_OC_NIKON_Capture) &&
+		!strcmp (buf, "sdram")
+	) {
+		/* If in liveview mode, we have to run non-af capture */
+		int inliveview = 0;
+		PTPPropertyValue propval;
+
+		CPR (context, ptp_check_event (params));
+
+		if (ptp_property_issupported (params, PTP_DPC_NIKON_LiveViewStatus)) {
+			ret = ptp_getdevicepropvalue (params, PTP_DPC_NIKON_LiveViewStatus, &propval, PTP_DTC_UINT8);
+			if (ret == PTP_RC_OK)
+				inliveview = propval.u8;
+		}
+
+		if (!inliveview && ptp_operation_issupported (params,PTP_OC_NIKON_AfCaptureSDRAM))
+			ret = ptp_nikon_capture_sdram (params);
+		else
+			ret = ptp_nikon_capture (params, 0xffffffff);
+		if (ret != PTP_RC_OK)
+			return translate_ptp_result (ret);
+		while (PTP_RC_DeviceBusy == ptp_nikon_device_ready (params));
+		return GP_OK;
+	}
+	/* Canon EOS */
+	if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+	     ptp_operation_issupported(params, PTP_OC_CANON_EOS_RemoteRelease)) {
+		uint32_t	result;
+
+		if (!params->eos_captureenabled)
+			camera_prepare_capture (camera, context);
+		else
+			CR( camera_canon_eos_update_capture_target(camera, context, -1));
+
+		/* Get the initial bulk set of event data, otherwise
+		 * capture might return busy. */
+		do {
+			ptp_check_eos_events (params);
+		} while (params->eos_camerastatus == 1);
+
+		ret = ptp_canon_eos_capture (params, &result);
+		if (ret != PTP_RC_OK) {
+			gp_context_error (context, _("Canon EOS Trigger Capture failed: 0x%x (result 0x%x)"), ret, result);
+			return translate_ptp_result (ret);
+		}
+		if ((result & 0x7000) == 0x2000) { /* also happened */
+			gp_context_error (context, _("Canon EOS Trigger Capture failed: 0x%x"), result);
+			return translate_ptp_result (result);
+		}
+		gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "result is %d", result);
+		if (result == 1) {
+			gp_context_error (context, _("Canon EOS Trigger Capture failed to release: Perhaps no focus?"));
+			return GP_ERROR;
+		}
+		if (result == 7) {
+			gp_context_error (context, _("Canon EOS Trigger Capture failed to release: Perhaps no more memory on card?"));
+			return GP_ERROR_NO_MEMORY;
+		}
+		if (result) {
+			gp_context_error (context, _("Canon EOS Trigger Capture failed to release: Unknown error %d, please report."), result);
+			return GP_ERROR;
+		}
+		/* wait until camera reports busy ... */
+		do {
+			ptp_check_eos_events (params);
+		} while (params->eos_camerastatus == 0);
+		/* wait until camera reports ready ... */
+		do {
+			ptp_check_eos_events (params);
+		} while (params->eos_camerastatus == 1);
+		return GP_OK;
+	}
+	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+		ptp_operation_issupported(params, PTP_OC_CANON_InitiateCaptureInMemory)
+	) {
+		uint16_t xmode;
+		/*int viewfinderwason = 0;*/
+		PTPPropertyValue propval;
+
+		if (!ptp_property_issupported(params, PTP_DPC_CANON_FlashMode)) {
+			/* did not call --set-config capture=on, do it for user */
+			ret = camera_prepare_capture (camera, context);
+			if (ret != GP_OK)
+				return ret;
+			if (!ptp_property_issupported(params, PTP_DPC_CANON_FlashMode)) {
+				gp_context_error (context,
+				_("Sorry, initializing your camera did not work. Please report this."));
+				return GP_ERROR_NOT_SUPPORTED;
+			}
+		}
+
+		if (ptp_property_issupported(params, PTP_DPC_CANON_CaptureTransferMode)) {
+			if ((GP_OK == gp_setting_get("ptp2","capturetarget",buf)) && !strcmp(buf,"sdram"))
+				propval.u16 = xmode = CANON_TRANSFER_MEMORY;
+			else
+				propval.u16 = xmode = CANON_TRANSFER_CARD;
+
+			if (xmode == CANON_TRANSFER_CARD) {
+				PTPStorageIDs storageids;
+
+				ret = ptp_getstorageids(params, &storageids);
+				if (ret == PTP_RC_OK) {
+					int k, stgcnt = 0;
+					for (k=0;k<storageids.n;k++) {
+						if (!(storageids.Storage[k] & 0xffff)) continue;
+						if (storageids.Storage[k] == 0x80000001) continue;
+						stgcnt++;
+					}
+					if (!stgcnt) {
+						gp_log (GP_LOG_DEBUG, "ptp", "Assuming no CF card present - switching to MEMORY Transfer.");
+						propval.u16 = xmode = CANON_TRANSFER_MEMORY;
+					}
+					free (storageids.Storage);
+				}
+			}
+			ret = ptp_setdevicepropvalue(params, PTP_DPC_CANON_CaptureTransferMode, &propval, PTP_DTC_UINT16);
+			if (ret != PTP_RC_OK)
+				gp_log (GP_LOG_DEBUG, "ptp", "setdevicepropvalue CaptureTransferMode failed, %x", ret);
+		}
+
+		if (params->canon_viewfinder_on) { /* disable during capture ... reenable later on. */
+			ret = ptp_canon_viewfinderoff (params);
+			if (ret != PTP_RC_OK) {
+				gp_context_error (context, _("Canon disable viewfinder failed: %d"), ret);
+				SET_CONTEXT_P(params, NULL);
+				return translate_ptp_result (ret);
+			}
+			/*viewfinderwason = 1;*/
+			params->canon_viewfinder_on = 0;
+		}
+
+	#if 0
+		/* FIXME: For now, to avoid flash during debug */
+		propval.u8 = 0;
+		ret = ptp_setdevicepropvalue(params, PTP_DPC_CANON_FlashMode, &propval, PTP_DTC_UINT8);
+	#endif
+		while (1) {
+			ret = ptp_canon_initiatecaptureinmemory (params);
+			if (ret == PTP_RC_OK)
+				break;
+			if (ret == PTP_RC_DeviceBusy) {
+				gp_log (GP_LOG_DEBUG, "ptp/trigger_capture", "Canon Powershot busy ... retrying...");
+				gp_context_idle (context);
+				ptp_check_event (params);
+				usleep(10000); /* 10 ms  ... fixme: perhaps experimental backoff? */
+				continue;
+			}
+			if (ret != PTP_RC_OK) {
+				gp_context_error (context, _("Canon Capture failed: %x"), ret);
+				return translate_ptp_result (ret);
+			}
+			return GP_OK;
+		}
+		gp_log (GP_LOG_DEBUG, "ptp/trigger_capture", "Canon Powershot capture triggered...");
+		return GP_OK;
+	}
+	
+
+#if 0
+	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+		ptp_operation_issupported(params, PTP_OC_CANON_EOS_RemoteRelease)
+	) {
+		return camera_canon_eos_capture (camera, type, path, context);
+	}
+#endif
+	if (!ptp_operation_issupported(params,PTP_OC_InitiateCapture)) {
+		gp_context_error(context,
+               	_("Sorry, your camera does not support generic capture"));
+		return GP_ERROR_NOT_SUPPORTED;
+	}
+	CPR (context,ptp_initiatecapture(params, 0x00000000, 0x00000000));
 	return GP_OK;
 }
 
@@ -2740,16 +3235,17 @@ camera_wait_for_event (Camera *camera, int timeout,
 	CameraFile	*file;
 	char		*ximage;
 	int		sleepcnt = 1;
-	int		i;
 
 	SET_CONTEXT(camera, context);
 	gp_log (GP_LOG_DEBUG, "ptp2/wait_for_event", "waiting for events timeout %d ms", timeout);
-
-	init_ptp_fs (camera, context);
-
 	memset (&event, 0, sizeof(event));
 	*eventtype = GP_EVENT_TIMEOUT;
 	*eventdata = NULL;
+
+	if (params->device_flags & DEVICE_FLAG_OLYMPUS_XML_WRAPPED) {
+		gp_log (GP_LOG_DEBUG, "ptp2/usb", "olympus setcameracontrolmode 2\n");
+		ptp_olympus_setcameracontrolmode (params, 2);
+	}
 
 	gettimeofday (&event_start,NULL);
 	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
@@ -2761,6 +3257,16 @@ camera_wait_for_event (Camera *camera, int timeout,
 			int i;
 			PTPCanon_changes_entry	entry;
 
+			/* keep device alive */
+			ret = ptp_canon_eos_keepdeviceon (params);
+			if (ret != PTP_RC_OK)
+				return translate_ptp_result (ret);
+
+			ret = ptp_check_eos_events (params);
+			if (ret != PTP_RC_OK) {
+				gp_context_error (context, _("Canon EOS Get Changes failed: 0x%04x"), ret);
+				return translate_ptp_result (ret);
+			}
 			while (ptp_get_one_eos_event (params, &entry)) {
 				sleepcnt = 1;
 				gp_log (GP_LOG_DEBUG, "ptp2/wait_for_eos_event", "entry type %04x", entry.type);
@@ -2778,7 +3284,6 @@ camera_wait_for_event (Camera *camera, int timeout,
 					strcpy (path->folder,"/");
 					ret = gp_file_new(&file);
 					if (ret!=GP_OK) return ret;
-					gp_file_set_type (file, GP_FILE_TYPE_NORMAL);
 					sprintf (path->name, "capt%04d.", capcnt++);
 					if ((entry.u.object.oi.ObjectFormat == PTP_OFC_CANON_CRW) || (entry.u.object.oi.ObjectFormat == PTP_OFC_CANON_CRW3)) {
 						strcat(path->name, "cr2");
@@ -2787,10 +3292,9 @@ camera_wait_for_event (Camera *camera, int timeout,
 						strcat(path->name, "jpg");
 						gp_file_set_mime_type (file, GP_MIME_JPEG);
 					}
-					gp_file_set_name (file, path->name);
 					gp_file_set_mtime (file, time(NULL));
 
-					gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "trying to get object size=0x%x", entry.u.object.oi.ObjectCompressedSize);
+					gp_log (GP_LOG_DEBUG, "ptp2/canon_eos_capture", "trying to get object size=0x%lx", (unsigned long)entry.u.object.oi.ObjectCompressedSize);
 					CPR (context, ptp_canon_eos_getpartialobject (params, newobject, 0, entry.u.object.oi.ObjectCompressedSize, (unsigned char**)&ximage));
 					CPR (context, ptp_canon_eos_transfercomplete (params, newobject));
 					ret = gp_file_set_data_and_size(file, (char*)ximage, entry.u.object.oi.ObjectCompressedSize);
@@ -2803,7 +3307,7 @@ camera_wait_for_event (Camera *camera, int timeout,
 						gp_file_free (file);
 						return ret;
 					}
-					ret = gp_filesystem_set_file_noop(camera->fs, path->folder, file, context);
+					ret = gp_filesystem_set_file_noop(camera->fs, path->folder, path->name, GP_FILE_TYPE_NORMAL, file, context);
 					if (ret != GP_OK) {
 						gp_file_free (file);
 						return ret;
@@ -2867,11 +3371,6 @@ camera_wait_for_event (Camera *camera, int timeout,
 					break;
 				}
 			}
-			ret = ptp_check_eos_events (params);
-			if (ret != PTP_RC_OK) {
-				gp_context_error (context, _("Canon EOS Get Changes failed: 0x%04x"), ret);
-				return translate_ptp_result (ret);
-			}
 			if (_timeout_passed (&event_start, timeout))
 				break;
 			/* incremental backoff of polling ... but only if we do not pass the wait time */
@@ -2882,9 +3381,13 @@ camera_wait_for_event (Camera *camera, int timeout,
 				gp_context_idle (context);
 				gettimeofday (&curtime, 0);
 				resttime = ((curtime.tv_sec - event_start.tv_sec)*1000)+((curtime.tv_usec - event_start.tv_usec)/1000);
-				if (resttime < 20)
+				resttime = timeout - resttime;
+				if (resttime <= 0)
 					break;
-				usleep(20*1000); /* 20 ms */
+				/* Try not to sleep for more than 20ms at a time */
+				if (resttime > 20)
+				  	resttime = 20;
+				usleep(resttime*1000);
 			}
 			sleepcnt++; /* incremental back off */
 			if (sleepcnt>10) sleepcnt=10;
@@ -2903,7 +3406,7 @@ camera_wait_for_event (Camera *camera, int timeout,
 				switch (event.Code) {
 				case PTP_EC_CANON_RequestObjectTransfer: {
 					CameraFilePath *path;
-					PTPObjectInfo   oi;
+					PTPObjectInfo	oi;
 
 					newobject = event.Param1;
 					gp_log (GP_LOG_DEBUG, "ptp", "PTP_EC_CANON_RequestObjectTransfer, object handle=0x%X.",newobject);
@@ -2933,6 +3436,21 @@ camera_wait_for_event (Camera *camera, int timeout,
 					*eventtype = GP_EVENT_FILE_ADDED;
 					return GP_OK;
 				}
+				case PTP_EC_CANON_ShutterButtonPressed0:
+				case PTP_EC_CANON_ShutterButtonPressed1:
+				{
+					CameraFilePath *path;
+
+					path = malloc(sizeof(CameraFilePath));
+					ret = camera_canon_capture (camera, GP_FILE_TYPE_NORMAL, path, context);
+					if (ret != GP_OK) {
+						free (path);
+						break;
+					}
+					*eventdata = path;
+					*eventtype = GP_EVENT_FILE_ADDED;
+					return GP_OK;
+				}
 				default:
 					break;
 				}
@@ -2949,11 +3467,11 @@ camera_wait_for_event (Camera *camera, int timeout,
 	if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_NIKON) &&
 		ptp_operation_issupported(params, PTP_OC_NIKON_CheckEvent)
 	) {
-		uint32_t	newobject;
-
 		do {
 			CPR (context, ptp_check_event (params));
 			if (!ptp_get_one_event (params, &event)) {
+				int i;
+
 				if (_timeout_passed (&event_start, timeout))
 					break;
 				/* incremental backoff wait ... including this wait loop */
@@ -2974,42 +3492,54 @@ camera_wait_for_event (Camera *camera, int timeout,
 			}
 			sleepcnt = 1;
 
-			gp_log (GP_LOG_DEBUG , "ptp/wait_nikon_event", "event.Code is %x / param %lx", event.Code, (unsigned long)event.Param1);
+			gp_log (GP_LOG_DEBUG , "ptp2/nikon_wait_event", "event.Code is %x / param %lx", event.Code, (unsigned long)event.Param1);
 			switch (event.Code) {
 			case PTP_EC_ObjectAdded: {
-				int j, res;
-				PTPObjectInfo	*obinfo;
+				PTPObject	*ob;
+				uint16_t	ofc;
 
-				newobject = event.Param1;
-				j = handle_to_n (newobject, camera);
-				if (j != PTP_HANDLER_SPECIAL) {
-					gp_log (GP_LOG_DEBUG , "ptp/wait_nikon_event", "ObjectAdded(0x%lx), is already in handle list", (unsigned long)event.Param1);
+				if (!event.Param1 || (event.Param1 == 0xffff0001))
+					goto downloadnow;
+
+				/* if we have the object already loaded, no need to add it here */
+				if (PTP_RC_OK == ptp_object_find(params, event.Param1, &ob))
 					continue;
-				}
+
 				path = (CameraFilePath *)malloc(sizeof(CameraFilePath));
 				if (!path)
 					return GP_ERROR_NO_MEMORY;
-				res = add_object (camera, newobject, context);
-				if (res != GP_OK) { /* might have been deleted previously */
-					free (path);
-					continue;
-				}
 				path->name[0]='\0';
 				path->folder[0]='\0';
-
-				j = handle_to_n (newobject, camera);
-				if (j == PTP_HANDLER_SPECIAL) {
-					free (path);
-					continue;
+				ret = ptp_object_want (params, event.Param1, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+				debug_objectinfo(params, event.Param1, &ob->oi);
+				if (ret != PTP_RC_OK) {
+					*eventtype = GP_EVENT_UNKNOWN;
+					*eventdata = strdup ("object added not found (already deleted)");
+					break;
 				}
+				ofc = ob->oi.ObjectFormat;
+				/* ob might be invalidated by get_folder_from_handle */
 
-				obinfo = &params->objectinfo[j];
-				strcpy  (path->name,  obinfo->Filename);
-				sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)obinfo->StorageID);
-				get_folder_from_handle (camera, obinfo->StorageID, obinfo->ParentObject, path->folder);
+				if (ob->oi.StorageID == 0) {
+					/* We would always get the same filename,
+					 * which will confuse the frontends */
+					if (strstr(ob->oi.Filename,".NEF"))
+						sprintf (path->name, "capt%04d.nef", capcnt++);
+					else
+						sprintf (path->name, "capt%04d.jpg", capcnt++);
+					free (ob->oi.Filename);
+					ob->oi.Filename = strdup (path->name);
+					strcpy (path->folder,"/");
+					goto downloadnow;
+				} else {
+					strcpy  (path->name,  ob->oi.Filename);
+					sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)ob->oi.StorageID);
+					get_folder_from_handle (camera, ob->oi.StorageID, ob->oi.ParentObject, path->folder);
+					path->folder[ strlen(path->folder)-1 ] = '\0';
+				}
+				/* ob pointer can be invalid now! */
 				/* delete last / or we get confused later. */
-				path->folder[ strlen(path->folder)-1 ] = '\0';
-				if (obinfo->ObjectFormat == PTP_OFC_Association) { /* new folder! */
+				if (ofc == PTP_OFC_Association) { /* new folder! */
 					*eventtype = GP_EVENT_FOLDER_ADDED;
 					*eventdata = path;
 					gp_filesystem_reset (camera->fs); /* FIXME: implement more lightweight folder add */
@@ -3025,13 +3555,14 @@ camera_wait_for_event (Camera *camera, int timeout,
 				break;
 			}
 			case PTP_EC_Nikon_ObjectAddedInSDRAM: {
-				PTPObjectInfo		oi;
-
+				PTPObjectInfo	oi;
+downloadnow:
 				newobject = event.Param1;
 				if (!newobject) newobject = 0xffff0001;
 				ret = ptp_getobjectinfo (params, newobject, &oi);
 				if (ret != PTP_RC_OK)
 					continue;
+				debug_objectinfo(params, newobject, &oi);
 				path = (CameraFilePath *)malloc(sizeof(CameraFilePath));
 				if (!path)
 					return GP_ERROR_NO_MEMORY;
@@ -3040,18 +3571,16 @@ camera_wait_for_event (Camera *camera, int timeout,
 				ret = gp_file_new(&file);
 				if (ret!=GP_OK) return ret;
 				if (oi.ObjectFormat != PTP_OFC_EXIF_JPEG) {
-					gp_log (GP_LOG_DEBUG,"nikon_wait_event", "raw? ofc is 0x%04x, name is %s", oi.ObjectFormat,oi.Filename);
+					gp_log (GP_LOG_DEBUG,"ptp2/nikon_wait_event", "raw? ofc is 0x%04x, name is %s", oi.ObjectFormat,oi.Filename);
 					sprintf (path->name, "capt%04d.nef", capcnt++);
 					gp_file_set_mime_type (file, "image/x-nikon-nef"); /* FIXME */
 				} else {
 					sprintf (path->name, "capt%04d.jpg", capcnt++);
 					gp_file_set_mime_type (file, GP_MIME_JPEG);
 				}
-				gp_file_set_name (file, path->name);
-				gp_file_set_type (file, GP_FILE_TYPE_NORMAL);
 				gp_file_set_mtime (file, time(NULL));
 
-				gp_log (GP_LOG_DEBUG, "ptp2/wait_nikon_event", "trying to get object size=0x%x", oi.ObjectCompressedSize);
+				gp_log (GP_LOG_DEBUG, "ptp2/nikon_wait_event", "trying to get object size=0x%lx", (unsigned long)oi.ObjectCompressedSize);
 				CPR (context, ptp_getobject (params, newobject, (unsigned char**)&ximage));
 				ret = gp_file_set_data_and_size(file, (char*)ximage, oi.ObjectCompressedSize);
 				if (ret != GP_OK) {
@@ -3063,7 +3592,7 @@ camera_wait_for_event (Camera *camera, int timeout,
 					gp_file_free (file);
 					return ret;
 				}
-				ret = gp_filesystem_set_file_noop(camera->fs, path->folder, file, context);
+				ret = gp_filesystem_set_file_noop(camera->fs, path->folder, path->name, GP_FILE_TYPE_NORMAL, file, context);
 				if (ret != GP_OK) {
 					gp_file_free (file);
 					return ret;
@@ -3076,11 +3605,9 @@ camera_wait_for_event (Camera *camera, int timeout,
 			}
 			case PTP_EC_Nikon_CaptureCompleteRecInSdram:
 			case PTP_EC_CaptureComplete:
-			{
 				*eventtype = GP_EVENT_CAPTURE_COMPLETE;
 				*eventdata = NULL;
 				return GP_OK;
-			}
 			case PTP_EC_DevicePropChanged:
 			{
 				char *x;
@@ -3116,14 +3643,13 @@ camera_wait_for_event (Camera *camera, int timeout,
 	CPR (context, ptp_check_event(params));
 	if (!ptp_get_one_event (params, &event)) {
 		/* FIXME: Might be another error, but usually is a timeout */
-		gp_log (GP_LOG_DEBUG, "ptp2", "wait_for_event: no events received.");
+		gp_log (GP_LOG_DEBUG, "ptp2/wait_for_event", "no events received.");
 		*eventtype = GP_EVENT_TIMEOUT;
 		return GP_OK;
 	}
-	gp_log (GP_LOG_DEBUG, "ptp2", "wait_for_event: code=0x%04x, param1 0x%08x",
+	gp_log (GP_LOG_DEBUG, "ptp2/wait_for_event", "code=0x%04x, param1 0x%08x",
 		event.Code, event.Param1
 	);
-
 handleregular:
 	switch (event.Code) {
 	case PTP_EC_CaptureComplete:
@@ -3131,26 +3657,24 @@ handleregular:
 		*eventdata = NULL;
 		break;
 	case PTP_EC_ObjectAdded: {
-		PTPObjectInfo	*obinfo;
+		PTPObject	*ob;
+		uint16_t	ofc;
 
 		path = (CameraFilePath *)malloc(sizeof(CameraFilePath));
 		if (!path)
 			return GP_ERROR_NO_MEMORY;
-		newobject = event.Param1;
-		add_object (camera, event.Param1, context);
 		path->name[0]='\0';
 		path->folder[0]='\0';
 
-		i = handle_to_n (newobject, camera);
-		if (i == PTP_HANDLER_SPECIAL)
-			return GP_ERROR;
-		obinfo = &params->objectinfo[i];
-		strcpy  (path->name,  obinfo->Filename);
-		sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)obinfo->StorageID);
-		get_folder_from_handle (camera, obinfo->StorageID, obinfo->ParentObject, path->folder);
+		CPR (context, ptp_object_want (params, event.Param1, PTPOBJECT_OBJECTINFO_LOADED, &ob));
+		strcpy  (path->name,  ob->oi.Filename);
+		sprintf (path->folder,"/"STORAGE_FOLDER_PREFIX"%08lx/",(unsigned long)ob->oi.StorageID);
+		ofc = ob->oi.ObjectFormat;
+		get_folder_from_handle (camera, ob->oi.StorageID, ob->oi.ParentObject, path->folder);
+		/* ob could be invalid now, reload it or dont use it... */
 		/* delete last / or we get confused later. */
 		path->folder[ strlen(path->folder)-1 ] = '\0';
-		if (obinfo->ObjectFormat == PTP_OFC_Association) { /* new folder! */
+		if (ofc == PTP_OFC_Association) { /* new folder! */
 			*eventtype = GP_EVENT_FOLDER_ADDED;
 			*eventdata = path;
 			gp_filesystem_reset (camera->fs); /* FIXME: implement more lightweight folder add */
@@ -3174,8 +3698,7 @@ handleregular:
 		}
 		break;
 	}
-	default:
-	{
+	default: {
 		char *x;
 
 		*eventtype = GP_EVENT_UNKNOWN;
@@ -3367,7 +3890,8 @@ nikon_curve_put (CameraFilesystem *fs, const char *folder, CameraFile *file,
 static int
 camera_summary (Camera* camera, CameraText* summary, GPContext *context)
 {
-	int n, i, j, ret;
+	int n, i, j;
+	uint16_t ret;
 	int spaceleft;
 	char *txt;
 	PTPParams *params = &(camera->pl->params);
@@ -3447,9 +3971,8 @@ camera_summary (Camera* camera, CameraText* summary, GPContext *context)
 		n = snprintf (txt, spaceleft,_("Supported MTP Object Properties:\n"));
 		if (n >= spaceleft) return GP_OK; spaceleft -= n; txt += n;
 		for (i=0;i<params->deviceinfo.ImageFormats_len;i++) {
-			uint16_t ret, *props = NULL;
+			uint16_t *props = NULL;
 			uint32_t propcnt = 0;
-			int j;
 
 			n = snprintf (txt, spaceleft,"\t");
 			if (n >= spaceleft) return GP_OK; spaceleft -= n; txt += n;
@@ -3658,6 +4181,11 @@ camera_summary (Camera* camera, CameraText* summary, GPContext *context)
 				continue;
 			}
 		}
+		if (!ptp_operation_issupported(params, PTP_OC_GetDevicePropDesc)) {
+			n = snprintf(txt, spaceleft, _("cannot be queried.\n"));
+			if (n>=spaceleft) return GP_OK;spaceleft-=n;txt+=n;
+			continue;
+		}
 
 		memset (&dpd, 0, sizeof (dpd));
 		ret = ptp_getdevicepropdesc (params, dpc, &dpd);
@@ -3738,38 +4266,63 @@ camera_summary (Camera* camera, CameraText* summary, GPContext *context)
 }
 
 static uint32_t
-find_child (const char *file, uint32_t storage, uint32_t handle, Camera *camera)
+find_child (PTPParams *params,const char *file,uint32_t storage,uint32_t handle,PTPObject **retob)
 {
-	int i;
-	PTPObjectInfo *oi = camera->pl->params.objectinfo;
+	int 		i;
+	uint16_t	ret;
 
-	for (i = 0; i < camera->pl->params.handles.n; i++) {
-		if ((oi[i].StorageID==storage) && (oi[i].ParentObject==handle))
-			if (!strcmp(oi[i].Filename,file))
-				return (camera->pl->params.handles.Handler[i]);
+	ret = ptp_list_folder (params, storage, handle);
+	if (ret != PTP_RC_OK)
+		return PTP_HANDLER_SPECIAL;
+
+	for (i = 0; i < params->nrofobjects; i++) {
+		PTPObject	*ob = &params->objects[i];
+
+		ret = PTP_RC_OK;
+		if ((ob->flags & (PTPOBJECT_PARENTOBJECT_LOADED|PTPOBJECT_STORAGEID_LOADED)) != (PTPOBJECT_PARENTOBJECT_LOADED|PTPOBJECT_STORAGEID_LOADED))
+			ret = ptp_object_want (params, params->objects[i].oid, PTPOBJECT_PARENTOBJECT_LOADED|PTPOBJECT_STORAGEID_LOADED, &ob);
+		if (ret != PTP_RC_OK)
+			return PTP_HANDLER_SPECIAL;
+		if ((ob->oi.StorageID==storage) && (ob->oi.ParentObject==handle)) {
+			ret = ptp_object_want (params, ob->oid, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+			if (ret != PTP_RC_OK)
+				return PTP_HANDLER_SPECIAL;
+			if (!strcmp (ob->oi.Filename,file)) {
+				if (retob) *retob = ob;
+				return ob->oid;
+			}
+		}
 	}
 	/* else not found */
-	return (PTP_HANDLER_SPECIAL);
+	return PTP_HANDLER_SPECIAL;
 }
-
 
 static uint32_t
-folder_to_handle(const char *folder, uint32_t storage, uint32_t parent, Camera *camera)
+folder_to_handle(PTPParams *params, const char *folder, uint32_t storage, uint32_t parent, PTPObject **retob)
 {
-	char *c;
-	if (!strlen(folder)) return PTP_HANDLER_ROOT;
-	if (!strcmp(folder,"/")) return PTP_HANDLER_ROOT;
+	char 		*c;
 
-	c=strchr(folder,'/');
-	if (c!=NULL) {
-		*c=0;
-		parent=find_child (folder, storage, parent, camera);
-		return folder_to_handle(c+1, storage, parent, camera);
+	if (retob) *retob = NULL;
+	if (!strlen(folder)) {
+		/* was initially read, no need to reread */
+		/* ptp_list_folder (params, storage, 0); */
+		return PTP_HANDLER_ROOT;
+	}
+	if (!strcmp(folder,"/")) {
+		/* was initially read, no need to reread */
+		/* ptp_list_folder (params, storage, 0); */
+		return PTP_HANDLER_ROOT;
+	}
+
+	c = strchr(folder,'/');
+	if (c != NULL) {
+		*c = 0;
+		parent = find_child (params, folder, storage, parent, retob);
+		return folder_to_handle(params, c+1, storage, parent, retob);
 	} else  {
-		return find_child (folder, storage, parent, camera);
+		return find_child (params, folder, storage, parent, retob);
 	}
 }
-	
 
 static int
 file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
@@ -3793,45 +4346,52 @@ file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 	return (GP_OK);
     }
 
-    init_ptp_fs (camera, context);
-
     /* compute storage ID value from folder patch */
     folder_to_storage(folder,storage);
 
     /* Get (parent) folder handle omiting storage pseudofolder */
-    find_folder_handle(folder,storage,parent,data);
+    find_folder_handle(params,folder,storage,parent);
+
+    CPR (context, ptp_list_folder (params, storage, parent));
+    gp_log (GP_LOG_DEBUG, "file_list_func", "after list folder");
 
     hasgetstorageids = ptp_operation_issupported(params,PTP_OC_GetStorageIDs);
-    for (i = 0; i < params->handles.n; i++) {
+    for (i = 0; i < params->nrofobjects; i++) {
+        PTPObject *ob;
 	/* not our parent -> next */
-	if (params->objectinfo[i].ParentObject!=parent)
+	CPR (context, ptp_object_want (params, params->objects[i].oid, PTPOBJECT_PARENTOBJECT_LOADED|PTPOBJECT_STORAGEID_LOADED, &ob));
+
+	if (params->objects[i].oi.ParentObject!=parent)
 		continue;
 
 	/* not on our storage devices -> next */
 	if (	(hasgetstorageids &&
-		(params->objectinfo[i].StorageID != storage)))
+		(params->objects[i].oi.StorageID != storage)))
 		continue;
 
+	CPR (context, ptp_object_want (params, params->objects[i].oid, PTPOBJECT_OBJECTINFO_LOADED, &ob));
 	/* Is a directory -> next */
-	if (params->objectinfo[i].ObjectFormat == PTP_OFC_Association)
+	if (ob->oi.ObjectFormat == PTP_OFC_Association)
 		continue;
 
-	if (!params->objectinfo[i].Filename)
+	debug_objectinfo(params, params->objects[i].oid, &ob->oi);
+
+	if (!ob->oi.Filename)
 	    continue;
 
-	if (1 || CAN_HAVE_DUPE_FILE(camera->pl)) {
+	if (1) {
 	    /* HP Photosmart 850, the camera tends to duplicate filename in the list.
              * Original patch by clement.rezvoy@gmail.com */
 	    /* search backwards, likely gets hits faster. */
 	    /* FIXME Marcus: This is also O(n^2) ... bad for large directories. */
-	    if (GP_OK == gp_list_find_by_name(list, NULL, params->objectinfo[i].Filename)) {
+	    if (GP_OK == gp_list_find_by_name(list, NULL, ob->oi.Filename)) {
 		gp_log (GP_LOG_ERROR, "ptp2/file_list_func",
 			"Duplicate filename '%s' in folder '%s'. Ignoring nth entry.\n",
-			params->objectinfo[i].Filename, folder);
+			ob->oi.Filename, folder);
 		continue;
 	    }
 	}
-	CR(gp_list_append (list, params->objectinfo[i].Filename, NULL));
+	CR(gp_list_append (list, ob->oi.Filename, NULL));
     }
     return GP_OK;
 }
@@ -3850,14 +4410,14 @@ folder_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 	if (!strcmp(folder, "/")) {
 		if (ptp_operation_issupported(params,PTP_OC_GetStorageIDs)) {
 			PTPStorageIDs storageids;
+			char fname[PTP_MAXSTRLEN];
 
 			CPR (context, ptp_getstorageids(params, &storageids));
 			if (!storageids.n) {
-				/* happens on Samsung Galaxy S2, fall back to default store. */
-				CR (gp_list_append (list, STORAGE_FOLDER_PREFIX"00010001", NULL));
+				snprintf(fname, sizeof(fname), STORAGE_FOLDER_PREFIX"%08x",0x00010001);
+				CR (gp_list_append (list, fname, NULL));
 			}
 			for (i=0; i<storageids.n; i++) {
-				char fname[PTP_MAXSTRLEN];
 
 				/* invalid storage, storageinfo might fail on it (Nikon D300s e.g.) */
 				if ((storageids.Storage[i]&0x0000ffff)==0) continue;
@@ -3885,24 +4445,46 @@ folder_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 		return (GP_OK);
 	}
 
-	init_ptp_fs ((Camera*)data, context);
-
 	/* compute storage ID value from folder path */
-	folder_to_storage(folder,storage);
+	folder_to_storage (folder,storage);
 
 	/* Get folder handle omiting storage pseudofolder */
-	find_folder_handle(folder,storage,handler,data);
+	find_folder_handle (params,folder,storage,handler);
+
+	/* list this directory */
+	CPR (context, ptp_list_folder (params, storage, handler));
+
+        gp_log (GP_LOG_DEBUG, "folder_list_func", "after list folder");
 
 	/* Look for objects we can present as directories.
 	 * Currently we specify *any* PTP association as directory.
 	 */
 	hasgetstorageids = ptp_operation_issupported(params,PTP_OC_GetStorageIDs);
-	for (i = 0; i < params->handles.n; i++) {
-		if (	(params->objectinfo[i].ParentObject==handler)	 &&
-			((!hasgetstorageids) || (params->objectinfo[i].StorageID == storage)) &&
-			(params->objectinfo[i].ObjectFormat==PTP_OFC_Association)
-		)
-			CR (gp_list_append (list, params->objectinfo[i].Filename, NULL));
+	for (i = 0; i < params->nrofobjects; i++) {
+		PTPObject *ob;
+
+		CPR (context, ptp_object_want (params, params->objects[i].oid, PTPOBJECT_STORAGEID_LOADED|PTPOBJECT_PARENTOBJECT_LOADED, &ob));
+
+		if (params->objects[i].oi.ParentObject != handler)
+			continue;
+		if (hasgetstorageids && (params->objects[i].oi.StorageID != storage))
+			continue;
+
+		CPR (context, ptp_object_want (params, params->objects[i].oid, PTPOBJECT_OBJECTINFO_LOADED, &ob));
+		if (ob->oi.ObjectFormat!=PTP_OFC_Association)
+			continue;
+        	gp_log (GP_LOG_DEBUG, "folder_list_func", "adding 0x%x to folder", ob->oid);
+		if (GP_OK == gp_list_find_by_name(list, NULL, ob->oi.Filename)) {
+			char	*buf;
+			gp_log (GP_LOG_ERROR, "ptp2/folder_list_func",
+				"Duplicate foldername '%s' in folder '%s'. Ignoring nth entry.\n",
+				ob->oi.Filename, folder);
+			buf = malloc(strlen(ob->oi.Filename)+strlen("_012345678")+1);
+			sprintf (buf, "%s_%08x", ob->oi.Filename, ob->oid);
+			free (ob->oi.Filename);
+			ob->oi.Filename = buf;
+		}
+		CR (gp_list_append (list, ob->oi.Filename, NULL));
 	}
 	return (GP_OK);
 }
@@ -3928,22 +4510,26 @@ ptp_mtp_render_metadata (
 	uint16_t ret, *props = NULL;
 	uint32_t propcnt = 0;
 	int j;
+	MTPProperties	*mprops;
+	PTPObject	*ob;
+
+	ret = ptp_object_want (params, object_id, PTPOBJECT_MTPPROPLIST_LOADED, &ob);
+	if (ret != PTP_RC_OK) return translate_ptp_result (ret);
 
 	/* ... use little helper call to see if we missed anything in the global
 	 * retrieval. */
 	ret = ptp_mtp_getobjectpropssupported (params, ofc, &propcnt, &props);
 	if (ret != PTP_RC_OK) return translate_ptp_result (ret);
-	
-	if (params->props) { /* use the fast method, without device access since cached.*/
+
+	mprops = ob->mtpprops;
+	if (mprops) { /* use the fast method, without device access since cached.*/
 		char			propname[256];
 		char			text[256];
-		int 			i, j, n;
+		int 			i, n;
 
-		for (j=0;j<params->nrofprops;j++) {
-			MTPProperties		*xpl = &params->props[j];
+		for (j=0;j<ob->nrofmtpprops;j++) {
+			MTPProperties		*xpl = &mprops[j];
 
-			if (xpl->ObjectHandle != object_id)
-				continue;
 			for (i=sizeof(uninteresting_props)/sizeof(uninteresting_props[0]);i--;)
 				if (uninteresting_props[i] == xpl->property)
 					break;
@@ -4101,7 +4687,7 @@ ptp_mtp_parse_metadata (
 		char			propname[256],propname2[256];
 		char			*begin, *end, *content;
 		PTPObjectPropDesc	opd;
-		int 			i, n;
+		int 			i;
 		PTPPropertyValue	pv;
 
 		for (i=sizeof(readonly_props)/sizeof(readonly_props[0]);i--;)
@@ -4109,7 +4695,7 @@ ptp_mtp_parse_metadata (
 				break;
 		if (i != -1) /* Is read/only */
 			continue;
-		n = ptp_render_mtp_propname(props[j], sizeof(propname), propname);
+		ptp_render_mtp_propname(props[j], sizeof(propname), propname);
 		sprintf (propname2, "<%s>", propname);
 		begin= strstr (filedata, propname2);
 		if (!begin) continue;
@@ -4185,23 +4771,22 @@ mtp_get_playlist_string(
 	for (i=0;i<numobjects;i++) {
 		char		buf[4096];
 		int		len;
+		PTPObject 	*ob;
 
 		memset(buf, 0, sizeof(buf));
 		len = 0;
 		object_id = objects[i];
 		do {
-			int j = handle_to_n(object_id, camera);
-			if (j == PTP_HANDLER_SPECIAL)
-				break;
+			CPR (NULL, ptp_object_want (params, object_id, PTPOBJECT_OBJECTINFO_LOADED, &ob));
 			/* make space for new filename */
-			memmove (buf+strlen(params->objectinfo[j].Filename)+1, buf, len);
-			memcpy (buf+1, params->objectinfo[j].Filename, strlen (params->objectinfo[j].Filename));
+			memmove (buf+strlen(ob->oi.Filename)+1, buf, len);
+			memcpy (buf+1, ob->oi.Filename, strlen (ob->oi.Filename));
 			buf[0] = '/';
-			object_id = params->objectinfo[j].ParentObject;
+			object_id = ob->oi.ParentObject;
 			len = strlen(buf);
 		} while (object_id != 0);
 		memmove (buf+strlen("/store_00010001"), buf, len);
-		sprintf (buf,"/store_%08x",(unsigned int)params->objectinfo[handle_to_n(objects[i],camera)].StorageID);
+		sprintf (buf,"/store_%08x",(unsigned int)ob->oi.StorageID);
 		buf[strlen(buf)]='/';
 		len = strlen(buf);
 
@@ -4237,6 +4822,7 @@ mtp_put_playlist(
 	uint32_t	*oids = NULL;
 	int		nrofoids = 0;
 	uint16_t	ret;
+	PTPParams 	*params = &camera->pl->params;
 
 	while (*s) {
 		char *t = strchr(s,'\n');
@@ -4263,8 +4849,8 @@ mtp_put_playlist(
 		/* compute storage ID value from folder patch */
 		folder_to_storage(fn,storage);
 		/* Get file number omiting storage pseudofolder */
-		find_folder_handle(fn, storage, objectid, camera);
-		objectid = find_child(filename, storage, objectid, camera);
+		find_folder_handle(params, fn, storage, objectid);
+		objectid = find_child(params, filename, storage, objectid, NULL);
 		if (objectid != PTP_HANDLER_SPECIAL) {
 			if (nrofoids) {
 				oids = realloc(oids, sizeof(oids[0])*(nrofoids+1));
@@ -4371,6 +4957,102 @@ ptp_exit_camerafile_handler (PTPDataHandler *handler) {
 
 
 static int
+read_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
+	        CameraFileType type,
+		uint64_t offset64, char *buf, uint64_t *size64,
+		void *data, GPContext *context)
+{
+	Camera *camera = data;
+	PTPParams *params = &camera->pl->params;
+	/* Note that "image" points to unsigned chars whereas all the other
+	 * functions which set image return pointers to chars.
+	 * However, we calculate a number of unsigned values in this function,
+	 * so we cannot make it signed either.
+	 * Therefore, sometimes a "ximage" char* helper, since wild casts of pointers
+	 * confuse the compilers aliasing mechanisms.
+	 * If you do not like that, feel free to clean up the datatypes.
+	 * (TODO for Marcus and 2.2 ;)
+	 */
+	uint32_t oid;
+	uint32_t storage;
+	uint32_t xsize;
+	uint32_t offset = offset64, size = *size64;
+	PTPObject *ob;
+
+	SET_CONTEXT_P(params, context);
+	if (offset64 + *size64 > 0xffffffff) {
+		gp_log (GP_LOG_ERROR, "ptp2/read_file_func", "offset + size exceeds 32bit");
+		return (GP_ERROR_BAD_PARAMETERS); /* file not found */
+	}
+
+	if (!strcmp (folder, "/special"))
+		return (GP_ERROR_BAD_PARAMETERS); /* file not found */
+
+	if (!ptp_operation_issupported(params, PTP_OC_GetPartialObject))
+		return (GP_ERROR_NOT_SUPPORTED);
+
+	/* compute storage ID value from folder patch */
+	folder_to_storage(folder,storage);
+	/* Get file number omiting storage pseudofolder */
+	find_folder_handle(params, folder, storage, oid);
+	oid = find_child(params, filename, storage, oid, &ob);
+	if (oid == PTP_HANDLER_SPECIAL) {
+		gp_context_error (context, _("File '%s/%s' does not exist."), folder, filename);
+		return GP_ERROR_BAD_PARAMETERS;
+	}
+	GP_DEBUG ("Reading file off=%u size=%u", offset, size);
+	switch (type) {
+	default:
+		return (GP_ERROR_NOT_SUPPORTED);
+	case GP_FILE_TYPE_NORMAL: {
+		uint16_t	ret;
+		unsigned char	*xdata;
+
+		/* We do not allow downloading unknown type files as in most
+		cases they are special file (like firmware or control) which
+		sometimes _cannot_ be downloaded. doing so we avoid errors.*/
+		if (ob->oi.ObjectFormat == PTP_OFC_Association ||
+			(ob->oi.ObjectFormat == PTP_OFC_Undefined &&
+				((ob->oi.ThumbFormat == PTP_OFC_Undefined) ||
+				 (ob->oi.ThumbFormat == 0)
+			)
+			)
+		)
+			return (GP_ERROR_NOT_SUPPORTED);
+
+		if (is_mtp_capable (camera) &&
+		    (ob->oi.ObjectFormat == PTP_OFC_MTP_AbstractAudioVideoPlaylist))
+			return (GP_ERROR_NOT_SUPPORTED);
+
+		xsize=ob->oi.ObjectCompressedSize;
+		if (!xsize)
+			return (GP_ERROR_NOT_SUPPORTED);
+
+		if (size+offset > xsize)
+			size = xsize - offset;
+		ret = ptp_getpartialobject(params, oid, offset, size, &xdata, &size);
+		if (ret == PTP_ERROR_CANCEL)
+			return GP_ERROR_CANCEL;
+		CPR(context, ret);
+		*size64 = size;
+		memcpy (buf, xdata, size);
+		free (xdata);
+		/* clear the "new" flag on Canons */
+		if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+			(ob->canon_flags & 0x20) &&
+			ptp_operation_issupported(params,PTP_OC_CANON_SetObjectArchive)
+		) {
+			/* seems just a byte (0x20 - new) */
+			ptp_canon_setobjectarchive (params, oid, ob->canon_flags & ~0x20);
+			ob->canon_flags &= ~0x20;
+		}
+		}
+		break;
+	}
+	return GP_OK;
+}
+
+static int
 get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	       CameraFileType type, CameraFile *file, void *data,
 	       GPContext *context)
@@ -4385,10 +5067,10 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	 * If you do not like that, feel free to clean up the datatypes.
 	 * (TODO for Marcus and 2.2 ;)
 	 */
-	uint32_t object_id;
+	uint32_t oid;
 	uint32_t size;
 	uint32_t storage;
-	PTPObjectInfo * oi;
+	PTPObject *ob;
 	PTPParams *params = &camera->pl->params;
 
 	SET_CONTEXT_P(params, context);
@@ -4410,29 +5092,24 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		return (GP_ERROR_BAD_PARAMETERS); /* file not found */
 	}
 
-	init_ptp_fs (camera, context);
-
 	/* compute storage ID value from folder patch */
 	folder_to_storage(folder,storage);
-
 	/* Get file number omiting storage pseudofolder */
-	find_folder_handle(folder, storage, object_id, data);
-	object_id = find_child(filename, storage, object_id, camera);
-	if ((object_id=handle_to_n(object_id, camera))==PTP_HANDLER_SPECIAL)
-		return (GP_ERROR_BAD_PARAMETERS);
-
-	oi=&params->objectinfo[object_id];
-	if (oi->ModificationDate != 0) {
-		gp_file_set_mtime (file, oi->ModificationDate);
-	} else {
-		gp_file_set_mtime (file, oi->CaptureDate);
+	find_folder_handle(params, folder, storage, oid);
+	oid = find_child(params, filename, storage, oid, &ob);
+	if (oid == PTP_HANDLER_SPECIAL) {
+		gp_context_error (context, _("File '%s/%s' does not exist."), folder, filename);
+		return GP_ERROR_BAD_PARAMETERS;
 	}
+	if (ob->oi.ModificationDate != 0)
+		gp_file_set_mtime (file, ob->oi.ModificationDate);
+	else
+		gp_file_set_mtime (file, ob->oi.CaptureDate);
 
 	GP_DEBUG ("Getting file.");
 	switch (type) {
 	case	GP_FILE_TYPE_EXIF: {
-		uint32_t offset;
-		uint32_t maxbytes;
+		uint32_t offset, xlen, maxbytes;
 		unsigned char 	*ximage = NULL;
 
 		/* Check if we have partial downloads. Otherwise we can just hope
@@ -4440,129 +5117,55 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		if (!ptp_operation_issupported(params, PTP_OC_GetPartialObject))
 			return (GP_ERROR_NOT_SUPPORTED);
 		/* Device may hang is a partial read is attempted beyond the file */
-		if (oi->ObjectCompressedSize < 10)
+		if (ob->oi.ObjectCompressedSize < 10)
 			return (GP_ERROR_NOT_SUPPORTED);
 
 		/* We only support JPEG / EXIF format ... others might hang. */
-		switch (oi->ObjectFormat) {
-		/* tiff style tags ... */
-		case PTP_OFC_Undefined: /* 3800 ... used by Nikon NEF */
-		case PTP_OFC_TIFF_EP:
-		case PTP_OFC_DNG:
-		case PTP_OFC_CANON_CRW:
-		{
-			/* MORE MAGIC */
-			unsigned int ifd0offset, dircount, nextifdoff, nextoff, i, xlen;
-			/* Note: Could also use Canon partial downloads */
-			CPR (context, ptp_getpartialobject (params,
-				params->handles.Handler[object_id],
-				0, 8, &ximage, &xlen));
-			/* FIXME: handle other endianness too */
-			if ((ximage[0] != 'M') || (ximage[1] != 'M')) {
-				free (ximage);
-				return (GP_ERROR_NOT_SUPPORTED);
-			}
-			if ((ximage[2] != 0) || (ximage[3] != 42)) {
-				free (ximage);
-				return (GP_ERROR_NOT_SUPPORTED);
-			}
-			ifd0offset =	 ximage[7] +        (ximage[6] <<  8) +
-					(ximage[5] << 16) + (ximage[4] << 24);
-			free (ximage);
-			/* Read dir count of IFD */
-			CPR (context, ptp_getpartialobject (params,
-				params->handles.Handler[object_id],
-				ifd0offset, 2, &ximage, &xlen));
-			dircount = ximage[1] + (ximage[0] << 8);
-			free (ximage);
-			gp_log (GP_LOG_DEBUG, "ptp2/exif-tiff-reader", "dircount is %d", dircount);
-			CPR (context, ptp_getpartialobject (params,
-				params->handles.Handler[object_id],
-				ifd0offset+2, dircount*12+4 , &ximage, &xlen));
-			nextoff = 0;
-			for (i=0;i<dircount;i++) {
-				unsigned int size = 0;
-				unsigned int off = ximage[i*12+11]+
-						(ximage[i*12+10] <<8)+
-						(ximage[i*12+9] <<16)+
-						(ximage[i*12+8] <<24);
-				unsigned int cnt = ximage[i*12+7]+
-						(ximage[i*12+6] <<8)+
-						(ximage[i*12+5] <<16)+
-						(ximage[i*12+4] <<24);
-				unsigned int type = ximage[i*12+3]+
-						(ximage[i*12+2] <<8);
-				unsigned int id = ximage[i*12+1]+
-						(ximage[i*12+0] <<8);
-				gp_log (GP_LOG_DEBUG, "ptp2/exif-tiff-reader", "entry %d, id 0x%04x, off 0x%x, cnt %d, type %d", i, id, off, cnt, type);
-				switch (type) {
-				case 1: case 2: case 6: case 7: size = 1; break;
-				case 3: case 8: size = 2; break;
-				case 4: case 9: case 11: size = 4; break;
-				case 5: case 10: case 12: size = 8; break;
-				default: /*FIXME */ break;
-				}
-				if (size * cnt > 4)
-					off += cnt*size;
-				else
-					off  = 0;
-				if (off > nextoff)
-					nextoff = off;
+		if (ob->oi.ObjectFormat != PTP_OFC_EXIF_JPEG)
+			return (GP_ERROR_NOT_SUPPORTED);
 
-			}
-			nextifdoff = ximage[dircount*12+3] + (ximage[dircount*12+2] << 8) +
-			            (ximage[dircount*12+1] << 16) + (ximage[dircount*12+0] << 24);
-			gp_log (GP_LOG_DEBUG, "ptp2/exif-tiff-reader", "TIFF IFD0 is at off %d, next off is %d", ifd0offset, nextoff);
+		/* Note: Could also use Canon partial downloads */
+		CPR (context, ptp_getpartialobject (params,
+			oid, 0, 10, &ximage, &xlen));
+
+		if (!((ximage[0] == 0xff) && (ximage[1] == 0xd8))) {	/* SOI */
 			free (ximage);
 			return (GP_ERROR_NOT_SUPPORTED);
-			break;
 		}
-		case PTP_OFC_EXIF_JPEG: {
-			uint32_t xlen = 0;
-			/* Note: Could also use Canon partial downloads */
-			CPR (context, ptp_getpartialobject (params,
-				params->handles.Handler[object_id],
-				0, 10, &ximage, &xlen));
-
-			if (!((ximage[0] == 0xff) && (ximage[1] == 0xd8))) {	/* SOI */
-				free (ximage);
-				return (GP_ERROR_NOT_SUPPORTED);
-			}
-			if (!((ximage[2] == 0xff) && (ximage[3] == 0xe1))) {	/* App0 */
-				free (ximage);
-				return (GP_ERROR_NOT_SUPPORTED);
-			}
-			if (0 != memcmp(ximage+6, "Exif", 4)) {
-				free (ximage);
-				return (GP_ERROR_NOT_SUPPORTED);
-			}
-			offset = 2;
-			maxbytes = (ximage[4] << 8 ) + ximage[5];
+		if (!((ximage[2] == 0xff) && (ximage[3] == 0xe1))) {	/* App0 */
 			free (ximage);
-			ximage = NULL;
-			CPR (context, ptp_getpartialobject (params,
-				params->handles.Handler[object_id],
-				offset, maxbytes, &ximage, &xlen));
-			CR (gp_file_set_data_and_size (file, (char*)ximage, xlen));
-			break;
-		}
-		default:
 			return (GP_ERROR_NOT_SUPPORTED);
 		}
+		if (0 != memcmp(ximage+6, "Exif", 4)) {
+			free (ximage);
+			return (GP_ERROR_NOT_SUPPORTED);
+		}
+		offset = 2;
+		maxbytes = (ximage[4] << 8 ) + ximage[5];
+		free (ximage);
+		ximage = NULL;
+		CPR (context, ptp_getpartialobject (params,
+			oid, offset, maxbytes, &ximage, &xlen));
+		CR (gp_file_set_data_and_size (file, (char*)ximage, xlen));
 		break;
 	}
 	case	GP_FILE_TYPE_PREVIEW: {
 		unsigned char *ximage = NULL;
-		unsigned int xlen = 0;
+		unsigned int xlen;
 
-		/* If thumb size is 0 then there is no thumbnail at all... */
-		if((size=oi->ThumbCompressedSize)==0) return (GP_ERROR_NOT_SUPPORTED);
-		CPR (context, ptp_getthumb(params,
-			params->handles.Handler[object_id],
-			&ximage, &xlen));
-		if (xlen != size)
-			gp_log (GP_LOG_ERROR, "get_file_func/GP_FILE_TYPE_PREVIEW", "size mismatch %d vs %d", size, xlen);
-		set_mimetype (camera, file, params->deviceinfo.VendorExtensionID, oi->ThumbFormat);
+		/* If thumb size is 0, and the ofc is not an image type (0x38xx or 0xb8xx)
+		 * then there is no thumbnail at all... */
+		size=ob->oi.ThumbCompressedSize;
+		if((size==0) && (
+			((ob->oi.ObjectFormat & 0x7800) != 0x3800) &&
+			((ob->oi.ObjectFormat != PTP_OFC_CANON_CRW)) &&
+			((ob->oi.ObjectFormat != PTP_OFC_CANON_MOV)) &&
+			((ob->oi.ObjectFormat != PTP_OFC_CANON_MOV2)) &&
+			((ob->oi.ObjectFormat != PTP_OFC_CANON_CRW3))
+		))
+			return GP_ERROR_NOT_SUPPORTED;
+		CPR (context, ptp_getthumb(params, oid, &ximage, &xlen));
+		set_mimetype (camera, file, params->deviceinfo.VendorExtensionID, ob->oi.ThumbFormat);
 		CR (gp_file_set_data_and_size (file, (char*)ximage, xlen));
 		break;
 	}
@@ -4570,35 +5173,32 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		if (is_mtp_capable (camera) &&
 		    ptp_operation_issupported(params,PTP_OC_MTP_GetObjectPropsSupported)
 		)
-			return ptp_mtp_render_metadata (params,params->handles.Handler[object_id],oi->ObjectFormat,file);
+			return ptp_mtp_render_metadata (params,oid,ob->oi.ObjectFormat,file);
 		return (GP_ERROR_NOT_SUPPORTED);
 	default: {
 		/* We do not allow downloading unknown type files as in most
 		cases they are special file (like firmware or control) which
 		sometimes _cannot_ be downloaded. doing so we avoid errors.*/
-		if (oi->ObjectFormat == PTP_OFC_Association ||
-			(oi->ObjectFormat == PTP_OFC_Undefined &&
-				((oi->ThumbFormat == PTP_OFC_Undefined) ||
-				 (oi->ThumbFormat == 0)
+		if (ob->oi.ObjectFormat == PTP_OFC_Association ||
+			(ob->oi.ObjectFormat == PTP_OFC_Undefined &&
+				((ob->oi.ThumbFormat == PTP_OFC_Undefined) ||
+				 (ob->oi.ThumbFormat == 0)
 			)
 			)
 		)
 			return (GP_ERROR_NOT_SUPPORTED);
 
 		if (is_mtp_capable (camera) &&
-		    (oi->ObjectFormat == PTP_OFC_MTP_AbstractAudioVideoPlaylist))
-			return mtp_get_playlist (camera, file, params->handles.Handler[object_id], context);
+		    (ob->oi.ObjectFormat == PTP_OFC_MTP_AbstractAudioVideoPlaylist))
+			return mtp_get_playlist (camera, file, oid, context);
 
-		size=oi->ObjectCompressedSize;
+		size=ob->oi.ObjectCompressedSize;
 		if (size) {
 			uint16_t	ret;
 			PTPDataHandler	handler;
 
 			ptp_init_camerafile_handler (&handler, file);
-			ret = ptp_getobject_to_handler(params,
-				params->handles.Handler[object_id],
-				&handler
-			);
+			ret = ptp_getobject_to_handler(params, oid, &handler);
 			ptp_exit_camerafile_handler (&handler);
 			if (ret == PTP_ERROR_CANCEL)
 				return GP_ERROR_CANCEL;
@@ -4614,41 +5214,34 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 
 		/* clear the "new" flag on Canons */
 		if (	(params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
-			(params->canon_flags) &&
-			(params->canon_flags[object_id] & 0x2000) &&
+			(ob->canon_flags & 0x20) &&
 			ptp_operation_issupported(params,PTP_OC_CANON_SetObjectArchive)
 		) {
 			/* seems just a byte (0x20 - new) */
-			ptp_canon_setobjectarchive (params, params->handles.Handler[object_id], (params->canon_flags[object_id] &~0x2000)>>8);
-			params->canon_flags[object_id] &= ~0x2000;
+			ptp_canon_setobjectarchive (params, oid, ob->canon_flags &~0x20);
+			ob->canon_flags &= ~0x20;
 		}
 		break;
 	}
 	}
-	return set_mimetype (camera, file, params->deviceinfo.VendorExtensionID, oi->ObjectFormat);
+	return set_mimetype (camera, file, params->deviceinfo.VendorExtensionID, ob->oi.ObjectFormat);
 }
 
 static int
-put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
-		void *data, GPContext *context)
+put_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
+		CameraFileType type, CameraFile *file, void *data, GPContext *context)
 {
 	Camera *camera = data;
 	PTPObjectInfo oi;
-	const char *filename;
 	uint32_t parent;
 	uint32_t storage;
 	uint32_t handle;
 	unsigned long intsize;
 	PTPParams* params = &camera->pl->params;
-	CameraFileType	type;
 
 	SET_CONTEXT_P(params, context);
-
-	init_ptp_fs (camera, context);
 	camera->pl->checkevents = TRUE;
 
-	gp_file_get_name (file, &filename);
-	gp_file_get_type (file, &type);
 	gp_log ( GP_LOG_DEBUG, "ptp2/put_file_func", "folder=%s, filename=%s", folder, filename);
 
 	if (!strcmp (folder, "/special")) {
@@ -4665,25 +5258,19 @@ put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
 		    ptp_operation_issupported(params,PTP_OC_MTP_GetObjectPropsSupported)
 		) {
 			uint32_t object_id;
-			int n;
-			PTPObjectInfo *poi;
+			PTPObject	*ob;
 
 			/* compute storage ID value from folder patch */
 			folder_to_storage(folder,storage);
 
 			/* Get file number omiting storage pseudofolder */
-			find_folder_handle(folder, storage, object_id, data);
-			object_id = find_child(filename, storage, object_id, camera);
+			find_folder_handle(params, folder, storage, object_id);
+			object_id = find_child(params, filename, storage, object_id, &ob);
 			if (object_id ==PTP_HANDLER_SPECIAL) {
 				gp_context_error (context, _("File '%s/%s' does not exist."), folder, filename);
 				return (GP_ERROR_BAD_PARAMETERS);
 			}
-			if ((n = handle_to_n(object_id, camera))==PTP_HANDLER_SPECIAL) {
-				gp_context_error (context, _("File '%s/%s' does not exist."), folder, filename);
-				return (GP_ERROR_BAD_PARAMETERS);
-			}
-			poi=&params->objectinfo[n];
-			return ptp_mtp_parse_metadata (params,object_id,poi->ObjectFormat,file);
+			return ptp_mtp_parse_metadata (params,object_id,ob->oi.ObjectFormat,file);
 		}
 		gp_context_error (context, _("Metadata only supported for MTP devices."));
 		return GP_ERROR_NOT_SUPPORTED;
@@ -4694,7 +5281,7 @@ put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
 	folder_to_storage(folder,storage);
 
 	/* get parent folder id omiting storage pseudofolder */
-	find_folder_handle(folder,storage,parent,data);
+	find_folder_handle(params,folder,storage,parent);
 
 	/* if you desire to put file to root folder, you have to use
 	 * 0xffffffff instead of 0x00000000 (which means responder decide).
@@ -4702,7 +5289,7 @@ put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
 	if (parent==PTP_HANDLER_ROOT) parent=PTP_HANDLER_SPECIAL;
 
 	/* We don't really want a file to exist with the same name twice. */
-	handle = folder_to_handle (filename, storage, parent, camera);
+	handle = find_child (params, filename, storage, parent, NULL);
 	if (handle != PTP_HANDLER_SPECIAL) {
 		gp_log ( GP_LOG_DEBUG, "ptp2/put_file_func", "%s/%s exists.", folder, filename);
 		return GP_ERROR_FILE_EXISTS;
@@ -4759,8 +5346,8 @@ delete_file_func (CameraFilesystem *fs, const char *folder,
 			const char *filename, void *data, GPContext *context)
 {
 	Camera *camera = data;
-	uint32_t object_id;
-	uint32_t storage;
+	uint32_t	oid;
+	uint32_t	storage;
 	PTPParams *params = &camera->pl->params;
 
 	SET_CONTEXT_P(params, context);
@@ -4771,7 +5358,6 @@ delete_file_func (CameraFilesystem *fs, const char *folder,
 	if (!strcmp (folder, "/special"))
 		return GP_ERROR_NOT_SUPPORTED;
 
-	init_ptp_fs (camera, context);
 	/* virtual file created by Nikon special capture */
 	if (	((params->deviceinfo.VendorExtensionID == PTP_VENDOR_NIKON) ||
 		 (params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON)   ) &&
@@ -4780,31 +5366,35 @@ delete_file_func (CameraFilesystem *fs, const char *folder,
 		return GP_OK;
 
 	camera->pl->checkevents = TRUE;
-	ptp_check_event (params);
+	CPR (context, ptp_check_event (params));
 	/* compute storage ID value from folder patch */
 	folder_to_storage(folder,storage);
-
 	/* Get file number omiting storage pseudofolder */
-	find_folder_handle(folder, storage, object_id, data);
-	object_id = find_child(filename, storage, object_id, camera);
-	if ((object_id=handle_to_n(object_id, camera))==PTP_HANDLER_SPECIAL)
-		return (GP_ERROR_BAD_PARAMETERS);
+	find_folder_handle(params, folder, storage, oid);
+	oid = find_child(params, filename, storage, oid, NULL);
 
-	CPR (context, ptp_deleteobject(params,
-		params->handles.Handler[object_id],0));
+	CPR (context, ptp_deleteobject(params, oid, 0));
 
 	/* On some Canon firmwares, a DeleteObject causes a ObjectRemoved event
 	 * to be sent. At least on Digital IXUS II and PowerShot A85. But
          * not on 350D.
 	 */
-	if (DELETE_SENDS_EVENT(camera->pl) &&
+	if (DELETE_SENDS_EVENT(params) &&
 	    ptp_event_issupported(params, PTP_EC_ObjectRemoved)) {
 		PTPContainer event;
 
 		ptp_check_event (params); /* ignore errors */
-		while (ptp_get_one_event (params, &event))
+		while (ptp_get_one_event (params, &event)) {
 			if (event.Code == PTP_EC_ObjectRemoved)
 				break;
+			if (event.Code == PTP_EC_ObjectAdded) {
+				PTPObject *ob;
+				PTPParams *params = &camera->pl->params;
+
+				ptp_object_want (params, event.Param1, 0, &ob);
+			}
+		}
+		/* FIXME: need to handle folder additions during capture-image-and-download */
  	}
 	return (GP_OK);
 }
@@ -4814,7 +5404,7 @@ remove_dir_func (CameraFilesystem *fs, const char *folder,
 			const char *foldername, void *data, GPContext *context)
 {
 	Camera *camera = data;
-	uint32_t object_id;
+	uint32_t oid;
 	uint32_t storage;
 	PTPParams *params = &camera->pl->params;
 
@@ -4823,17 +5413,14 @@ remove_dir_func (CameraFilesystem *fs, const char *folder,
 	if (!ptp_operation_issupported(params, PTP_OC_DeleteObject))
 		return GP_ERROR_NOT_SUPPORTED;
 	camera->pl->checkevents = TRUE;
-
-	init_ptp_fs (camera, context);
 	/* compute storage ID value from folder patch */
 	folder_to_storage(folder,storage);
-
 	/* Get file number omiting storage pseudofolder */
-	find_folder_handle(folder, storage, object_id, data);
-	object_id = find_child(foldername, storage, object_id, camera);
-	if ((object_id=handle_to_n(object_id, camera))==PTP_HANDLER_SPECIAL)
-		return (GP_ERROR_BAD_PARAMETERS);
-	CPR (context, ptp_deleteobject(params, params->handles.Handler[object_id],0));
+	find_folder_handle(params, folder, storage, oid);
+	oid = find_child(params, foldername, storage, oid, NULL);
+	if (oid == PTP_HANDLER_SPECIAL)
+		return GP_ERROR;
+	CPR (context, ptp_deleteobject(params, oid, 0));
 	return (GP_OK);
 }
 
@@ -4842,8 +5429,8 @@ set_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	       CameraFileInfo info, void *data, GPContext *context)
 {
 	Camera *camera = data;
-	PTPObjectInfo *oi;
-	uint32_t object_id, n;
+	PTPObject *ob;
+	uint32_t object_id;
 	uint32_t storage;
 	PTPParams *params = &camera->pl->params;
 
@@ -4851,19 +5438,15 @@ set_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 
 	if (!strcmp (folder, "/special"))
 		return (GP_ERROR_BAD_PARAMETERS);
-	camera->pl->checkevents = TRUE;
 
-	init_ptp_fs (camera, context);
+	camera->pl->checkevents = TRUE;
 	/* compute storage ID value from folder patch */
 	folder_to_storage(folder,storage);
-
 	/* Get file number omiting storage pseudofolder */
-	find_folder_handle(folder, storage, object_id, data);
-	object_id = find_child(filename, storage, object_id, camera);
-	if ((n=handle_to_n(object_id, camera))==PTP_HANDLER_SPECIAL)
-		return (GP_ERROR_BAD_PARAMETERS);
-
-	oi=&params->objectinfo[n];
+	find_folder_handle(params, folder, storage, object_id);
+	object_id = find_child(params, filename, storage, object_id, &ob);
+	if (object_id == PTP_HANDLER_SPECIAL)
+		return GP_ERROR;
 
 	if (info.file.fields & GP_FILE_INFO_PERMISSIONS) {
 		uint16_t	ret, newprot;
@@ -4872,7 +5455,7 @@ set_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 			newprot = PTP_PS_ReadOnly;
 		else
 			newprot = PTP_PS_NoProtection;
-		if (oi->ProtectionStatus != newprot) {
+		if (ob->oi.ProtectionStatus != newprot) {
 			if (!ptp_operation_issupported(params, PTP_OC_SetObjectProtection)) {
 				gp_context_error (context, _("Device does not support setting object protection."));
 				return (GP_ERROR_NOT_SUPPORTED);
@@ -4880,9 +5463,9 @@ set_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 			ret = ptp_setobjectprotection (params, object_id, newprot);
 			if (ret != PTP_RC_OK) {
 				gp_context_error (context, _("Device failed to set object protection to %d, error 0x%04x."), newprot, ret);
-				return (GP_ERROR_NOT_SUPPORTED);
+				return translate_ptp_result (ret);
 			}
-			oi->ProtectionStatus = newprot; /* should actually reread objectinfo to be sure, but lets not. */
+			ob->oi.ProtectionStatus = newprot; /* should actually reread objectinfo to be sure, but lets not. */
 		}
 		info.file.fields &= ~GP_FILE_INFO_PERMISSIONS;
 		/* fall through */
@@ -4896,9 +5479,8 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	       CameraFileInfo *info, void *data, GPContext *context)
 {
 	Camera *camera = data;
-	PTPObjectInfo *oi;
-	uint32_t object_id;
-	uint32_t storage;
+	PTPObject *ob;
+	uint32_t oid, storage;
 	PTPParams *params = &camera->pl->params;
 
 	SET_CONTEXT_P(params, context);
@@ -4906,24 +5488,20 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	if (!strcmp (folder, "/special"))
 		return (GP_ERROR_BAD_PARAMETERS); /* for now */
 
-	init_ptp_fs (camera, context);
 	/* compute storage ID value from folder patch */
 	folder_to_storage(folder,storage);
-
 	/* Get file number omiting storage pseudofolder */
-	find_folder_handle(folder, storage, object_id, data);
-	object_id = find_child(filename, storage, object_id, camera);
-	if ((object_id=handle_to_n(object_id, camera))==PTP_HANDLER_SPECIAL)
-		return (GP_ERROR_BAD_PARAMETERS);
-
-	oi=&params->objectinfo[object_id];
+	find_folder_handle(params, folder, storage, oid);
+	oid = find_child(params, filename, storage, oid, &ob);
+	if (oid == PTP_HANDLER_SPECIAL)
+		return GP_ERROR;
 
 	info->file.fields = GP_FILE_INFO_SIZE|GP_FILE_INFO_TYPE|GP_FILE_INFO_MTIME;
-	info->file.size   = oi->ObjectCompressedSize;
+	info->file.size   = ob->oi.ObjectCompressedSize;
 
-	if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) && params->canon_flags) {
+	if (params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) {
 		info->file.fields |= GP_FILE_INFO_STATUS;
-		if (params->canon_flags[object_id] & 0x2000)
+		if (ob->canon_flags & 0x20)
 			info->file.status = GP_FILE_STATUS_NOT_DOWNLOADED;
 		else
 			info->file.status = GP_FILE_STATUS_DOWNLOADED;
@@ -4931,21 +5509,21 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 
 	/* MTP playlists have their own size calculation */
 	if (is_mtp_capable (camera) &&
-	    (oi->ObjectFormat == PTP_OFC_MTP_AbstractAudioVideoPlaylist)) {
+	    (ob->oi.ObjectFormat == PTP_OFC_MTP_AbstractAudioVideoPlaylist)) {
 		int ret, contentlen;
-		ret = mtp_get_playlist_string (camera, params->handles.Handler[object_id], NULL, &contentlen);
+		ret = mtp_get_playlist_string (camera, oid, NULL, &contentlen);
 		if (ret != GP_OK) return ret;
 		info->file.size = contentlen;
 	}
 
-	strcpy_mime (info->file.type, params->deviceinfo.VendorExtensionID, oi->ObjectFormat);
-	if (oi->ModificationDate != 0) {
-		info->file.mtime = oi->ModificationDate;
+	strcpy_mime (info->file.type, params->deviceinfo.VendorExtensionID, ob->oi.ObjectFormat);
+	if (ob->oi.ModificationDate != 0) {
+		info->file.mtime = ob->oi.ModificationDate;
 	} else {
-		info->file.mtime = oi->CaptureDate;
+		info->file.mtime = ob->oi.CaptureDate;
 	}
 
-	switch (oi->ProtectionStatus) {
+	switch (ob->oi.ProtectionStatus) {
 	case PTP_PS_NoProtection:
 		info->file.fields	|= GP_FILE_INFO_PERMISSIONS;
 		info->file.permissions	 = GP_FILE_PERM_READ|GP_FILE_PERM_DELETE;
@@ -4955,35 +5533,35 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		info->file.permissions	 = GP_FILE_PERM_READ;
 		break;
 	default:
-		gp_log (GP_LOG_ERROR, "ptp2/get_info_func", "mapping protection to gp perm failed, prot is %x", oi->ProtectionStatus);
+		gp_log (GP_LOG_ERROR, "ptp2/get_info_func", "mapping protection to gp perm failed, prot is %x", ob->oi.ProtectionStatus);
 		break;
 	}
 
 	/* if object is an image */
-	if ((oi->ObjectFormat & 0x0800) != 0) {
+	if ((ob->oi.ObjectFormat & 0x0800) != 0) {
 		info->preview.fields = 0;
-		strcpy_mime(info->preview.type, params->deviceinfo.VendorExtensionID, oi->ThumbFormat);
+		strcpy_mime(info->preview.type, params->deviceinfo.VendorExtensionID, ob->oi.ThumbFormat);
 		if (strlen(info->preview.type)) {
 			info->preview.fields |= GP_FILE_INFO_TYPE;
 		}
-		if (oi->ThumbCompressedSize) {
-			info->preview.size   = oi->ThumbCompressedSize;
+		if (ob->oi.ThumbCompressedSize) {
+			info->preview.size   = ob->oi.ThumbCompressedSize;
 			info->preview.fields |= GP_FILE_INFO_SIZE;
 		}
-		if (oi->ThumbPixWidth) {
-			info->preview.width  = oi->ThumbPixWidth;
+		if (ob->oi.ThumbPixWidth) {
+			info->preview.width  = ob->oi.ThumbPixWidth;
 			info->preview.fields |= GP_FILE_INFO_WIDTH;
 		}
-		if (oi->ThumbPixHeight) {
-			info->preview.height  = oi->ThumbPixHeight;
+		if (ob->oi.ThumbPixHeight) {
+			info->preview.height  = ob->oi.ThumbPixHeight;
 			info->preview.fields |= GP_FILE_INFO_HEIGHT;
 		}
-		if (oi->ImagePixWidth) {
-			info->file.width  = oi->ImagePixWidth;
+		if (ob->oi.ImagePixWidth) {
+			info->file.width  = ob->oi.ImagePixWidth;
 			info->file.fields |= GP_FILE_INFO_WIDTH;
 		}
-		if (oi->ImagePixHeight) {
-			info->file.height  = oi->ImagePixHeight;
+		if (ob->oi.ImagePixHeight) {
+			info->file.height  = ob->oi.ImagePixHeight;
 			info->file.fields |= GP_FILE_INFO_HEIGHT;
 		}
 	}	
@@ -5007,24 +5585,20 @@ make_dir_func (CameraFilesystem *fs, const char *folder, const char *foldername,
 	SET_CONTEXT_P(params, context);
 	camera->pl->checkevents = TRUE;
 
-	init_ptp_fs (camera, context);
 	memset(&oi, 0, sizeof (PTPObjectInfo));
-
 	/* compute storage ID value from folder patch */
 	folder_to_storage(folder,storage);
-
 	/* get parent folder id omiting storage pseudofolder */
-	find_folder_handle(folder,storage,parent,data);
+	find_folder_handle(params,folder,storage,parent);
 
 	/* if you desire to make dir in 'root' folder, you have to use
 	 * 0xffffffff instead of 0x00000000 (which means responder decide).
 	 */
 	if (parent==PTP_HANDLER_ROOT) parent=PTP_HANDLER_SPECIAL;
 
-	handle = folder_to_handle (foldername, storage, parent, camera);
-	if (handle != PTP_HANDLER_SPECIAL) {
+	handle = folder_to_handle (params, foldername, storage, parent, NULL);
+	if (handle != PTP_HANDLER_SPECIAL)
 		return GP_ERROR_DIRECTORY_EXISTS;
-	}
 
 	oi.Filename=(char *)foldername;
 
@@ -5175,7 +5749,7 @@ debug_objectinfo(PTPParams *params, uint32_t oid, PTPObjectInfo *oi) {
 	GP_DEBUG ("  StorageID: 0x%08x", oi->StorageID);
 	GP_DEBUG ("  ObjectFormat: 0x%04x", oi->ObjectFormat);
 	GP_DEBUG ("  ProtectionStatus: 0x%04x", oi->ProtectionStatus);
-	GP_DEBUG ("  ObjectCompressedSize: %d", oi->ObjectCompressedSize);
+	GP_DEBUG ("  ObjectCompressedSize: %ld", (unsigned long)oi->ObjectCompressedSize);
 	GP_DEBUG ("  ThumbFormat: 0x%04x", oi->ThumbFormat);
 	GP_DEBUG ("  ThumbCompressedSize: %d", oi->ThumbCompressedSize);
 	GP_DEBUG ("  ThumbPixWidth: %d", oi->ThumbPixWidth);
@@ -5191,272 +5765,17 @@ debug_objectinfo(PTPParams *params, uint32_t oid, PTPObjectInfo *oi) {
 	GP_DEBUG ("  CaptureDate: 0x%08x", (unsigned int)oi->CaptureDate);
 }
 
+#if 0
 int
 init_ptp_fs (Camera *camera, GPContext *context)
 {
-	int i, id, nroot = 0, nonroot = 0;
+	int i, id, nroot = 0;
 	PTPParams *params = &camera->pl->params;
-	char buf[1024];
-	uint16_t ret;
 
 	SET_CONTEXT_P(params, context);
-	if (camera->pl->fs_loaded) return PTP_RC_OK;
-	camera->pl->fs_loaded = 1;
-
-	memset (&params->handles, 0, sizeof(PTPObjectHandles));
-
-	/* Nikon supports a fast filesystem retrieval.
-	 * Unfortunately this function returns a flat folder structure
-	 * which cannot be changed to represent the actual FAT layout.
-	 * So if you need to get access to _all_ files on the ptp fs,
-	 * you can change the setting to "false" (gphoto2 --config or
-	 * edit ~/.gphoto2/settings directly).
- 	 * Since the fast fs mode irritates capture, I changed it to default off.
-	 */
-
-	if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_NIKON) &&
-	    (ptp_operation_issupported(params, PTP_OC_NIKON_GetFileInfoInBlock)) &&
-	    (camera->port->type == GP_PORT_USB) &&
-	    ((GP_OK == gp_setting_get("ptp2","nikon.fastfilesystem",buf)) && atoi(buf))
-        )
-	{
-		unsigned char	*data,*curptr;
-		unsigned int	size;
-		int		i,guessedcnt,curhandle;
-		uint32_t	generatedoid = 0x42420000;
-		uint32_t	rootoid = generatedoid++;
-		int		roothandle = -1;
-		uint16_t	res;
-		PTPStorageIDs	ids;
-
-		/* To get the correct storage id for all the objects */
-		res = ptp_getstorageids (params, &ids);
-		if (res != PTP_RC_OK) goto fallback;
-		if (ids.n != 1) { /* can't cope with this currently */
-			gp_log (GP_LOG_DEBUG, "ptp", "more than 1 storage id present");
-			free(ids.Storage);
-			goto fallback;
-		}
-		res = ptp_nikon_getfileinfoinblock(params, 1, 0xffffffff, 0xffffffff, &data, &size);
-		if (res != PTP_RC_OK) {
-			gp_log (GP_LOG_DEBUG, "ptp", "getfileinfoblock failed");
-			free(ids.Storage);
-			goto fallback;
-		}
-		curptr = data;
-		if (*curptr != 0x01) { /* version of data format */
-			gp_log (GP_LOG_DEBUG, "ptp", "version is 0x%02x, expected 0x01", *curptr);
-			free(ids.Storage);
-			free(data);
-			goto fallback;
-		}
-		guessedcnt = size/8; /* wild guess ... 4 byte type, at least 2 chars name, 2 more bytes */
-		params->handles.Handler = malloc(sizeof(params->handles.Handler[0])*guessedcnt);
-		memset(params->handles.Handler,0,sizeof(params->handles.Handler[0])*guessedcnt);
-		params->objectinfo = (PTPObjectInfo*)malloc(sizeof(PTPObjectInfo)*guessedcnt);
-		memset(params->objectinfo,0,sizeof(PTPObjectInfo)*guessedcnt);
-		curhandle=0;
-		curptr++;
-
-		/* This ptp command does not get a ready made directory structure, it
-		 * gets a list of folders (flat) and its image related file contents.
-		 * It does not get AUTPRNT.MRK for instance...
-		 * It is however very fast since it is just one ptp command roundtrip.
-		 */
-		while (curptr-data < size) { /* loops over folders */
-			int numents, namelen, dirhandle;
-			uint32_t	diroid = generatedoid++;
-
-			namelen = curptr[0]+(curptr[1]<<8)+(curptr[2]<<16)+(curptr[3]<<24);
-			curptr+=4;
-			if (!strcmp((char*)curptr,"DCIM")) {
-				/* to generated the /DCIM/NNNABCDEF/ structure, handle /DCIM/
-				 * differently */
-				diroid = rootoid;
-				roothandle = curhandle;
-				params->handles.Handler[curhandle] = rootoid;
-				params->objectinfo[curhandle].ParentObject = 0;
-				nroot = 1;
-			} else {
-				if (roothandle == -1) { /* We must synthesize /DCIM... */
-					roothandle = curhandle;
-					params->handles.Handler[curhandle] = rootoid;
-					params->objectinfo[curhandle].ParentObject = 0;
-					params->objectinfo[curhandle].StorageID = ids.Storage[0];
-					params->objectinfo[curhandle].Filename = strdup("DCIM");
-					params->objectinfo[curhandle].ObjectFormat = PTP_OFC_Association;
-					params->objectinfo[curhandle].AssociationType = PTP_AT_GenericFolder;
-					curhandle++;
-				}
-				params->handles.Handler[curhandle] = diroid;
-				params->objectinfo[curhandle].ParentObject = rootoid;
-			}
-			params->objectinfo[curhandle].ObjectFormat = PTP_OFC_Association;
-			params->objectinfo[curhandle].AssociationType = PTP_AT_GenericFolder;
-			params->objectinfo[curhandle].StorageID = ids.Storage[0];
-			params->objectinfo[curhandle].Filename = strdup((char*)curptr);
-
-			while (*curptr) curptr++; curptr++;
-			numents = curptr[0]+(curptr[1]<<8); curptr+=2;
-			dirhandle = curhandle;
-			curhandle++;
-			for (i=0;i<numents;i++) {
-				uint32_t oid, size, xtime;
-
-				oid = curptr[0]+(curptr[1]<<8)+(curptr[2]<<16)+(curptr[3]<<24);
-				curptr += 4;
-				namelen = curptr[0]+(curptr[1]<<8)+(curptr[2]<<16)+(curptr[3]<<24);
-				curptr += 4;
-				params->handles.Handler[curhandle] = oid;
-				params->objectinfo[curhandle].StorageID = ids.Storage[0];
-				params->objectinfo[curhandle].Filename = strdup((char*)curptr);
-				params->objectinfo[curhandle].ObjectFormat = PTP_OFC_Undefined;
-				if (NULL!=strstr((char*)curptr,".JPG"))
-					params->objectinfo[curhandle].ObjectFormat = PTP_OFC_EXIF_JPEG;
-				if (NULL!=strstr((char*)curptr,".MOV"))
-					params->objectinfo[curhandle].ObjectFormat = PTP_OFC_QT;
-				if (NULL!=strstr((char*)curptr,".AVI"))
-					params->objectinfo[curhandle].ObjectFormat = PTP_OFC_AVI;
-				if (NULL!=strstr((char*)curptr,".WAV"))
-					params->objectinfo[curhandle].ObjectFormat = PTP_OFC_WAV;
-				while (*curptr) curptr++; curptr++;
-				size = curptr[0]+(curptr[1]<<8)+(curptr[2]<<16)+(curptr[3]<<24);
-				params->objectinfo[curhandle].ObjectCompressedSize = size;
-				curptr += 4;
-				xtime = curptr[0]+(curptr[1]<<8)+(curptr[2]<<16)+(curptr[3]<<24);
-				if (xtime > 0x12cea600) /* Unknown files are 1.1.1980 */
-					params->objectinfo[curhandle].CaptureDate = xtime;
-				curptr += 4;
-				/* Hack ... to find our directory oid, we just getobjectinfo
-				 * the first file object.
-				 */
-				if (0 && !i) {
-					ptp_getobjectinfo(params, oid, &params->objectinfo[curhandle]);
-					diroid = params->objectinfo[curhandle].ParentObject;
-					params->handles.Handler[dirhandle] = diroid;
-					if ((params->objectinfo[dirhandle].ParentObject & 0xffff0000) == 0x42420000) {
-						if (roothandle >= 0) {
-							ptp_getobjectinfo(params, diroid, &params->objectinfo[dirhandle]);
-							rootoid = params->objectinfo[dirhandle].ParentObject;
-							params->handles.Handler[roothandle] = rootoid;
-						}
-					}
-				}
-				params->objectinfo[curhandle].ParentObject = diroid;
-				curhandle++;
-			}
-		}
-		free (ids.Storage);
-		params->handles.n = curhandle;
-		return PTP_RC_OK;
-	}
-
-	/* CANON EOS fast mode */
-	if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
-	    ptp_operation_issupported(params, PTP_OC_CANON_EOS_GetObjectInfoEx)) {
-		unsigned int j,k;
-		PTPStorageIDs storageids;
-		PTPCANONFolderEntry *tmp = NULL;
-		PTPCANONFolderEntry *entries = NULL;
-		unsigned int nrofentries = 0, cursor = 0;
-		unsigned int nroftmp = 0;
-
-		params->handles.Handler = malloc(sizeof(params->handles.Handler[0]));
-		memset(params->handles.Handler,0,sizeof(params->handles.Handler[0]));
-		params->objectinfo = (PTPObjectInfo*)malloc(sizeof(PTPObjectInfo));
-		memset(params->objectinfo,0,sizeof(PTPObjectInfo));
-
-		ret = ptp_getstorageids(params, &storageids);
-
-		for (k=0;k<storageids.n;k++) {
-			gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "reading root directory of 0x%08x", storageids.Storage[k]);
-			ptp_canon_eos_getobjectinfoex (params, storageids.Storage[k], 0xffffffff, 0x100000, &tmp, &nroftmp);
-
-			entries = realloc(entries,sizeof(PTPCANONFolderEntry)*(nrofentries+nroftmp));
-			memcpy (entries+nrofentries, tmp, nroftmp*sizeof(PTPCANONFolderEntry));
-			params->handles.Handler = realloc (params->handles.Handler, sizeof(params->handles.Handler[0]) * (nrofentries+nroftmp));
-			params->objectinfo = realloc (params->objectinfo, sizeof(PTPObjectInfo) * (nrofentries+nroftmp));
-			/* convert read entries into objectinfos */
-			for (j=nrofentries;j<nrofentries+nroftmp;j++) {
-				memset (&params->objectinfo[j], 0, sizeof(PTPObjectInfo));
-				entries[j].StorageID 				= storageids.Storage[k];
-				params->objectinfo[j].StorageID			= storageids.Storage[k];
-
-				params->handles.Handler[j] 			= entries[j].ObjectHandle;
-				params->objectinfo[j].Filename			= strdup(entries[j].Filename);
-				params->objectinfo[j].ObjectFormat		= entries[j].ObjectFormatCode;
-				params->objectinfo[j].ProtectionStatus		= PTP_DPGS_Get; /* FIXME: check if ok */
-				params->objectinfo[j].ObjectCompressedSize	= entries[j].ObjectSize;
-				params->objectinfo[j].CaptureDate		= entries[j].Time;
-				params->objectinfo[j].ModificationDate		= entries[j].Time;
-				params->objectinfo[j].ParentObject		= 0; /* root */
-
-				debug_objectinfo(params, entries[j].ObjectHandle, &params->objectinfo[j]);
-			}
-			nrofentries += nroftmp;
-		}
-
-		do {
-			if (entries[cursor].ObjectFormatCode == PTP_OFC_Association) {
-				gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "reading directory of 0x%08x", entries[cursor].ObjectHandle);
-				ret = ptp_canon_eos_getobjectinfoex (params, storageids.Storage[0], entries[cursor].ObjectHandle, 0x100000, &tmp, &nroftmp);
-				gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "... %d entries", nroftmp);
-				entries = realloc(entries,sizeof(PTPCANONFolderEntry)*(nrofentries+nroftmp));
-				memcpy (entries+nrofentries, tmp, nroftmp*sizeof(PTPCANONFolderEntry));
-
-				params->handles.Handler = realloc (params->handles.Handler, sizeof(params->handles.Handler[0]) * (nrofentries+nroftmp));
-				params->objectinfo = realloc (params->objectinfo, sizeof(PTPObjectInfo) * (nrofentries+nroftmp));
-				/* convert read entries into objectinfos */
-				for (j=nrofentries;j<nrofentries+nroftmp;j++) {
-					memset (&params->objectinfo[j], 0, sizeof(PTPObjectInfo));
-					entries[j].StorageID 				= entries[cursor].StorageID;
-					params->objectinfo[j].StorageID			= entries[cursor].StorageID;
-					params->objectinfo[j].ParentObject		= entries[cursor].ObjectHandle;
-					params->handles.Handler[j] 			= entries[j].ObjectHandle;
-
-					params->objectinfo[j].Filename			= strdup(entries[j].Filename);
-					params->objectinfo[j].ObjectFormat		= entries[j].ObjectFormatCode;
-					params->objectinfo[j].ProtectionStatus		= PTP_DPGS_Get; /* FIXME: check if ok */
-					params->objectinfo[j].ObjectCompressedSize	= entries[j].ObjectSize;
-					params->objectinfo[j].CaptureDate		= entries[j].Time;
-					params->objectinfo[j].ModificationDate		= entries[j].Time;
-					debug_objectinfo(params, entries[j].ObjectHandle, &params->objectinfo[j]);
-				}
-				nrofentries += nroftmp;
-			}
-			cursor++;
-		} while (cursor < nrofentries);
-		params->handles.n = nrofentries;
-		gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "read %d entries", nrofentries);
-		free (storageids.Storage);
-		return PTP_RC_OK;
-	}
 
 #if 0
-	/* CANON also has fast directory retrieval. And it is mostly complete, so we can use it as full replacement */
-	/* Unfortunately this fails on the PowerShot A430. 
-	 * And I don't want to whitelist everyone, because I just don't own all of them.
-	 * *sigh* -Marcus */
-	if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
-	    ptp_operation_issupported(params,PTP_OC_CANON_GetDirectory))
-
-	{
-		PTPObjectInfo	*oinfos = NULL;	
-		uint32_t	*flags = NULL;	
-
-		ret = ptp_canon_get_directory (params, &params->handles, &oinfos, &flags);
-		if ((ret == PTP_RC_OK) && params->handles.n) {
-			params->objectinfo = oinfos;
-			params->canon_flags = flags;
-			return PTP_RC_OK;
-		}
-		if (oinfos) free (oinfos);
-		if (flags) free (flags);
-		/* fallthrough */
-	}
-#endif
-
-	/* Microsoft/MTP also has fast directory retrieval. */
+	/* Microsoft/MTP has fast directory retrieval. */
 	if (is_mtp_capable (camera) &&
 	    ptp_operation_issupported(params,PTP_OC_MTP_GetObjPropList) &&
 	    (camera->pl->bugs & PTP_MTP_PROPLIST_WORKS)
@@ -5552,16 +5871,6 @@ init_ptp_fs (Camera *camera, GPContext *context)
 				}
 				gp_log (GP_LOG_DEBUG, "ptp2/mtpfast", "objectsize %u", xpl->propval.u32);
 				break;
-			case PTP_OPC_AssociationType:
-				if (xpl->datatype != PTP_DTC_UINT16) {
-					gp_log (GP_LOG_ERROR, "ptp2/mtpfast", "assoctype has type 0x%x???", xpl->datatype);
-					break;
-				}
-				oinfos[i].AssociationType = xpl->propval.u16;
-				if (xpl->propval.u16 == 0)
-					nroot++;
-				gp_log (GP_LOG_DEBUG, "ptp2/mtpfast", "assoctype 0x%x", xpl->propval.u16);
-				break;
 			case PTP_OPC_StorageID:
 				if (xpl->datatype != PTP_DTC_UINT32) {
 					gp_log (GP_LOG_ERROR, "ptp2/mtpfast", "storageid has type 0x%x???", xpl->datatype);
@@ -5614,76 +5923,42 @@ init_ptp_fs (Camera *camera, GPContext *context)
 		}
 		return PTP_RC_OK;
 	}
+#endif
 
-fallback:
 	/* Get file handles array for filesystem */
 	id = gp_context_progress_start (context, 100, _("Initializing Camera"));
 	/* Get objecthandles of all objects from all stores */
-	CPR (context, ptp_getobjecthandles (params, 0xffffffff, 0x000000, 0x000000, &params->handles));
-	gp_context_progress_update (context, id, 10);
-	/* wee need that for fileststem */
-	params->objectinfo = (PTPObjectInfo*)malloc(sizeof(PTPObjectInfo)*
-		params->handles.n);
-	memset (params->objectinfo,0,sizeof(PTPObjectInfo)*params->handles.n);
+	{
+		PTPObjectHandles	handles;
+		int i;
 
-	for (i = 0; i < params->handles.n; i++) {
-		uint16_t ret;
-
-		ret = ptp_getobjectinfo(params,
-			params->handles.Handler[i],
-			&params->objectinfo[i]);
-		if (ret != PTP_RC_OK) {
-			gp_log (GP_LOG_ERROR, "ptp2/std_getobjectinfo", "received error 0x%04x on query of 0x%08x", ret, params->handles.Handler[i]);
-			if (i < params->handles.n-1)
-				memmove(&params->handles.Handler[i],&params->handles.Handler[i+1],(params->handles.n-i-1)*sizeof(params->handles.Handler[i]));
-			params->handles.n--;
-			i--; /* so we get the same entry again ... */
-			continue;
-		}
+		CPR (context, ptp_getobjecthandles (params, 0xffffffff, 0x000000, 0x000000, &handles));
+		params->objects = calloc(sizeof(PTPObject),handles.n);
+		if (!params->objects)
+			return PTP_RC_GeneralError;
+		gp_context_progress_update (context, id, 10);
+		for (i=0;i<handles.n;i++) {
+			params->objects[i].oid = handles.Handler[i];
+			CPR (context, ptp_getobjectinfo(params,
+				handles.Handler[i],
+				&params->objects[i].oi));
 #if 1
-		debug_objectinfo(params, params->handles.Handler[i], &params->objectinfo[i]);
+			debug_objectinfo(params, handles.Handler[i], &params->objects[i].oi);
 #endif
-		if (params->objectinfo[i].ParentObject == 0)
-			nroot++;
-		else
-			nonroot++;
-
-                if (	!params->objectinfo[i].Filename ||
-			!strlen (params->objectinfo[i].Filename)
-		) {
-			params->objectinfo[i].Filename = malloc(8+1);
-			sprintf (params->objectinfo[i].Filename, "%08x", params->handles.Handler[i]);
-			gp_log (GP_LOG_ERROR, "ptp2/std_getobjectinfo", "Replaced empty dirname by '%08x'", params->handles.Handler[i]);
-		}
-
-		gp_context_progress_update (context, id,
-		10+(90*i)/params->handles.n);
-	}
-	gp_context_progress_stop (context, id);
-
-	if (!nonroot && params->handles.n) {
-		for (i = 0; i < params->handles.n; i++) {
-			int j;
-			PTPObjectHandles nhandles;
-
-			if (params->objectinfo[i].AssociationType != 1)
-				continue;
-			CPR (context, ptp_getobjecthandles (params, 0xffffffff, 0x000000, params->handles.Handler[i], &nhandles));
-			if (nhandles.n == 0)
-				continue;
-			for (j=0;j<nhandles.n;j++) {
-				/* linear search probably not necessary ... */
-#if 0
-				int k;
-				for (k = 0; k < params->handles.n; k++)
-					if (nhandles.Handler[j] == params->handles.Handler[k])
-						break;
-				if (k < params->handles.n)
-					continue;
-#endif
-				add_object (camera, nhandles.Handler[j], context);
+			if (params->objects[i].oi.ParentObject == 0)
+				nroot++;
+			if (	!params->objects[i].oi.Filename ||
+				!strlen (params->objects[i].oi.Filename)
+			) {
+				params->objects[i].oi.Filename = malloc(8+1);
+				sprintf (params->objects[i].oi.Filename, "%08x", handles.Handler[i]);
+				gp_log (GP_LOG_ERROR, "ptp2/std_getobjectinfo", "Replaced empty dirname by '%08x'", handles.Handler[i]);
 			}
+
+			gp_context_progress_update (context, id,
+			10+(90*i)/handles.n);
 		}
+		gp_context_progress_stop (context, id);
 	}
 
 	/* for older Canons we now retrieve their object flags, to allow
@@ -5695,33 +5970,31 @@ fallback:
 		uint16_t ret;
 		int i;
 
-		params->canon_flags = calloc(sizeof(params->canon_flags[0]),params->handles.n);
 		/* Look for all directories, since this function apparently only
 		 * returns a directory full of entries and does not recurse
 		 */
-		for (i=0;i<params->handles.n;i++) {
+		for (i=0;i<params->nrofobjects;i++) {
 			int j;
 			PTPCANONFolderEntry	*ents = NULL;
 			uint32_t		numents = 0;
+			PTPObject		*ob;
 
+			ptp_object_want (params, params->objects[i].oid, PTPOBJECT_OBJECTINFO_LOADED, &ob);
 			/* only retrieve for directories */
-			if (!params->objectinfo[i].AssociationType)
+			if (!ob->oi.AssociationType)
 				continue;
 
 			ret = ptp_canon_getobjectinfo(params,
-				params->objectinfo[i].StorageID,0,
-				params->handles.Handler[i],0,
+				ob->oi.StorageID,0,
+				ob->oid,0,
 				&ents,&numents
 			);
 			if (ret != PTP_RC_OK) continue;
 			for (j=0;j<numents;j++) {
-				int k;
-				for (k=0;k<params->handles.n;k++)
-					if (params->handles.Handler[k] == ents[j].ObjectHandle)
-						break;
-				if (k == params->handles.n)
-					continue;
-				params->canon_flags[k] = ents[j].Flags << 8;
+				PTPObject	*ob2;
+
+				ptp_object_want (params, ents[j].ObjectHandle, 0, &ob2);
+				ob2->canon_flags = ents[j].Flags;
 			}
 		}
 	}
@@ -5732,12 +6005,12 @@ fallback:
 	 *
 	 * FIXME: If DCIM is there, it will not look for other root directories.
          */
-	if (nroot == 0 && params->handles.n > 0) {
+	if (nroot == 0 && params->nrofobjects > 0) {
 		uint32_t	badroothandle = 0xffffffff;
 
 		GP_DEBUG("Bug workaround: Found no root directory objects, looking for some.");
-		for (i = 0; i < params->handles.n; i++) {
-			PTPObjectInfo *oi = &params->objectinfo[i];
+		for (i = 0; i < params->nrofobjects; i++) {
+			PTPObjectInfo *oi = &params->objects[i].oi;
 
 			if (strcmp(oi->Filename, "DCIM") == 0) {
 				GP_DEBUG("Changing DCIM ParentObject ID from 0x%x to 0",
@@ -5745,10 +6018,11 @@ fallback:
 				badroothandle = oi->ParentObject;
 				oi->ParentObject = 0;
 				nroot++;
+				break;
 			}
 		}
-		for (i = 0; i < params->handles.n; i++) {
-			PTPObjectInfo *oi = &params->objectinfo[i];
+		for (i = 0; i < params->nrofobjects; i++) {
+			PTPObjectInfo *oi = &params->objects[i].oi;
 			if (oi->ParentObject == badroothandle) {
 				GP_DEBUG("Changing %s ParentObject ID from 0x%x to 0",
 					oi->Filename, oi->ParentObject);
@@ -5764,19 +6038,234 @@ fallback:
 		if (nroot == 0) {
 			GP_DEBUG("Bug workaround: Found no root dir entries and no DCIM dir, looking for some.");
 			/* look for entries with parentobjects that do not exist */
-			for (i = 0; i < params->handles.n; i++) {
+			for (i = 0; i < params->nrofobjects; i++) {
 				int j;
-				PTPObjectInfo *oi = &params->objectinfo[i];
+				PTPObjectInfo *oi = &params->objects[i].oi;
 
-				for (j = 0;j < params->handles.n; j++)
-					if (oi->ParentObject == params->handles.Handler[j])
+				for (j = 0;j < params->nrofobjects; j++)
+					if (oi->ParentObject == params->objects[j].oid)
 						break;
-				if (j == params->handles.n)
+				if (j == params->nrofobjects)
 					oi->ParentObject = 0;
 			}
 		}
 	}
 	return (GP_OK);
+}
+#endif
+
+/* CANON EOS fast directory mode */
+/* FIXME: incomplete ... needs storage mode retrieval support too (storage == 0xffffffff) */
+static uint16_t
+ptp_list_folder_eos (PTPParams *params, uint32_t storage, uint32_t handle) {
+	unsigned int	k, i, j, last, changed;
+	PTPCANONFolderEntry *tmp = NULL;
+	unsigned int	nroftmp = 0;
+	uint16_t	ret;
+	PTPStorageIDs	storageids;
+	PTPObject	*ob;
+
+	if (handle != 0xffffffff) {
+		ret = ptp_object_want (params, handle, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+		if ((ret == PTP_RC_OK) && (ob->flags & PTPOBJECT_DIRECTORY_LOADED))
+			return PTP_RC_OK;
+	}
+
+	if (storage == 0xffffffff) {
+		if (handle != 0xffffffff)  {
+			gp_log (GP_LOG_ERROR, "ptp2/eos_directory", "storage 0x%08x, but handle 0x%08x?", storage, handle);
+			handle = 0xffffffff;
+		}
+		ret = ptp_getstorageids(params, &storageids);
+		if (ret != PTP_RC_OK) return ret;
+	} else {
+		storageids.n = 1;
+		storageids.Storage = malloc(sizeof(storageids.Storage[0]));
+		storageids.Storage[0] = storage;
+	}
+	last = changed = 0;
+
+	for (k=0;k<storageids.n;k++) {
+		gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "reading handle %08x directory of 0x%08x", storageids.Storage[k], handle);
+		ret = ptp_canon_eos_getobjectinfoex (
+			params, storageids.Storage[k], handle ? handle : 0xffffffff, 0x100000, &tmp, &nroftmp
+		);
+		if (ret != PTP_RC_OK) {
+			gp_log (GP_LOG_DEBUG, "ptp2/eos_directory", "reading directory failed: %04x", ret);
+			free (storageids.Storage);
+			return ret;
+		}
+		/* convert read entries into objectinfos */
+		for (i=0;i<nroftmp;i++) {
+			PTPObject	*ob = NULL;
+			PTPObject	*newobs;
+
+			for (j=0;j<params->nrofobjects;j++) {
+				if (params->objects[(last+j)%params->nrofobjects].oid == tmp[i].ObjectHandle)  {
+					ob = &params->objects[(last+j)%params->nrofobjects];
+					break;
+				}
+			}
+			if (j == params->nrofobjects) {
+				gp_log (GP_LOG_DEBUG, "ptp_list_folder_eos", "adding new objectid 0x%08x (nrofobs=%d,j=%d)", tmp[i].ObjectHandle, params->nrofobjects,j);
+				newobs = realloc (params->objects,sizeof(PTPObject)*(params->nrofobjects+1));
+				if (!newobs) return PTP_RC_GeneralError;
+				params->objects = newobs;
+				memset (&params->objects[params->nrofobjects],0,sizeof(params->objects[params->nrofobjects]));
+				params->objects[params->nrofobjects].oid   = tmp[i].ObjectHandle;
+				params->objects[params->nrofobjects].flags = 0;
+
+				params->objects[params->nrofobjects].oi.StorageID = storageids.Storage[k];
+				params->objects[params->nrofobjects].flags |= PTPOBJECT_STORAGEID_LOADED;
+				if (handle == 0xffffffff)
+					params->objects[params->nrofobjects].oi.ParentObject = 0;
+				else
+					params->objects[params->nrofobjects].oi.ParentObject = handle;
+				params->objects[params->nrofobjects].flags |= PTPOBJECT_PARENTOBJECT_LOADED;
+				params->objects[params->nrofobjects].oi.Filename = strdup(tmp[i].Filename);
+				params->objects[params->nrofobjects].oi.ObjectFormat = tmp[i].ObjectFormatCode;
+				params->objects[params->nrofobjects].oi.ProtectionStatus = PTP_DPGS_Get; /* FIXME: check if ok */
+				params->objects[params->nrofobjects].oi.ObjectCompressedSize = tmp[i].ObjectSize;
+				params->objects[params->nrofobjects].oi.CaptureDate = tmp[i].Time;
+				params->objects[params->nrofobjects].oi.ModificationDate = tmp[i].Time;
+				params->objects[params->nrofobjects].flags |= PTPOBJECT_OBJECTINFO_LOADED;
+
+				debug_objectinfo(params, tmp[i].ObjectHandle, &params->objects[params->nrofobjects].oi);
+				last = params->nrofobjects;
+				params->nrofobjects++;
+				changed = 1;
+			} else {
+				gp_log (GP_LOG_DEBUG, "ptp_list_folder_eos", "adding old objectid 0x%08x (nrofobs=%d,j=%d)", tmp[i].ObjectHandle, params->nrofobjects,j);
+				ob = &params->objects[(last+j)%params->nrofobjects];
+				/* for speeding up search */
+				last = (last+j)%params->nrofobjects;
+				if (handle != PTP_HANDLER_SPECIAL) {
+					ob->oi.ParentObject = handle;
+					ob->flags |= PTPOBJECT_PARENTOBJECT_LOADED;
+				}
+				if (storageids.Storage[k] != PTP_HANDLER_SPECIAL) {
+					ob->oi.StorageID = storageids.Storage[k];
+					ob->flags |= PTPOBJECT_STORAGEID_LOADED;
+				}
+			}
+		}
+	}
+	if (changed) ptp_objects_sort (params);
+
+	/* Do not cache ob, it might be reallocated and have a new address */
+	if (handle != 0xffffffff) {
+		ret = ptp_object_want (params, handle, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+		if (ret == PTP_RC_OK)
+			ob->flags |= PTPOBJECT_DIRECTORY_LOADED;
+	}
+	free (storageids.Storage);
+	return PTP_RC_OK;
+}
+
+uint16_t
+ptp_list_folder (PTPParams *params, uint32_t storage, uint32_t handle) {
+	int			i, changed, last;
+	uint16_t		ret;
+	uint32_t		xhandle = handle;
+	PTPObject		*newobs;
+	PTPObjectHandles	handles;
+
+	gp_log (GP_LOG_DEBUG, "ptp_list_folder", "(storage=0x%08x, handle=0x%08x)", storage, handle);
+	/* handle=0 is only not read when there is no object in the list yet
+	 * and we do the initial read. */
+	if (!handle && params->nrofobjects)
+		return PTP_RC_OK;
+	/* but we can override this to read 0 object of storages */
+	if (handle == PTP_HANDLER_SPECIAL)
+		handle = 0;
+
+	/* Canon EOS Fast directory strategy */
+	if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+	    ptp_operation_issupported(params, PTP_OC_CANON_EOS_GetObjectInfoEx)) {
+		ret = ptp_list_folder_eos (params, storage, handle);
+		if (ret == PTP_RC_OK)
+			return ret;
+	}
+
+	if (handle) { /* 0 is the virtual root */
+		PTPObject		*ob;
+		/* first check if object itself is loaded, and get its objectinfo. */
+		ret = ptp_object_want (params, handle, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+		if (ret != PTP_RC_OK)
+			return ret;
+		if (ob->oi.ObjectFormat != PTP_OFC_Association)
+			return PTP_RC_GeneralError;
+		if (ob->flags & PTPOBJECT_DIRECTORY_LOADED) return PTP_RC_OK;
+		ob->flags |= PTPOBJECT_DIRECTORY_LOADED;
+		debug_objectinfo(params, handle, &ob->oi);
+	}
+	gp_log (GP_LOG_DEBUG, "ptp_list_folder", "Listing ... ");
+	if (handle == 0) xhandle = PTP_HANDLER_SPECIAL; /* 0 would mean all */
+	ret = ptp_getobjecthandles (params, storage, 0, xhandle, &handles);
+	if (ret == PTP_RC_ParameterNotSupported) {/* try without storage */
+		storage = PTP_HANDLER_SPECIAL;
+		ret = ptp_getobjecthandles (params, PTP_HANDLER_SPECIAL, 0, xhandle, &handles);
+	}
+	if (ret == PTP_RC_ParameterNotSupported) { /* fall back to always supported method */
+		xhandle = PTP_HANDLER_SPECIAL;
+		handle = PTP_HANDLER_SPECIAL;
+		ret = ptp_getobjecthandles (params, PTP_HANDLER_SPECIAL, 0, 0, &handles);
+	}
+	if (ret != PTP_RC_OK)
+		return ret;
+	last = changed = 0;
+	for (i=0;i<handles.n;i++) {
+		PTPObject	*ob;
+		int j;
+		ob = NULL;
+		for (j=0;j<params->nrofobjects;j++) {
+			if (params->objects[(last+j)%params->nrofobjects].oid == handles.Handler[i])  {
+				ob = &params->objects[(last+j)%params->nrofobjects];
+				break;
+			}
+		}
+		if (j == params->nrofobjects) {
+			gp_log (GP_LOG_DEBUG, "ptp_list_folder", "adding new objectid 0x%08x (nrofobs=%d,j=%d)", handles.Handler[i], params->nrofobjects,j);
+			newobs = realloc (params->objects,sizeof(PTPObject)*(params->nrofobjects+1));
+			if (!newobs) return PTP_RC_GeneralError;
+			params->objects = newobs;
+			memset (&params->objects[params->nrofobjects],0,sizeof(params->objects[params->nrofobjects]));
+			params->objects[params->nrofobjects].oid = handles.Handler[i];
+			params->objects[params->nrofobjects].flags = 0;
+			if (handle != PTP_HANDLER_SPECIAL) {
+				gp_log (GP_LOG_DEBUG, "ptp_list_folder", "  parenthandle 0x%08x", handle);
+				if (handles.Handler[i] == handle) { /* EOS bug where oid == parent(oid) */
+					params->objects[params->nrofobjects].oi.ParentObject = 0;
+				} else {
+					params->objects[params->nrofobjects].oi.ParentObject = handle;
+				}
+				params->objects[params->nrofobjects].flags |= PTPOBJECT_PARENTOBJECT_LOADED;
+			}
+			if (storage != PTP_HANDLER_SPECIAL) {
+				gp_log (GP_LOG_DEBUG, "ptp_list_folder", "  storage 0x%08x", storage);
+				params->objects[params->nrofobjects].oi.StorageID = storage;
+				params->objects[params->nrofobjects].flags |= PTPOBJECT_STORAGEID_LOADED;
+			}
+			params->nrofobjects++;
+			changed = 1;
+		} else {
+			gp_log (GP_LOG_DEBUG, "ptp_list_folder", "adding old objectid 0x%08x (nrofobs=%d,j=%d)", handles.Handler[i], params->nrofobjects,j);
+			ob = &params->objects[(last+j)%params->nrofobjects];
+			/* for speeding up search */
+			last = (last+j)%params->nrofobjects;
+			if (handle != PTP_HANDLER_SPECIAL) {
+				ob->oi.ParentObject = handle;
+				ob->flags |= PTPOBJECT_PARENTOBJECT_LOADED;
+			}
+			if (storage != PTP_HANDLER_SPECIAL) {
+				ob->oi.StorageID = storage;
+				ob->flags |= PTPOBJECT_STORAGEID_LOADED;
+			}
+		}
+	}
+	free (handles.Handler);
+	if (changed) ptp_objects_sort (params);
+	return PTP_RC_OK;
 }
 
 static CameraFilesystemFuncs fsfuncs = {
@@ -5785,6 +6274,7 @@ static CameraFilesystemFuncs fsfuncs = {
 	.get_info_func		= get_info_func,
 	.set_info_func		= set_info_func,
 	.get_file_func		= get_file_func,
+	.read_file_func		= read_file_func,
 	.del_file_func		= delete_file_func,
 	.put_file_func		= put_file_func,
 	.make_dir_func		= make_dir_func,
@@ -5807,7 +6297,10 @@ camera_init (Camera *camera, GPContext *context)
 
 	gp_port_get_settings (camera->port, &settings);
 	/* Make sure our port is either USB or PTP/IP. */
-	if ((camera->port->type != GP_PORT_USB) && (camera->port->type != GP_PORT_PTPIP)) {
+	if (	(camera->port->type != GP_PORT_USB)	&&
+		(camera->port->type != GP_PORT_PTPIP)	&&
+		(camera->port->type != GP_PORT_USB_SCSI)
+	) {
 		gp_context_error (context, _("Currently, PTP is only implemented for "
 			"USB and PTP/IP cameras currently, port type %x"), camera->port->type);
 		return (GP_ERROR_UNKNOWN_PORT);
@@ -5815,6 +6308,7 @@ camera_init (Camera *camera, GPContext *context)
 
 	camera->functions->about = camera_about;
 	camera->functions->exit = camera_exit;
+	camera->functions->trigger_capture = camera_trigger_capture;
 	camera->functions->capture = camera_capture;
 	camera->functions->capture_preview = camera_capture_preview;
 	camera->functions->summary = camera_summary;
@@ -5840,6 +6334,40 @@ camera_init (Camera *camera, GPContext *context)
 		camloc = "UCS-2BE";
 
         gp_camera_get_abilities(camera, &a);
+
+#ifdef HAVE_ICONV
+	curloc = nl_langinfo (CODESET);
+	if (!curloc) curloc="UTF-8";
+	params->cd_ucs2_to_locale = iconv_open(curloc, camloc);
+	params->cd_locale_to_ucs2 = iconv_open(camloc, curloc);
+	if ((params->cd_ucs2_to_locale == (iconv_t) -1) ||
+	    (params->cd_locale_to_ucs2 == (iconv_t) -1)) {
+		gp_log (GP_LOG_ERROR, "iconv", "Failed to create iconv converter.");
+		/* we can fallback */
+		/*return (GP_ERROR_OS_FAILURE);*/
+	}
+#endif
+
+        for (i = 0; i<sizeof(models)/sizeof(models[0]); i++) {
+            if ((a.usb_vendor == models[i].usb_vendor) &&
+                (a.usb_product == models[i].usb_product)){
+                params->device_flags = models[i].device_flags;
+                break;
+            }
+	    /* do not run the funny MTP stuff on the cameras for now */
+	    params->device_flags |= DEVICE_FLAG_BROKEN_MTPGETOBJPROPLIST_ALL;
+	    params->device_flags |= DEVICE_FLAG_BROKEN_MTPGETOBJPROPLIST;
+        }
+	/* map the libmtp flags to ours. Currently its just 1 flag. */
+        for (i = 0; i<sizeof(mtp_models)/sizeof(mtp_models[0]); i++) {
+            if ((a.usb_vendor == mtp_models[i].usb_vendor) &&
+                (a.usb_product == mtp_models[i].usb_product)) {
+			params->device_flags = mtp_models[i].flags;
+                break;
+            }
+        }
+
+
 	switch (camera->port->type) {
 	case GP_PORT_USB:
 		params->sendreq_func	= ptp_usb_sendreq;
@@ -5851,24 +6379,24 @@ camera_init (Camera *camera, GPContext *context)
 		params->cancelreq_func	= ptp_usb_control_cancel_request;
 		params->maxpacketsize 	= settings.usb.maxpacketsize;
 		gp_log (GP_LOG_DEBUG, "ptp2", "maxpacketsize %d", settings.usb.maxpacketsize);
-#if 0 /* OLYMPUS */
-		if ((a.usb_vendor == 0x7b4) && ((a.usb_product == 0x109)  || (a.usb_product == 0x110) || (a.usb_product == 0x102))) {
-			gp_log (GP_LOG_DEBUG, "ptp2/usb", "Entering Olympus USB Mass Storage Wrapped Mode.\n");
+		if (params->device_flags & DEVICE_FLAG_OLYMPUS_XML_WRAPPED) {
+			gp_log (GP_LOG_DEBUG, "ptp2/usb", "Entering Olympus USB Mass Storage XML Wrapped Mode.\n");
 			olympus_setup (params);
 		}
-#endif
 		break;
 	case GP_PORT_PTPIP: {
 		GPPortInfo	info;
+		char 		*xpath;
 
 		ret = gp_port_get_info (camera->port, &info);
 		if (ret != GP_OK) {
-			gp_log (GP_LOG_ERROR, "ptpip", "Failed to get port info?\n");
+			gp_log (GP_LOG_ERROR, "ptpip", "Failed to get port info?");
 			return ret;
 		}
-		ret = ptp_ptpip_connect (params, info.path);
+		gp_port_info_get_path (info, &xpath);
+		ret = ptp_ptpip_connect (params, xpath);
 		if (ret != GP_OK) {
-			gp_log (GP_LOG_ERROR, "ptpip", "Failed to connect.\n");
+			gp_log (GP_LOG_ERROR, "ptpip", "Failed to connect.");
 			return ret;
 		}
 		params->sendreq_func	= ptp_ptpip_sendreq;
@@ -5884,39 +6412,6 @@ camera_init (Camera *camera, GPContext *context)
 	}
 	if (!params->maxpacketsize)
 		params->maxpacketsize = 64; /* assume USB 1.0 */
-#ifdef HAVE_ICONV
-	curloc = nl_langinfo (CODESET);
-	if (!curloc) curloc="UTF-8";
-	params->cd_ucs2_to_locale = iconv_open(curloc, camloc);
-	params->cd_locale_to_ucs2 = iconv_open(camloc, curloc);
-	if ((params->cd_ucs2_to_locale == (iconv_t) -1) ||
-	    (params->cd_locale_to_ucs2 == (iconv_t) -1)) {
-		gp_log (GP_LOG_ERROR, "iconv", "Failed to create iconv converter.");
-		/* we can fallback */
-		/*return (GP_ERROR_OS_FAILURE);*/
-	}
-#endif
-        for (i = 0; i<sizeof(models)/sizeof(models[0]); i++) {
-            if ((a.usb_vendor == models[i].usb_vendor) &&
-                (a.usb_product == models[i].usb_product)){
-                camera->pl->bugs = models[i].known_bugs;
-                break;
-            }
-        }
-	/* map the libmtp flags to ours. Currently its just 1 flag. */
-        for (i = 0; i<sizeof(mtp_models)/sizeof(mtp_models[0]); i++) {
-            if ((a.usb_vendor == mtp_models[i].usb_vendor) &&
-                (a.usb_product == mtp_models[i].usb_product)){
-                	camera->pl->bugs = PTP_MTP;
-
-		/* some players really need it */
-		if (!(mtp_models[i].flags & DEVICE_FLAG_BROKEN_MTPGETOBJPROPLIST_ALL))
-			camera->pl->bugs |= PTP_MTP_PROPLIST_WORKS;
-		if (mtp_models[i].flags & DEVICE_FLAG_IGNORE_HEADER_ERRORS)
-			camera->pl->bugs |= PTP_MTP_ZEN_BROKEN_HEADER;
-                break;
-            }
-        }
 
 	/* Read configurable timeouts */
 #define XT(val,def) 					\
@@ -5978,7 +6473,8 @@ camera_init (Camera *camera, GPContext *context)
 				retried++;
 				continue;
 			}
-			report_result(context, ret, 0);
+			/* FIXME: deviceinfo is not read yet ... */
+			report_result(context, ret, params->deviceinfo.VendorExtensionID);
 			return translate_ptp_result (ret);
 		}
 		break;
@@ -5987,36 +6483,43 @@ camera_init (Camera *camera, GPContext *context)
 	 * post init timeouts longer */
 	CR (gp_port_set_timeout (camera->port, normal_timeout));
 
+	if (params->device_flags & DEVICE_FLAG_OLYMPUS_XML_WRAPPED) {
+		unsigned char	*data;
+		unsigned long	len;
+		PTPObjectInfo	oi;
+		uint32_t	parenthandle,storagehandle, handle;
+
+		GP_DEBUG("... sending empty XDISCVRY.X3C file to camera ... "); 
+
+		storagehandle = 0x80000001;
+		parenthandle = 0;
+		handle = 0;
+
+		memset (&oi, 0, sizeof (oi));
+		oi.ObjectFormat		= PTP_OFC_Script;
+		oi.StorageID 		= 0x80000001;
+		oi.Filename 		= "XDISCVRY.X3C";
+		oi.ObjectCompressedSize	= 0;
+		CR(ptp_sendobjectinfo (params, &storagehandle, &parenthandle, &handle, &oi));
+
+		gp_log (GP_LOG_DEBUG, "ptp2/usb", "olympus getcameraid\n");
+		ptp_olympus_getcameraid (params, &data, &len);
+
+		gp_log (GP_LOG_DEBUG, "ptp2/usb", "olympus setcameracontrolmode\n");
+		ptp_olympus_setcameracontrolmode (params, 1);
+
+		gp_log (GP_LOG_DEBUG, "ptp2/usb", "olympus opensession\n");
+		ptp_olympus_opensession (params, &data, &len);
+	}
+
 	/* Seems HP does not like getdevinfo outside of session
 	   although it's legal to do so */
 	/* get device info */
 	CPR(context, ptp_getdeviceinfo(params, &params->deviceinfo));
 
-	fixup_cached_deviceinfo (camera, &params->deviceinfo);
+	fixup_cached_deviceinfo (camera,&params->deviceinfo);
 
-	GP_DEBUG ("Device info:");
-	GP_DEBUG ("Manufacturer: %s",params->deviceinfo.Manufacturer);
-	GP_DEBUG ("  Model: %s", params->deviceinfo.Model);
-	GP_DEBUG ("  device version: %s", params->deviceinfo.DeviceVersion);
-	GP_DEBUG ("  serial number: '%s'",params->deviceinfo.SerialNumber);
-	GP_DEBUG ("Vendor extension ID: 0x%08x",params->deviceinfo.VendorExtensionID);
-	GP_DEBUG ("Vendor extension version: %d",params->deviceinfo.VendorExtensionVersion);
-	GP_DEBUG ("Vendor extension description: %s",params->deviceinfo.VendorExtensionDesc);
-	GP_DEBUG ("Functional Mode: 0x%04x",params->deviceinfo.FunctionalMode);
-	GP_DEBUG ("PTP Standard Version: %d",params->deviceinfo.StandardVersion);
-	GP_DEBUG ("Supported operations:");
-	for (i=0; i<params->deviceinfo.OperationsSupported_len; i++)
-		GP_DEBUG ("  0x%04x", params->deviceinfo.OperationsSupported[i]);
-	GP_DEBUG ("Events Supported:");
-	for (i=0; i<params->deviceinfo.EventsSupported_len; i++)
-		GP_DEBUG ("  0x%04x", params->deviceinfo.EventsSupported[i]);
-	GP_DEBUG ("Device Properties Supported:");
-	for (i=0; i<params->deviceinfo.DevicePropertiesSupported_len;
-		i++)
-		GP_DEBUG ("  0x%04x", params->deviceinfo.DevicePropertiesSupported[i]);
-
-	/* init internal ptp objectfiles (required for fs implementation) */
-	/*init_ptp_fs (camera, context);*/
+	print_debug_deviceinfo(params, &params->deviceinfo);
 
 	switch (params->deviceinfo.VendorExtensionID) {
 	case PTP_VENDOR_CANON:
@@ -6029,23 +6532,6 @@ camera_init (Camera *camera, GPContext *context)
 			add_special_file("selftimer.wav",	canon_theme_get, canon_theme_put);
 		}
 #endif
-#if 0
-		{
-			unsigned char *x;
-			unsigned long l;
-			if (ptp_operation_issupported(params, PTP_OC_CANON_EOS_GetDeviceInfoEx))
-				ptp_canon_eos_getdeviceinfo (params, &x, &l);
-		}
-#endif
-#if 0
-		/* Marcus: this hides all files on the EOS 450D when triggered */
-		/* automatically enable capture mode on EOS cameras to populate property list */
-		if (ptp_operation_issupported(params, PTP_OC_CANON_EOS_RemoteRelease)) {
-			camera_prepare_capture(camera,context);  
-		}
-#endif
-#if 1
-
 		if (ptp_operation_issupported(params, PTP_OC_CANON_EOS_SetRemoteMode)) {
 			ret = ptp_canon_eos_setremotemode(params, 1);
 			if (ret != PTP_RC_OK) {
@@ -6053,7 +6539,6 @@ camera_init (Camera *camera, GPContext *context)
 				return translate_ptp_result (ret);
 			}
 		}
-#endif
 		break;
 	case PTP_VENDOR_NIKON:
 		if (ptp_operation_issupported(params, PTP_OC_NIKON_CurveDownload))
@@ -6062,11 +6547,30 @@ camera_init (Camera *camera, GPContext *context)
 	default:
 		break;
 	}
-#if 0 /* OLYMPUS */
-	if ((a.usb_vendor == 0x7b4) && ((a.usb_product == 0x109)  || (a.usb_product == 0x110) || (a.usb_product == 0x102)))
-		olympus_wrap_ptp_transaction (params, NULL, 0,0,NULL,NULL);
+#if 0
+	/* new ptp 1.1 command, implemented in the newer iphone firmware */
+	{
+		unsigned char *data;
+		ptp_getfilesystemmanifest (params, 0x00010001, 0, 0, &data);
+	}
 #endif
+	/* read the root directory to avoid the "DCIM WRONG ROOT" bugs */
 	CR (gp_filesystem_set_funcs (camera->fs, &fsfuncs, camera));
+	ptp_list_folder (params, PTP_HANDLER_SPECIAL, PTP_HANDLER_SPECIAL);
+	{
+		PTPStorageIDs storageids;
+
+		ret = ptp_getstorageids(params, &storageids);
+		if (ret == PTP_RC_OK) {
+			int k;
+			for (k=0;k<storageids.n;k++) {
+				if (!(storageids.Storage[k] & 0xffff)) continue;
+				if (storageids.Storage[k] == 0x80000001) continue;
+				ptp_list_folder (params, storageids.Storage[k], PTP_HANDLER_SPECIAL);
+			}
+			free (storageids.Storage);
+		}
+	}
 	SET_CONTEXT(camera, NULL);
 	return (GP_OK);
 }

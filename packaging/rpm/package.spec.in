@@ -1,6 +1,6 @@
 ########################################################################
 #
-# $Id: package.spec.in 12088 2009-05-16 22:25:13Z marcusmeissner $
+# $Id: package.spec.in 12090 2009-05-16 22:28:39Z marcusmeissner $
 #
 # RPM spec file for @PACKAGE@
 #
@@ -34,6 +34,7 @@ BuildRequires: findutils perl
 
 # the following requirements are optional
 @ENABLE_GTK_DOC_TRUE@BuildRequires: gtk-doc
+Requires: libusb >= 0.1.8
 BuildRequires: libusb-devel >= 0.1.8
 
 ####################################

@@ -55,16 +55,10 @@ typedef enum {
  *
  * \param level the log level of the passed message, as set by the camera driver or libgphoto2
  * \param domain the logging domain as set by the camera driver, or libgphoto2 function
- * \param format the printf style format string of the logmessage, without linefeed
- * \param args the arguments as va_list, depending on the format string
+ * \param str the logmessage, without linefeed
  * \param data the caller private data that was passed to gp_log_add_func()
  */
-typedef void (* GPLogFunc) (GPLogLevel level, const char *domain,
-			    const char *format, va_list args, void *data)
-#if (__GNUC__ >= 3)
-	__attribute__((__format__(printf,3,0)))
-#endif
-;
+typedef void (* GPLogFunc) (GPLogLevel level, const char *domain, const char *str, void *data);
 
 #ifndef DISABLE_DEBUGGING
 

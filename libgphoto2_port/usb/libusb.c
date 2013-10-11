@@ -19,6 +19,9 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
+
+#define _BSD_SOURCE
+
 #include "config.h"
 #include <gphoto2/gphoto2-port-library.h>
 
@@ -84,18 +87,16 @@ gp_port_library_list (GPPortInfoList *list)
 	struct usb_device *dev;
 	int nrofdevices = 0, i, i1, i2, unknownint;
 
-	/* default port first */
-	info.type = GP_PORT_USB;
 	/* generic matcher. This will catch passed XXX,YYY entries for instance. */
-	memset (info.name, 0, sizeof(info.name));
-	strcpy (info.path, "^usb:");
+	gp_port_info_new (&info);
+	gp_port_info_set_type (info, GP_PORT_USB);
+	gp_port_info_set_name (info, "");
+	gp_port_info_set_path (info, "^usb:");
 	CHECK (gp_port_info_list_append (list, info));
 
 	usb_init ();
 	usb_find_busses ();
 	usb_find_devices ();
-
-	strcpy (info.name, "Universal Serial Bus");
 
 	bus = usb_get_busses();
 
@@ -106,7 +107,8 @@ gp_port_library_list (GPPortInfoList *list)
 			if (	(dev->descriptor.bDeviceClass == USB_CLASS_HUB)		||
 				(dev->descriptor.bDeviceClass == USB_CLASS_HID)		||
 				(dev->descriptor.bDeviceClass == USB_CLASS_PRINTER)	||
-				(dev->descriptor.bDeviceClass == USB_CLASS_COMM)
+				(dev->descriptor.bDeviceClass == USB_CLASS_COMM)	||
+				(dev->descriptor.bDeviceClass == 0xe0)	/* wireless / bluetooth */
 			)
 				continue;
 			/* excepts HUBs, usually the interfaces have the classes, not
@@ -122,7 +124,9 @@ gp_port_library_list (GPPortInfoList *list)
 						struct usb_interface_descriptor *intf = &dev->config[i].interface[i1].altsetting[i2]; 
 						if (	(intf->bInterfaceClass == USB_CLASS_HID)	||
 							(intf->bInterfaceClass == USB_CLASS_PRINTER)	||
-							(intf->bInterfaceClass == USB_CLASS_COMM))
+							(intf->bInterfaceClass == USB_CLASS_COMM)	||
+							(intf->bInterfaceClass == 0xe0)	/* wireless/bluetooth*/
+						)
 							continue;
 						unknownint++;
 					}
@@ -139,10 +143,11 @@ gp_port_library_list (GPPortInfoList *list)
 	}
 
 #if 0
-	/* Do not filter out usb:XXX,YYY, we want it for consistency... */
 	/* If we already added usb:, and have 0 or 1 devices we have nothing to do.
 	 * This should be the standard use case.
 	 */
+	/* We never want to return just "usb:" ... also return "usb:XXX,YYY", and
+	 * let upper layers filter out the usb: */
 	if (nrofdevices <= 1) 
 		return (GP_OK);
 #endif
@@ -154,6 +159,7 @@ gp_port_library_list (GPPortInfoList *list)
 	while (bus) {
 		for (dev = bus->devices; dev; dev = dev->next) {
 			char *s;
+			char path[200];
 			/* Devices which are definitely not cameras. */
 			if (	(dev->descriptor.bDeviceClass == USB_CLASS_HUB)		||
 				(dev->descriptor.bDeviceClass == USB_CLASS_HID)		||
@@ -185,9 +191,13 @@ gp_port_library_list (GPPortInfoList *list)
 			/* Note: We do not skip USB storage. Some devices can support both,
 			 * and the Ricoh erronously reports it.
 			 */ 
-			sprintf (info.path, "usb:%s,%s", bus->dirname, dev->filename);
+			gp_port_info_new (&info);
+			gp_port_info_set_type (info, GP_PORT_USB);
+			gp_port_info_set_name (info, "Universal Serial Bus");
+			snprintf (path,sizeof(path), "usb:%s,%s", bus->dirname, dev->filename);
 			/* On MacOS X we might get usb:006,002-04a9-3139-00-00. */
-			s = strchr(info.path, '-');if (s) *s='\0';
+			s = strchr(path, '-');if (s) *s='\0';
+			gp_port_info_set_path (info, path);
 			CHECK (gp_port_info_list_append (list, info));
 		}
 		bus = bus->next;
@@ -195,8 +205,10 @@ gp_port_library_list (GPPortInfoList *list)
 	/* This will only be added if no other device was ever added.
 	 * Users doing "usb:" usage will enter the regular expression matcher case. */
 	if (nrofdevices == 0) {
-		strcpy (info.name, "Universal Serial Bus");
-		strcpy (info.path, "usb:");
+		gp_port_info_new (&info);
+		gp_port_info_set_type (info, GP_PORT_USB);
+		gp_port_info_set_name (info, "Universal Serial Bus");
+		gp_port_info_set_path (info, "usb:");
 		CHECK (gp_port_info_list_append (list, info));
 	}
 	return (GP_OK);
@@ -229,15 +241,22 @@ gp_port_usb_exit (GPPort *port)
 	return (GP_OK);
 }
 
+static int gp_port_usb_find_path_lib(GPPort *);
+
 static int
 gp_port_usb_open (GPPort *port)
 {
 	int ret;
 	char name[64];
 
-	gp_log (GP_LOG_DEBUG,"libusb","gp_port_usb_open()");
-	if (!port || !port->pl->d)
+	gp_log (GP_LOG_DEBUG,"libusb","gp_port_usb_open(%p)", port);
+	if (!port)
 		return GP_ERROR_BAD_PARAMETERS;
+	if (!port->pl->d) {
+		ret = gp_port_usb_find_path_lib(port);
+		if (!port->pl->d)
+			return GP_ERROR_BAD_PARAMETERS;
+	}
 
         /*
 	 * Open the device using the previous usb_handle returned by
@@ -245,7 +264,9 @@ gp_port_usb_open (GPPort *port)
 	 */
 	port->pl->dh = usb_open (port->pl->d);
 	if (!port->pl->dh) {
-		gp_port_set_error (port, _("Could not open USB device (%m)."));
+		int saved_errno = errno;
+		gp_port_set_error (port, _("Could not open USB device (%s)."),
+				   strerror(saved_errno));
 		return GP_ERROR_IO;
 	}
 #if defined(LIBUSB_HAS_GET_DRIVER_NP) && defined(LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP)
@@ -253,10 +274,10 @@ gp_port_usb_open (GPPort *port)
 	ret = usb_get_driver_np (port->pl->dh, port->settings.usb.interface,
 		name, sizeof(name)
 	);
+	if (name[0] != 0)
+		gp_log (GP_LOG_DEBUG,"libusb",_("Device has driver '%s' attached."), name);
 	if (strstr(name,"usbfs") || strstr(name,"storage")) {
-		/* other gphoto instance most likely
-		 * Also let mass storage be served by regular means.
-		 */
+		/* other gphoto instance most likely */
 		gp_port_set_error (port, _("Camera is already in use."));
 		return GP_ERROR_IO_LOCK;
 	}
@@ -278,11 +299,15 @@ gp_port_usb_open (GPPort *port)
 	ret = usb_claim_interface (port->pl->dh,
 				   port->settings.usb.interface);
 	if (ret < 0) {
-		gp_port_set_error (port, _("Could not claim "
-			"interface %d (%m). Make sure no other program "
-			"or kernel module (such as %s) is using the device "
-			"and you have read/write access to the device."),
-			port->settings.usb.interface, "sdc2xx, stv680, spca50x");
+		int saved_errno = errno;
+		gp_port_set_error (port, _("Could not claim interface %d (%s). "
+					   "Make sure no other program "
+					   "or kernel module (such as %s) "
+					   "is using the device and you have "
+					   "read/write access to the device."),
+				   port->settings.usb.interface,
+				   strerror(saved_errno),
+				   "sdc2xx, stv680, spca50x");
 		return GP_ERROR_IO_USB_CLAIM;
 	}
 	return GP_OK;
@@ -296,20 +321,25 @@ gp_port_usb_close (GPPort *port)
 
 	if (usb_release_interface (port->pl->dh,
 				   port->settings.usb.interface) < 0) {
-		gp_port_set_error (port, _("Could not "
-			"release interface %d (%m)."),
-			port->settings.usb.interface);
+		int saved_errno = errno;
+		gp_port_set_error (port, _("Could not release "
+					   "interface %d (%s)."),
+				   port->settings.usb.interface,
+				   strerror(saved_errno));
 		return (GP_ERROR_IO);
 	}
 
 #if 0
-	/* This does break Canon EOS and some PowerShots ... -Marcus */
+	/* This confuses the EOS 5d camera and possible other EOSs. *sigh* */
 	/* This is only for our very special Canon cameras which need a good
 	 * whack after close, otherwise they get timeouts on reconnect.
 	 */
 	if (port->pl->d->descriptor.idVendor == 0x04a9) {
 		if (usb_reset (port->pl->dh) < 0) {
-			gp_port_set_error (port, _("Could not reset USB port (%m)."));
+			int saved_errno = errno;
+			gp_port_set_error (port, _("Could not reset "
+						   "USB port (%s)."),
+					   strerror(saved_errno));
 			return (GP_ERROR_IO);
 		}
 	}
@@ -336,7 +366,9 @@ gp_port_usb_close (GPPort *port)
 #endif
 
 	if (usb_close (port->pl->dh) < 0) {
-		gp_port_set_error (port, _("Could not close USB port (%m)."));
+		int saved_errno = errno;
+		gp_port_set_error (port, _("Could not close USB port (%s)."),
+				   strerror(saved_errno));
 		return (GP_ERROR_IO);
 	}
 
@@ -401,6 +433,23 @@ gp_port_usb_read(GPPort *port, char *bytes, int size)
 		return GP_ERROR_IO_READ;
 
         return ret;
+}
+
+static int
+gp_port_usb_reset(GPPort *port)
+{
+	int ret;
+
+	gp_log (GP_LOG_DEBUG, "libusb", "Reseting port");
+	if (!port || !port->pl->dh)
+		return GP_ERROR_BAD_PARAMETERS;
+
+	ret = usb_reset(port->pl->dh);
+        if (ret < 0) {
+		gp_log (GP_LOG_ERROR, "libusb", "gp_port_reset: %d", ret);
+		return GP_ERROR_IO_READ;
+	}
+        return GP_OK;
 }
 
 static int
@@ -519,16 +568,19 @@ gp_port_usb_update (GPPort *port)
 {
 	int ret, ifacereleased = FALSE;
 
-	gp_log (GP_LOG_DEBUG, "libusb", "gp_port_usb_update(old int=%d, conf=%d, alt=%d), (new int=%d, conf=%d, alt=%d)",
+	if (!port)
+		return GP_ERROR_BAD_PARAMETERS;
+
+	gp_log (GP_LOG_DEBUG, "libusb", "gp_port_usb_update(old int=%d, conf=%d, alt=%d) port %s, (new int=%d, conf=%d, alt=%d), port %s",
 		port->settings.usb.interface,
 		port->settings.usb.config,
 		port->settings.usb.altsetting,
+		port->settings.usb.port,
 		port->settings_pending.usb.interface,
 		port->settings_pending.usb.config,
-		port->settings_pending.usb.altsetting
+		port->settings_pending.usb.altsetting,
+		port->settings_pending.usb.port
 	);
-	if (!port)
-		return GP_ERROR_BAD_PARAMETERS;
 
 #if 0
 	if (port->pl->interface == -1) port->pl->interface = port->settings.usb.interface;
@@ -554,14 +606,14 @@ gp_port_usb_update (GPPort *port)
 		);
 		if (usb_release_interface (port->pl->dh,
 					   port->pl->interface) < 0) {
-			gp_log (GP_LOG_DEBUG, "gphoto2-port-usb","releasing the iface for config failed.");
+			gp_log (GP_LOG_DEBUG, "libusb","releasing the iface for config failed.");
 			/* Not a hard error for now. -Marcus */
 		} else {
 			gp_log (GP_LOG_DEBUG,"libusb","claiming interface %d", port->settings.usb.interface);
 			ret = usb_claim_interface (port->pl->dh,
 						   port->settings.usb.interface);
 			if (ret < 0) {
-				gp_log (GP_LOG_DEBUG, "gphoto2-port-usb","reclaiming the iface for config failed.");
+				gp_log (GP_LOG_DEBUG, "libusb","reclaiming the iface for config failed.");
 				return GP_ERROR_IO_UPDATE;
 			}
 			port->pl->interface = port->settings.usb.interface;
@@ -577,7 +629,7 @@ gp_port_usb_update (GPPort *port)
 		 */
 		if (usb_release_interface (port->pl->dh,
 					   port->settings.usb.interface) < 0) {
-			gp_log (GP_LOG_DEBUG, "gphoto2-port-usb","releasing the iface for config failed.");
+			gp_log (GP_LOG_DEBUG, "libusb","releasing the iface for config failed.");
 			ifacereleased = FALSE;
 		} else {
 			ifacereleased = TRUE;
@@ -586,16 +638,18 @@ gp_port_usb_update (GPPort *port)
 				     port->settings.usb.config);
 		if (ret < 0) {
 #if 0 /* setting the configuration failure is not fatal */
+			int saved_errno = errno;
 			gp_port_set_error (port,
-				_("Could not set config %d/%d (%m)"),
-				port->settings.usb.interface,
-				port->settings.usb.config);
+					   _("Could not set config %d/%d (%s)"),
+					   port->settings.usb.interface,
+					   port->settings.usb.config,
+					   strerror(saved_errno));
 			return GP_ERROR_IO_UPDATE;	
 #endif
-			gp_log (GP_LOG_ERROR, "gphoto2-port-usb","setting configuration from %d to %d failed with ret = %d, but continue...", port->pl->config, port->settings.usb.config, ret);
+			gp_log (GP_LOG_ERROR, "libusb","setting configuration from %d to %d failed with ret = %d, but continue...", port->pl->config, port->settings.usb.config, ret);
 		}
 
-		gp_log (GP_LOG_DEBUG, "gphoto2-port-usb",
+		gp_log (GP_LOG_DEBUG, "libusb",
 			"Changed usb.config from %d to %d",
 			port->pl->config,
 			port->settings.usb.config);
@@ -605,7 +659,7 @@ gp_port_usb_update (GPPort *port)
 			ret = usb_claim_interface (port->pl->dh,
 						   port->settings.usb.interface);
 			if (ret < 0) {
-				gp_log (GP_LOG_DEBUG, "gphoto2-port-usb","reclaiming the iface for config failed.");
+				gp_log (GP_LOG_DEBUG, "libusb","reclaiming the iface for config failed.");
 			}
 		}
 		/*
@@ -619,15 +673,17 @@ gp_port_usb_update (GPPort *port)
 	if (port->settings.usb.altsetting != port->pl->altsetting) {
 		ret = usb_set_altinterface(port->pl->dh, port->settings.usb.altsetting);
 		if (ret < 0) {
-			gp_port_set_error (port, 
-				_("Could not set altsetting from %d "
-				"to %d (%m)"),
-				port->pl->altsetting,
-				port->settings.usb.altsetting);
+			int saved_errno = errno;
+			gp_port_set_error (port,
+					   _("Could not set altsetting from %d "
+					     "to %d (%s)"),
+					   port->pl->altsetting,
+					   port->settings.usb.altsetting,
+					   strerror(saved_errno));
 			return GP_ERROR_IO_UPDATE;
 		}
 
-		gp_log (GP_LOG_DEBUG, "gphoto2-port-usb",
+		gp_log (GP_LOG_DEBUG, "libusb",
 			"Changed usb.altsetting from %d to %d",
 			port->pl->altsetting,
 			port->settings.usb.altsetting);
@@ -733,7 +789,7 @@ gp_port_usb_find_device_lib(GPPort *port, int idvendor, int idproduct)
 
 				port->pl->d = dev;
 
-				gp_log (GP_LOG_VERBOSE, "gphoto2-port-usb",
+				gp_log (GP_LOG_VERBOSE, "libusb",
 					"Looking for USB device "
 					"(vendor 0x%x, product 0x%x)... found.", 
 					idvendor, idproduct);
@@ -747,7 +803,7 @@ gp_port_usb_find_device_lib(GPPort *port, int idvendor, int idproduct)
 
 					if (dev->config[config].interface[interface].altsetting[altsetting].bInterfaceClass
 					    == USB_CLASS_MASS_STORAGE) {
-						gp_log (GP_LOG_VERBOSE, "gphoto2-port-usb",
+						gp_log (GP_LOG_VERBOSE, "libusb",
 							_("USB device (vendor 0x%x, product 0x%x) is a mass"
 							  " storage device, and might not function with gphoto2."
 							  " Reference: %s"),
@@ -762,14 +818,14 @@ gp_port_usb_find_device_lib(GPPort *port, int idvendor, int idproduct)
 					port->settings.usb.intep = gp_port_usb_find_ep(dev, config, interface, altsetting, USB_ENDPOINT_IN, USB_ENDPOINT_TYPE_INTERRUPT);
 
 					port->settings.usb.maxpacketsize = 0;
-					gp_log (GP_LOG_DEBUG, "gphoto2-port-usb", "inep to look for is %02x", port->settings.usb.inep);
+					gp_log (GP_LOG_DEBUG, "libusb", "inep to look for is %02x", port->settings.usb.inep);
 					for (i=0;i<dev->config[config].interface[interface].altsetting[altsetting].bNumEndpoints;i++) {
 						if (port->settings.usb.inep == dev->config[config].interface[interface].altsetting[altsetting].endpoint[i].bEndpointAddress) {
 							port->settings.usb.maxpacketsize = dev->config[config].interface[interface].altsetting[altsetting].endpoint[i].wMaxPacketSize;
 							break;
 						}
 					}
-					gp_log (GP_LOG_VERBOSE, "gphoto2-port-usb",
+					gp_log (GP_LOG_VERBOSE, "libusb",
 						"Detected defaults: config %d, "
 						"interface %d, altsetting %d, "
 						"inep %02x, outep %02x, intep %02x, "
@@ -787,6 +843,101 @@ gp_port_usb_find_device_lib(GPPort *port, int idvendor, int idproduct)
 
 				return GP_OK;
 			}
+		}
+	}
+
+#if 0
+	gp_port_set_error (port, _("Could not find USB device "
+		"(vendor 0x%x, product 0x%x). Make sure this device "
+		"is connected to the computer."), idvendor, idproduct);
+#endif
+	return GP_ERROR_IO_USB_FIND;
+}
+
+static int
+gp_port_usb_find_path_lib(GPPort *port)
+{
+	struct usb_bus *bus;
+	struct usb_device *dev;
+	char *s;
+	char busname[64], devname[64];
+
+	if (!port)
+		return (GP_ERROR_BAD_PARAMETERS);
+
+	s = strchr (port->settings.usb.port,':');
+	busname[0] = devname[0] = '\0';
+	if (!s || s[1] == '\0') {
+		/* generic usb: match ... can't do */
+		return GP_ERROR_BAD_PARAMETERS;
+	}
+	if (s && (s[1] != '\0')) { /* usb:%d,%d */
+		strncpy(busname,s+1,sizeof(busname));
+		busname[sizeof(busname)-1] = '\0';
+
+		s = strchr(busname,',');
+		if (s) {
+			strncpy(devname, s+1,sizeof(devname));
+			devname[sizeof(devname)-1] = '\0';
+			*s = '\0';
+		} else {
+			/* generic usb: match ... can't do */
+			return GP_ERROR_BAD_PARAMETERS;
+		}
+	}
+	for (bus = usb_busses; bus; bus = bus->next) {
+		if (strcmp(busname, bus->dirname))
+			continue;
+
+		for (dev = bus->devices; dev; dev = dev->next) {
+			int config = -1, interface = -1, altsetting = -1;
+
+			if ((dev->filename != strstr(dev->filename, devname)))
+				continue;
+
+			port->pl->d = dev;
+
+			gp_log (GP_LOG_VERBOSE, "libusb", "Found device for path %s", port->settings.usb.port);
+
+			/* Use the first config, interface and altsetting we find */
+			gp_port_usb_find_first_altsetting(dev, &config, &interface, &altsetting);
+
+			/* Set the defaults */
+			if (dev->config) {
+				int i;
+
+				port->settings.usb.config = dev->config[config].bConfigurationValue;
+				port->settings.usb.interface = dev->config[config].interface[interface].altsetting[altsetting].bInterfaceNumber;
+				port->settings.usb.altsetting = dev->config[config].interface[interface].altsetting[altsetting].bAlternateSetting;
+
+				port->settings.usb.inep = gp_port_usb_find_ep(dev, config, interface, altsetting, USB_ENDPOINT_IN, USB_ENDPOINT_TYPE_BULK);
+				port->settings.usb.outep = gp_port_usb_find_ep(dev, config, interface, altsetting, USB_ENDPOINT_OUT, USB_ENDPOINT_TYPE_BULK);
+				port->settings.usb.intep = gp_port_usb_find_ep(dev, config, interface, altsetting, USB_ENDPOINT_IN, USB_ENDPOINT_TYPE_INTERRUPT);
+
+				port->settings.usb.maxpacketsize = 0;
+				gp_log (GP_LOG_DEBUG, "libusb", "inep to look for is %02x", port->settings.usb.inep);
+				for (i=0;i<dev->config[config].interface[interface].altsetting[altsetting].bNumEndpoints;i++) {
+					if (port->settings.usb.inep == dev->config[config].interface[interface].altsetting[altsetting].endpoint[i].bEndpointAddress) {
+						port->settings.usb.maxpacketsize = dev->config[config].interface[interface].altsetting[altsetting].endpoint[i].wMaxPacketSize;
+						break;
+					}
+				}
+				gp_log (GP_LOG_VERBOSE, "libusb",
+					"Detected defaults: config %d, "
+					"interface %d, altsetting %d, "
+					"inep %02x, outep %02x, intep %02x, "
+					"class %02x, subclass %02x",
+					port->settings.usb.config,
+					port->settings.usb.interface,
+					port->settings.usb.altsetting,
+					port->settings.usb.inep,
+					port->settings.usb.outep,
+					port->settings.usb.intep,
+					dev->config[config].interface[interface].altsetting[altsetting].bInterfaceClass,
+					dev->config[config].interface[interface].altsetting[altsetting].bInterfaceSubClass
+					);
+			}
+			return GP_OK;
 		}
 	}
 
@@ -855,28 +1006,30 @@ gp_port_usb_match_mtp_device(struct usb_device *dev,int *configno, int *interfac
 	 * MTP interface descriptions, that's how they can be detected, before
 	 * we try the more esoteric "OS descriptors" (below).
 	 */
-	for (i = 0; i < dev->descriptor.bNumConfigurations; i++) {
-		unsigned int j;
-		for (j = 0; j < dev->config[i].bNumInterfaces; j++) {
-			int k;
-			for (k = 0; k < dev->config[i].interface[j].num_altsetting; k++) {
-				buf[0] = '\0';
-				ret = usb_get_string_simple(devh, 
-					dev->config[i].interface[j].altsetting[k].iInterface, 
-					(char *) buf, 
-					1024);
-				if (ret < 3)
-					continue;
-				if (strcmp((char *) buf, "MTP") == 0) {
-					gp_log (GP_LOG_DEBUG, "mtp matcher", "Configuration %d, interface %d, altsetting %d:\n", i, j, k);
-					gp_log (GP_LOG_DEBUG, "mtp matcher", "   Interface description contains the string \"MTP\"\n");
-					gp_log (GP_LOG_DEBUG, "mtp matcher", "   Device recognized as MTP, no further probing.\n");
-					goto found;
+	if (dev->config) {
+		for (i = 0; i < dev->descriptor.bNumConfigurations; i++) {
+			unsigned int j;
+
+			for (j = 0; j < dev->config[i].bNumInterfaces; j++) {
+				int k;
+				for (k = 0; k < dev->config[i].interface[j].num_altsetting; k++) {
+					buf[0] = '\0';
+					ret = usb_get_string_simple(devh, 
+						dev->config[i].interface[j].altsetting[k].iInterface, 
+						(char *) buf, 
+						1024);
+					if (ret < 3)
+						continue;
+					if (strcmp((char *) buf, "MTP") == 0) {
+						gp_log (GP_LOG_DEBUG, "mtp matcher", "Configuration %d, interface %d, altsetting %d:\n", i, j, k);
+						gp_log (GP_LOG_DEBUG, "mtp matcher", "   Interface description contains the string \"MTP\"\n");
+						gp_log (GP_LOG_DEBUG, "mtp matcher", "   Device recognized as MTP, no further probing.\n");
+						goto found;
+					}
 				}
 			}
 		}
 	}
-
 	/* get string descriptor at 0xEE */
 	ret = usb_get_descriptor (devh, 0x03, 0xee, buf, sizeof(buf));
 	if (ret > 0) gp_log_data("get_MS_OSD",buf, ret);
@@ -1046,9 +1199,9 @@ gp_port_usb_find_device_by_class_lib(GPPort *port, int class, int subclass, int 
 				continue;
 
 			port->pl->d = dev;
-			gp_log (GP_LOG_VERBOSE, "gphoto2-port-usb",
+			gp_log (GP_LOG_VERBOSE, "libusb",
 				"Found USB class device "
-				"(class 0x%x, subclass, 0x%x, protocol 0x%x).", 
+				"(class 0x%x, subclass, 0x%x, protocol 0x%x)", 
 				class, subclass, protocol);
 			/* Set the defaults */
 			if (dev->config) {
@@ -1062,14 +1215,14 @@ gp_port_usb_find_device_by_class_lib(GPPort *port, int class, int subclass, int 
 				port->settings.usb.outep = gp_port_usb_find_ep(dev, config, interface, altsetting, USB_ENDPOINT_OUT, USB_ENDPOINT_TYPE_BULK);
 				port->settings.usb.intep = gp_port_usb_find_ep(dev, config, interface, altsetting, USB_ENDPOINT_IN, USB_ENDPOINT_TYPE_INTERRUPT);
 				port->settings.usb.maxpacketsize = 0;
-				gp_log (GP_LOG_DEBUG, "gphoto2-port-usb", "inep to look for is %02x", port->settings.usb.inep);
+				gp_log (GP_LOG_DEBUG, "libusb", "inep to look for is %02x", port->settings.usb.inep);
 				for (i=0;i<dev->config[config].interface[interface].altsetting[altsetting].bNumEndpoints;i++) {
 					if (port->settings.usb.inep == dev->config[config].interface[interface].altsetting[altsetting].endpoint[i].bEndpointAddress) {
 						port->settings.usb.maxpacketsize = dev->config[config].interface[interface].altsetting[altsetting].endpoint[i].wMaxPacketSize;
 						break;
 					}
 				}
-				gp_log (GP_LOG_VERBOSE, "gphoto2-port-usb",
+				gp_log (GP_LOG_VERBOSE, "libusb",
 					"Detected defaults: config %d, "
 					"interface %d, altsetting %d, "
 					"idVendor ID %04x, idProduct %04x, "
@@ -1111,6 +1264,7 @@ gp_port_library_operations (void)
 	ops->open   = gp_port_usb_open;
 	ops->close  = gp_port_usb_close;
 	ops->read   = gp_port_usb_read;
+	ops->reset  = gp_port_usb_reset;
 	ops->write  = gp_port_usb_write;
 	ops->check_int = gp_port_usb_check_int;
 	ops->update = gp_port_usb_update;

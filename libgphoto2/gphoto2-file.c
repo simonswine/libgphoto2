@@ -56,7 +56,6 @@
  * \internal
  */
 struct _CameraFile {
-        CameraFileType	type;
         char		mime_type [64];
         char		name [MAX_PATH];
         int		ref_count;
@@ -71,6 +70,10 @@ struct _CameraFile {
 
 	/* for GP_FILE_ACCESSTYPE_FD files */
 	int		fd;
+
+	/* for GP_FILE_ACCESSTYPE_HANDLER files */
+	CameraFileHandler*handler;
+	void		*private;
 };
 
 
@@ -89,7 +92,6 @@ gp_file_new (CameraFile **file)
 		return (GP_ERROR_NO_MEMORY);
 	memset (*file, 0, sizeof (CameraFile));
 
-	(*file)->type = GP_FILE_TYPE_NORMAL;
 	strcpy ((*file)->mime_type, "unknown/unknown");
 	(*file)->ref_count = 1;
 	(*file)->accesstype = GP_FILE_ACCESSTYPE_MEMORY;
@@ -113,13 +115,38 @@ gp_file_new_from_fd (CameraFile **file, int fd)
 		return (GP_ERROR_NO_MEMORY);
 	memset (*file, 0, sizeof (CameraFile));
 
-	(*file)->type = GP_FILE_TYPE_NORMAL;
 	strcpy ((*file)->mime_type, "unknown/unknown");
 	(*file)->ref_count = 1;
 	(*file)->accesstype = GP_FILE_ACCESSTYPE_FD;
 	(*file)->fd = fd;
 	return (GP_OK);
 }
+
+/*! Create new #CameraFile object using a programmatic handler.
+ *
+ * \param file a pointer to a #CameraFile
+ * \param handler a #CameraFileHandler
+ * \param private a private pointer for frontend use
+ * \return a gphoto2 error code.
+ */
+int
+gp_file_new_from_handler (CameraFile **file, CameraFileHandler* handler, void*private)
+{
+	CHECK_NULL (file);
+
+	*file = malloc (sizeof (CameraFile));
+	if (!*file)
+		return (GP_ERROR_NO_MEMORY);
+	memset (*file, 0, sizeof (CameraFile));
+
+	strcpy ((*file)->mime_type, "unknown/unknown");
+	(*file)->ref_count = 1;
+	(*file)->accesstype = GP_FILE_ACCESSTYPE_HANDLER;
+	(*file)->handler = handler;
+	(*file)->private = private;
+	return (GP_OK);
+}
+
 
 
 /*! \brief descruct a #CameraFile object.
@@ -200,7 +227,7 @@ gp_file_append (CameraFile *file, const char *data,
 			t = realloc (file->data, sizeof (char) * (file->size + size));
 			if (!t)
 				return GP_ERROR_NO_MEMORY;
-			file->data = t;
+			file->data = (unsigned char*)t;
 		}
 		memcpy (&file->data[file->size], data, size);
 		file->size += size;
@@ -220,6 +247,15 @@ gp_file_append (CameraFile *file, const char *data,
 			curwritten += res;
 		}
 		break;
+	}
+	case GP_FILE_ACCESSTYPE_HANDLER: {
+		uint64_t	xsize = size;
+		/* FIXME: assume we write one blob */
+		if (!file->handler->write) {
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "write handler is NULL");
+			return GP_ERROR_BAD_PARAMETERS;
+		}
+		return file->handler->write (file->private, (unsigned char*)data, &xsize);
 	}
 	default:
 		gp_log (GP_LOG_ERROR, "gphoto2-file", "Unknown file access type %d", file->accesstype);
@@ -268,6 +304,20 @@ gp_file_slurp (CameraFile *file, char *data,
 		}
 		break;
 	}
+	case GP_FILE_ACCESSTYPE_HANDLER: {
+		uint64_t	xsize = size;
+		int		ret;
+
+		if (!file->handler->read) {
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "read handler is NULL");
+			return GP_ERROR_BAD_PARAMETERS;
+		}
+		ret = file->handler->read (file->private, (unsigned char*)data, &xsize);
+		*readlen = xsize;
+		if (ret != GP_OK)
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "File handler read returned %d", ret);
+		return ret;
+	}
 	default:
 		gp_log (GP_LOG_ERROR, "gphoto2-file", "Unknown file access type %d", file->accesstype);
 		return GP_ERROR;
@@ -294,7 +344,7 @@ gp_file_set_data_and_size (CameraFile *file, char *data,
 	case GP_FILE_ACCESSTYPE_MEMORY:
 		if (file->data)
 			free (file->data);
-		file->data = data;
+		file->data = (unsigned char*)data;
 		file->size = size;
 		break;
 	case GP_FILE_ACCESSTYPE_FD: {
@@ -327,6 +377,26 @@ gp_file_set_data_and_size (CameraFile *file, char *data,
 		free (data);
 		break;
 	}
+	case GP_FILE_ACCESSTYPE_HANDLER: {
+		uint64_t	xsize = size;
+		int		ret;
+
+		if (!file->handler->write) {
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "write handler is NULL");
+			return GP_ERROR_BAD_PARAMETERS;
+		}
+		/* FIXME: handle multiple blob writes */
+		ret = file->handler->write (file->private, (unsigned char*)data, &xsize);
+		if (ret != GP_OK) {
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "Handler data() returned %d", ret);
+			return ret;
+		}
+		/* This function takes over the responsibility for "data", aka
+		 * it has to free it. So we do.
+		 */
+		free (data);
+		return GP_OK;
+	}
 	default:
 		gp_log (GP_LOG_ERROR, "gphoto2-file", "Unknown file access type %d", file->accesstype);
 		return GP_ERROR;
@@ -345,6 +415,9 @@ gp_file_set_data_and_size (CameraFile *file, char *data,
  *
  * Both data and size can be NULL and will then be ignored.
  *
+ * The pointer to data that is returned is still owned by libgphoto2
+ * and its lifetime is the same as the #file.
+ *
  **/
 int
 gp_file_get_data_and_size (CameraFile *file, const char **data,
@@ -355,7 +428,7 @@ gp_file_get_data_and_size (CameraFile *file, const char **data,
 	switch (file->accesstype) {
 	case GP_FILE_ACCESSTYPE_MEMORY:
 		if (data)
-			*data = file->data;
+			*data = (char*)file->data;
 		if (size)
 			*size = file->size;
 		break;
@@ -399,6 +472,33 @@ gp_file_get_data_and_size (CameraFile *file, const char **data,
 			curread += res;
 		}
 		break;
+	}
+	case GP_FILE_ACCESSTYPE_HANDLER: {
+		uint64_t	xsize = 0;
+		int		ret;
+
+		if (!file->handler->read) {
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "read handler is NULL");
+			return GP_ERROR_BAD_PARAMETERS;
+		}
+		ret = file->handler->size (file->private, &xsize);
+		if (ret != GP_OK) {
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "Encountered error %d querying size().", ret);
+			return ret;
+		}
+		if (size) *size = xsize;
+		if (!data) /* just the size... */
+			return GP_OK;
+		*data = malloc (xsize);
+		if (!*data)
+			return GP_ERROR_NO_MEMORY;
+		ret = file->handler->read (file->private, (unsigned char*)*data, &xsize);
+		if (ret != GP_OK) {
+			gp_log (GP_LOG_ERROR, "gphoto2-file", "Encountered error %d getting data().", ret);
+			free ((char*)*data);
+			*data = NULL;
+		}
+		return ret;
 	}
 	default:
 		gp_log (GP_LOG_ERROR, "gphoto2-file", "Unknown file access type %d", file->accesstype);
@@ -456,8 +556,10 @@ gp_file_save (CameraFile *file, const char *filename)
 		data = malloc(65536);
 		if (!data)
 			return GP_ERROR_NO_MEMORY;
-		if (!(fp = fopen (filename, "wb")))
+		if (!(fp = fopen (filename, "wb"))) {
+			free (data);
 			return GP_ERROR;
+		}
 		while (curread < offset) {
 			int toread, res;
 
@@ -501,6 +603,32 @@ gp_file_save (CameraFile *file, const char *filename)
 }
 
 
+/*
+ * mime types that cannot be determined by the filename
+ * extension. Better hack would be to use library that examine
+ * file content instead, like gnome-vfs mime handling, or
+ * gnome-mime, whatever.
+ * See also the GP_MIME_* definitions.
+ */
+static const char *mime_table[] = {
+    "bmp",  GP_MIME_BMP,
+    "jpg",  GP_MIME_JPEG,
+    "tif",  GP_MIME_TIFF,
+    "ppm",  GP_MIME_PPM,
+    "pgm",  GP_MIME_PGM,
+    "pnm",  GP_MIME_PNM,
+    "png",  GP_MIME_PNG,
+    "wav",  GP_MIME_WAV,
+    "avi",  GP_MIME_AVI,
+    "mp3",  GP_MIME_MP3,
+    "wma",  GP_MIME_WMA,
+    "asf",  GP_MIME_ASF,
+    "ogg",  GP_MIME_OGG,
+    "mpg",  GP_MIME_MPEG,
+    "raw",  GP_MIME_RAW,
+    "mts",  GP_MIME_AVCHD,
+    "m2ts", GP_MIME_AVCHD,
+    NULL};
 /**
  * @param file a #CameraFile
  * @param filename
@@ -516,31 +644,6 @@ gp_file_open (CameraFile *file, const char *filename)
         int  i;
 	struct stat s;
 
-        /*
-         * mime types that cannot be determined by the filename
-         * extension. Better hack would be to use library that examine
-         * file content instead, like gnome-vfs mime handling, or
-         * gnome-mime, whatever.
-         * See also the GP_MIME_* definitions.
-         */
-        static char *mime_table[] = {
-            "bmp",  GP_MIME_BMP,
-            "jpg",  GP_MIME_JPEG,
-            "tif",  GP_MIME_TIFF,
-            "ppm",  GP_MIME_PPM,
-            "pgm",  GP_MIME_PGM,
-            "pnm",  GP_MIME_PNM,
-            "png",  GP_MIME_PNG,
-            "wav",  GP_MIME_WAV,
-            "avi",  GP_MIME_AVI,
-            "mp3",  GP_MIME_MP3,
-            "wma",  GP_MIME_WMA,
-            "asf",  GP_MIME_ASF,
-            "ogg",  GP_MIME_OGG,
-            "mpg",  GP_MIME_MPEG,
-            "mts",  GP_MIME_AVCHD,
-            "m2ts",  GP_MIME_AVCHD,
-            NULL};
 
 	CHECK_NULL (file && filename);
 
@@ -668,7 +771,6 @@ gp_file_copy (CameraFile *destination, CameraFile *source)
 	/* struct members we can just copy. All generic ones, but not refcount. */
 	memcpy (destination->name, source->name, sizeof (source->name));
 	memcpy (destination->mime_type, source->mime_type, sizeof (source->mime_type));
-	destination->type = source->type;
 	destination->mtime = source->mtime;
 
 	if ((destination->accesstype == GP_FILE_ACCESSTYPE_MEMORY) &&
@@ -735,7 +837,8 @@ gp_file_copy (CameraFile *destination, CameraFile *source)
 		char *data;
 
 		lseek (destination->fd, 0, SEEK_SET);
-		ftruncate (destination->fd, 0);
+		if (-1 == ftruncate (destination->fd, 0))
+			perror("ftruncate");
 		lseek (source->fd, 0, SEEK_SET);
 		data = malloc (65536);
 		while (1) {
@@ -762,6 +865,7 @@ gp_file_copy (CameraFile *destination, CameraFile *source)
 			if (res < 65536) /* end of file */
 				break;
 		}
+		free (data);
 		return GP_OK;
 	}
 	if (	(destination->accesstype == GP_FILE_ACCESSTYPE_FD) &&
@@ -776,6 +880,25 @@ gp_file_copy (CameraFile *destination, CameraFile *source)
 			if (!res) /* no progress? */
 				return GP_ERROR_IO_WRITE;
 			curwritten += res;
+		}
+		return GP_OK;
+	}
+	if (	(destination->accesstype == GP_FILE_ACCESSTYPE_HANDLER) &&
+		(source->accesstype == GP_FILE_ACCESSTYPE_MEMORY)
+	) {
+		uint64_t	xsize = source->size;
+		unsigned long curwritten = 0;
+
+		destination->handler->size (destination->private, &xsize);
+		while (curwritten < source->size) {
+			uint64_t	tmpsize = source->size - curwritten;
+			int res = destination->handler->write (destination->private, source->data+curwritten, &tmpsize);
+
+			if (res < GP_OK)
+				return res;
+			if (!tmpsize) /* no progress? */
+				return GP_ERROR_IO_WRITE;
+			curwritten += tmpsize;
 		}
 		return GP_OK;
 	}
@@ -796,6 +919,83 @@ gp_file_get_name (CameraFile *file, const char **name)
 
 	*name = file->name;
 
+	return (GP_OK);
+}
+
+/**
+ * @param file a #CameraFile
+ * @param basename the basename of the file
+ * @param type the gphoto type of the file
+ * @param newname the new name generated
+ * @return a gphoto2 error code.
+ *
+ * This function takes the basename and generates a filename out of
+ * it depending on the gphoto filetype and the mime type in the file.
+ * The gphoto filetype will be converted to a prefix, like
+ * thumb_ or raw_, the mimetype will replace the current suffix by
+ * a different one (if necessary).
+ *
+ * This can be used so that saving thumbnails or metadata will not
+ * overwrite the normal files.
+ **/
+int
+gp_file_get_name_by_type (CameraFile *file, const char *basename, CameraFileType type, char **newname)
+{
+	char *prefix = NULL, *s, *new;
+	const char *suffix = NULL;
+	int i;
+
+	CHECK_NULL (file && basename && newname);
+	*newname = NULL;
+
+	/* the easy case, always map 1:1, if it has a suffix already. */
+	if ((type == GP_FILE_TYPE_NORMAL) && strchr(basename,'.')) {
+		*newname = strdup (basename);
+		if (!*newname)
+			return GP_ERROR_NO_MEMORY;
+		return GP_OK;
+	}
+
+	for (i=0;mime_table[i];i+=2) {
+		if (!strcmp (mime_table[i+1],file->mime_type)) {
+			suffix = mime_table[i];
+			break;
+		}
+	}
+	s = strrchr(basename,'.');
+	switch (type) {
+	case GP_FILE_TYPE_RAW:		prefix = "raw_";break;
+	case GP_FILE_TYPE_EXIF:		prefix = "exif_";break;
+	case GP_FILE_TYPE_PREVIEW:	prefix = "thumb_";break;
+	case GP_FILE_TYPE_METADATA:	prefix = "meta_";break;
+	case GP_FILE_TYPE_AUDIO:	prefix = "audio_";break;
+	default:			prefix = ""; break;
+	}
+	if (s) {
+		int xlen;
+		if (!suffix)
+			suffix = s+1;
+		new = malloc (strlen(prefix) + (s-basename+1) + strlen (suffix) + 1);
+		if (!new)
+			return GP_ERROR_NO_MEMORY;
+		strcpy (new, prefix);
+		xlen = strlen (new);
+		memcpy (new+xlen, basename, s-basename+1);
+		new[xlen+(s-basename)+1]='\0';
+		strcat (new, suffix);
+	} else { /* no dot in basename? */
+		if (!suffix) suffix = "";
+		new = malloc (strlen(prefix) + strlen(basename) + 1 + strlen (suffix) + 1);
+		if (!new)
+			return GP_ERROR_NO_MEMORY;
+		strcpy (new, prefix);
+		strcat (new, basename);
+		if (strlen(suffix)) {
+			strcat (new, ".");
+			strcat (new, suffix);
+		}
+	}
+	*newname = new;
 	return (GP_OK);
 }
 
@@ -947,40 +1147,6 @@ gp_file_adjust_name_for_mime_type (CameraFile *file)
 	gp_log (GP_LOG_DEBUG, "gphoto2-file", "Name adjusted to '%s'.",
 		file->name);
 	
-	return (GP_OK);
-}
-
-
-/**
- * @param file a #CameraFile
- * @param type a #CameraFileType
- * @return a gphoto2 error code.
- *
- **/
-int
-gp_file_set_type (CameraFile *file, CameraFileType type)
-{
-	CHECK_NULL (file);
-
-	file->type = type;
-
-	return (GP_OK);
-}
-
-
-/**
- * @param file a #CameraFile
- * @param type a #CameraFileType
- * @return a gphoto2 error code.
- *
- **/
-int
-gp_file_get_type (CameraFile *file, CameraFileType *type)
-{
-	CHECK_NULL (file && type);
-
-	*type = file->type;
-
 	return (GP_OK);
 }
 

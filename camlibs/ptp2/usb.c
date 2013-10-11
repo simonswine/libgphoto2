@@ -1,7 +1,7 @@
 /* usb.c
  *
  * Copyright (C) 2001-2004 Mariusz Woloszyn <emsi@ipartners.pl>
- * Copyright (C) 2003-2007 Marcus Meissner <marcus@jet.franken.de>
+ * Copyright (C) 2003-2011 Marcus Meissner <marcus@jet.franken.de>
  * Copyright (C) 2006-2007 Linus Walleij <triad@df.lth.se>
  *
  * This library is free software; you can redistribute it and/or
@@ -102,7 +102,7 @@ ptp_usb_sendreq (PTPParams* params, PTPContainer* req)
 
 uint16_t
 ptp_usb_senddata (PTPParams* params, PTPContainer* ptp,
-		  unsigned long size, PTPDataHandler *handler
+		  uint64_t size, PTPDataHandler *handler
 ) {
 	uint16_t ret = PTP_RC_OK;
 	int res, wlen, datawlen;
@@ -273,7 +273,7 @@ ptp_usb_getdata (PTPParams* params, PTPContainer* ptp, PTPDataHandler *handler)
 		if (dtoh16(usbdata.code)!=ptp->Code) {
 			/* A creative Zen device breaks down here, by leaving out
 			 * Code and Transaction ID */
-			if (MTP_ZEN_BROKEN_HEADER(camera->pl)) {
+			if (MTP_ZEN_BROKEN_HEADER(params)) {
 				gp_log (GP_LOG_DEBUG, "ptp2/ptp_usb_getdata", "Read broken PTP header (Code is %04x vs %04x), compensating.",
 					dtoh16(usbdata.code), ptp->Code
 				);
@@ -434,7 +434,6 @@ ptp_usb_getresp (PTPParams* params, PTPContainer* resp)
 {
 	uint16_t 		ret;
 	unsigned long		rlen;
-	Camera			*camera = ((PTPData *)params->data)->camera;
 	PTPUSBBulkContainer	usbresp;
 	/*GPContext		*context = ((PTPData *)params->data)->context;*/
 
@@ -453,7 +452,7 @@ ptp_usb_getresp (PTPParams* params, PTPContainer* resp)
 		ret = dtoh16(usbresp.code);
 	}
 	if (ret!=PTP_RC_OK) {
-		gp_log (GP_LOG_ERROR, "ptp2/usb_getresp","request code 0x%04x getting resp error 0x%04x", resp->Code, ret);
+		gp_log (GP_LOG_DEBUG, "ptp2/usb_getresp","request code 0x%04x getting resp error 0x%04x", resp->Code, ret);
 		return ret;
 	}
 	/* build an appropriate PTPContainer */
@@ -461,7 +460,7 @@ ptp_usb_getresp (PTPParams* params, PTPContainer* resp)
 	resp->SessionID=params->session_id;
 	resp->Transaction_ID=dtoh32(usbresp.trans_id);
 	if (resp->Transaction_ID != params->transaction_id - 1) {
-		if (MTP_ZEN_BROKEN_HEADER(camera->pl)) {
+		if (MTP_ZEN_BROKEN_HEADER(params)) {
 			gp_log (GP_LOG_DEBUG, "ptp2/ptp_usb_getresp", "Read broken PTP header (transid is %08x vs %08x), compensating.",
 				resp->Transaction_ID, params->transaction_id - 1
 			);
@@ -553,12 +552,13 @@ ptp_usb_event (PTPParams* params, PTPContainer* event, int wait)
 	}
 	/* if we read anything over interrupt endpoint it must be an event */
 	/* build an appropriate PTPContainer */
-	event->Code=dtoh16(usbevent.code);
+	event->Nparam  = (rlen-12)/4;
+	event->Code   = dtoh16(usbevent.code);
 	event->SessionID=params->session_id;
 	event->Transaction_ID=dtoh32(usbevent.trans_id);
-	event->Param1=dtoh32(usbevent.param1);
-	event->Param2=dtoh32(usbevent.param2);
-	event->Param3=dtoh32(usbevent.param3);
+	event->Param1 = dtoh32(usbevent.param1);
+	event->Param2 = dtoh32(usbevent.param2);
+	event->Param3 = dtoh32(usbevent.param3);
 	return PTP_RC_OK;
 }
 

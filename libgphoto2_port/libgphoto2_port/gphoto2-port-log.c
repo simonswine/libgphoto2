@@ -21,6 +21,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#define _BSD_SOURCE
+
 #include "config.h"
 #include <gphoto2/gphoto2-port-log.h>
 
@@ -43,7 +45,6 @@
 #else
 #  define _(String) (String)
 #  define N_(String) (String)
-#  define ngettext(String1,String2,Count) ((Count==1)?String1:String2)
 #endif
 
 #ifndef DISABLE_DEBUGGING
@@ -234,11 +235,7 @@ gp_log_data (const char *domain, const char *data, unsigned int size)
         }
         curline[0] = '\0';
 
-	gp_log (GP_LOG_DATA, domain, ngettext(
-		"Hexdump of %i = 0x%x byte follows:\n%s",
-		"Hexdump of %i = 0x%x bytes follows:\n%s",
-		size
-		),
+	gp_log (GP_LOG_DATA, domain, _("Hexdump of %i = 0x%x bytes follows:\n%s"),
 		size, size, result);
 	free (result);
 }
@@ -268,20 +265,46 @@ gp_logv (GPLogLevel level, const char *domain, const char *format,
 	int i;
 #ifdef HAVE_VA_COPY
 	va_list xargs;
-#endif
-
-	for (i = 0; i < log_funcs_count; i++) {
-		if (log_funcs[i].level >= level) {
-#ifdef HAVE_VA_COPY
-			va_copy (xargs, args);
-			log_funcs[i].func (level, domain, format, xargs,
-					   log_funcs[i].data);
 #else
-			log_funcs[i].func (level, domain, format, args,
-					   log_funcs[i].data);
+#define xargs args
 #endif
+	int strsize = 1000;
+	char *str;
+	int n;
+
+	if (!log_funcs_count)
+		return;
+
+	str = malloc(strsize);
+	if (!str) return;
+#ifdef HAVE_VA_COPY
+	va_copy (xargs, args);
+#endif
+	n = vsnprintf (str, strsize, format, xargs);
+#ifdef HAVE_VA_COPY
+	va_end(xargs);
+#endif
+	if (n+1>strsize) {
+		free (str);
+		str = malloc(n+1);
+		if (!str) {
+			va_end(args);
+			return;
 		}
+		strsize = n+1;
+#ifdef HAVE_VA_COPY
+		va_copy (xargs, args);
+#endif
+		n = vsnprintf (str, strsize, format, xargs);
+#ifdef HAVE_VA_COPY
+		va_end(xargs);
+#endif
 	}
+	va_end(args);
+	for (i = 0; i < log_funcs_count; i++)
+		if (log_funcs[i].level >= level)
+			log_funcs[i].func (level, domain, str, log_funcs[i].data);
+	free (str);
 }
 
 /**

@@ -53,10 +53,6 @@
 #define endmntent(f) fclose(f)
 #endif
 
-#ifdef HAVE_HAL
-#include <hal/libhal.h>
-#endif
-
 #include <gphoto2/gphoto2-port.h>
 #include <gphoto2/gphoto2-port-result.h>
 #include <gphoto2/gphoto2-port-log.h>
@@ -96,110 +92,12 @@ int
 gp_port_library_list (GPPortInfoList *list)
 {
 	GPPortInfo info;
-#ifdef HAVE_HAL
-        LibHalContext *ctx;
-        DBusError error;
-        DBusConnection *dbus_connection;
-        int i;
-        int num_volumes;
-        char **volumes;
-        char *udi;
-
-        ctx = libhal_ctx_new ();
-        if (!ctx) {
-		gp_log(GP_LOG_DEBUG, "gphoto2-port/disk", 
-		       "failed to initialize HAL!\n");
-                goto generic;
-        }
-        dbus_error_init (&error);
-
-        dbus_connection = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
-
-        if (dbus_error_is_set (&error)) {
-		gp_log (GP_LOG_DEBUG, "gphoto2-port/disk", 
-			"hal_initialize failed: %s", 
-			error.message);
-		dbus_error_free (&error);
-		libhal_ctx_free(ctx);
-                goto generic;
-        }
-
-        libhal_ctx_set_dbus_connection (ctx, dbus_connection);
-
-        dbus_error_init (&error);
-        volumes = libhal_find_device_by_capability (ctx, "volume",
-                                                    &num_volumes, &error);
-        if (volumes == NULL) {
-		if (dbus_error_is_set (&error)) {
-			gp_log (GP_LOG_DEBUG, "gphoto2-port/disk", 
-				"libhal: %s", 
-				error.message);
-			dbus_error_free (&error);
-		}
-                goto generic;
-        }
-
-	gp_log(GP_LOG_DEBUG, "gphoto2-port/disk", "found %d volumes", 
-	       num_volumes); 
-        for (i = 0; i < num_volumes; i++) {
-                udi = volumes [i];
-		
-                /* don't attempt to mount already mounted volumes */
-                if (!libhal_device_property_exists (ctx, udi,
-                                                    "volume.is_mounted",
-                                                    NULL) ||
-                    libhal_device_get_property_bool (ctx, udi,
-                                                     "volume.is_mounted",
-                                                     NULL)) 
-		{
-			char *mountpoint = NULL;
-			char *mediainfo = NULL;
-
-			if (!libhal_device_property_exists (ctx, udi,
-							   "volume.mount_point",
-							    NULL)) {
-				continue;
-			}
- 			mountpoint = libhal_device_get_property_string(ctx, udi,
-								       "volume.mount_point",
-								       &error);
-			if (mountpoint == NULL) {
-				if (dbus_error_is_set (&error)) {
-					gp_log (GP_LOG_DEBUG, 
-						"gphoto2-port/disk",
-						"libhal: %s", error.message);
-					dbus_error_free (&error);
-				}
-				continue;
-			}
-			mediainfo = libhal_device_get_property_string(ctx, udi,
-								       "info.product",
-								       &error);
-			info.type = GP_PORT_DISK;
-			snprintf (info.name, sizeof(info.name), _("Media '%s'"), 
-				  (mediainfo?mediainfo:_("(unknown)")));
-			snprintf (info.path, sizeof(info.path), "disk:%s",
-				  mountpoint);
-			CHECK (gp_port_info_list_append (list, info));
-			libhal_free_string(mountpoint);
-			if (mediainfo) {
-				libhal_free_string(mediainfo);
-			}
-		}
-		
-        }
-
-	libhal_free_string_array (volumes);
-	libhal_ctx_free (ctx);
-	dbus_connection_unref (dbus_connection);
-#else
 # ifdef HAVE_MNTENT_H
 	FILE *mnt;
 	struct mntent *mntent;
 	char	path[1024];
+	char	*s;
 	struct stat stbuf;
-
-	info.type = GP_PORT_DISK;
 
 	mnt = setmntent ("/etc/fstab", "r");
 	if (mnt) {
@@ -216,14 +114,14 @@ gp_port_library_list (GPPortInfoList *list)
 			    (NULL != strstr(mntent->mnt_fsname,"smbfs"))||
 			    (NULL != strstr(mntent->mnt_fsname,"afs"))	||
 			    (NULL != strstr(mntent->mnt_fsname,"autofs"))||
-			    (NULL != strstr(mntent->mnt_fsname,"cgroup"))||
-			    (NULL != strstr(mntent->mnt_fsname,"systemd"))||
-			    (NULL != strstr(mntent->mnt_fsname,"mqueue"))||
-			    (NULL != strstr(mntent->mnt_fsname,"securityfs"))||
-			    (NULL != strstr(mntent->mnt_fsname,"proc"))||
-			    (NULL != strstr(mntent->mnt_fsname,"devtmpfs"))||
-			    (NULL != strstr(mntent->mnt_fsname,"devpts"))||
-			    (NULL != strstr(mntent->mnt_fsname,"sysfs"))||
+                            (NULL != strstr(mntent->mnt_fsname,"cgroup"))||
+                            (NULL != strstr(mntent->mnt_fsname,"systemd"))||
+                            (NULL != strstr(mntent->mnt_fsname,"mqueue"))||
+                            (NULL != strstr(mntent->mnt_fsname,"securityfs"))||
+                            (NULL != strstr(mntent->mnt_fsname,"proc"))||
+                            (NULL != strstr(mntent->mnt_fsname,"devtmpfs"))||
+                            (NULL != strstr(mntent->mnt_fsname,"devpts"))||
+                            (NULL != strstr(mntent->mnt_fsname,"sysfs"))||
 			    (NULL != strstr(mntent->mnt_fsname,"gphotofs"))
 			) {
 				continue;
@@ -234,10 +132,21 @@ gp_port_library_list (GPPortInfoList *list)
 				if (-1 == stat(path, &stbuf))
 					continue;
 			}
-			snprintf (info.name, sizeof(info.name), _("Media '%s'"), mntent->mnt_fsname),
-			snprintf (info.path, sizeof(info.path), "disk:%s", mntent->mnt_dir);
-			if (gp_port_info_list_lookup_path (list, info.path) >= GP_OK)
+			s = malloc (strlen(_("Media '%s'"))+strlen(mntent->mnt_fsname)+1);
+			sprintf (s, _("Media '%s'"), mntent->mnt_fsname);
+			gp_port_info_new (&info);
+			gp_port_info_set_type (info, GP_PORT_DISK);
+			gp_port_info_set_name (info, s);
+			free (s);
+			
+			s = malloc (strlen("disk:")+strlen(mntent->mnt_dir)+1);
+			sprintf (s, "disk:%s", mntent->mnt_dir);
+			gp_port_info_set_path (info, s);
+			if (gp_port_info_list_lookup_path (list, s) >= GP_OK) {
+				free (s);
 				continue;
+			}
+			free(s);
 			CHECK (gp_port_info_list_append (list, info));
 		}
 		endmntent(mnt);
@@ -253,17 +162,18 @@ gp_port_library_list (GPPortInfoList *list)
 			    (NULL != strstr(mntent->mnt_fsname,"floppy")) ||
 			    (NULL != strstr(mntent->mnt_fsname,"fuse"))	||
 			    (NULL != strstr(mntent->mnt_fsname,"nfs"))	||
+			    (NULL != strstr(mntent->mnt_fsname,"cifs"))	||
 			    (NULL != strstr(mntent->mnt_fsname,"smbfs"))||
 			    (NULL != strstr(mntent->mnt_fsname,"afs"))	||
 			    (NULL != strstr(mntent->mnt_fsname,"autofs"))||
-			    (NULL != strstr(mntent->mnt_fsname,"cgroup"))||
-			    (NULL != strstr(mntent->mnt_fsname,"systemd"))||
-			    (NULL != strstr(mntent->mnt_fsname,"mqueue"))||
-			    (NULL != strstr(mntent->mnt_fsname,"securityfs"))||
-			    (NULL != strstr(mntent->mnt_fsname,"proc"))||
-			    (NULL != strstr(mntent->mnt_fsname,"devtmpfs"))||
-			    (NULL != strstr(mntent->mnt_fsname,"devpts"))||
-			    (NULL != strstr(mntent->mnt_fsname,"sysfs"))||
+                            (NULL != strstr(mntent->mnt_fsname,"cgroup"))||
+                            (NULL != strstr(mntent->mnt_fsname,"systemd"))||
+                            (NULL != strstr(mntent->mnt_fsname,"mqueue"))||
+                            (NULL != strstr(mntent->mnt_fsname,"securityfs"))||
+                            (NULL != strstr(mntent->mnt_fsname,"proc"))||
+                            (NULL != strstr(mntent->mnt_fsname,"devtmpfs"))||
+                            (NULL != strstr(mntent->mnt_fsname,"devpts"))||
+                            (NULL != strstr(mntent->mnt_fsname,"sysfs"))||
 			    (NULL != strstr(mntent->mnt_fsname,"gphotofs"))
 			) {
 				continue;
@@ -282,11 +192,21 @@ gp_port_library_list (GPPortInfoList *list)
 			if (NULL != strstr(mntent->mnt_fsname, "automount")) {
 				continue;
 			}
-			info.type = GP_PORT_DISK;
-			snprintf (info.name, sizeof(info.name), _("Media '%s'"), mntent->mnt_fsname),
-			snprintf (info.path, sizeof(info.path), "disk:%s", mntent->mnt_dir);
-			if (gp_port_info_list_lookup_path (list, info.path) >= GP_OK)
+			gp_port_info_new (&info);
+			gp_port_info_set_type (info, GP_PORT_DISK);
+			s = malloc (strlen(_("Media '%s'"))+strlen(mntent->mnt_fsname)+1);
+			sprintf (s, _("Media '%s'"),  mntent->mnt_fsname);
+			gp_port_info_set_name (info, s);
+			free (s);
+			
+			s = malloc (strlen("disk:")+strlen(mntent->mnt_dir)+1);
+			sprintf (s, "disk:%s", mntent->mnt_dir);
+			gp_port_info_set_path (info, s);
+			if (gp_port_info_list_lookup_path (list, s) >= GP_OK) {
+				free (s);
 				continue;
+			}
+			free (s);
 			CHECK (gp_port_info_list_append (list, info));
 		}
 		endmntent(mnt);
@@ -348,12 +268,12 @@ gp_port_library_list (GPPortInfoList *list)
 	}
 #  endif
 # endif
-#endif
-generic:
+
 	/* generic disk:/xxx/ matcher */
-	info.type = GP_PORT_DISK;
-	memset (info.name, 0, sizeof(info.name));
-	snprintf (info.path, sizeof(info.path), "^disk:");
+	gp_port_info_new (&info);
+	gp_port_info_set_type (info, GP_PORT_DISK);
+	gp_port_info_set_name (info, "");
+	gp_port_info_set_path (info, "^disk:");
 	CHECK (gp_port_info_list_append (list, info));
 	return GP_OK;
 }

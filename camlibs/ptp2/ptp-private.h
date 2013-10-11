@@ -1,6 +1,6 @@
 /* ptp-private.h
  *
- * Copyright (C) 2006 Marcus Meissner <marcus@jet.franken.de>
+ * Copyright (C) 2011 Marcus Meissner <marcus@jet.franken.de>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,13 +33,9 @@ void report_result (GPContext *context, short result, short vendor);
 int translate_ptp_result (short result);
 void fixup_cached_deviceinfo (Camera *camera, PTPDeviceInfo*);
 
-int init_ptp_fs (Camera *camera, GPContext *context);
-
 struct _CameraPrivateLibrary {
 	PTPParams params;
 	int checkevents;
-	unsigned long bugs;
-	int	fs_loaded;
 };
 
 struct _PTPData {

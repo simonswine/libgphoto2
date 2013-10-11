@@ -111,6 +111,10 @@ static int pictures_to_keep = -1;
 
 static int gp_filesystem_lru_clear (CameraFilesystem *fs);
 static int gp_filesystem_lru_remove_one (CameraFilesystem *fs, CameraFilesystemFile *item);
+static int gp_filesystem_lru_update (CameraFilesystem *fs,
+			  const char *folder, const char *filename,
+			  CameraFileType type,
+			  CameraFile *file, GPContext *context);
 
 #ifdef HAVE_LIBEXIF
 
@@ -247,49 +251,44 @@ struct _CameraFilesystem {
 
 	CameraFilesystemGetInfoFunc get_info_func;
 	CameraFilesystemSetInfoFunc set_info_func;
-	void *info_data;
-
 	CameraFilesystemListFunc file_list_func;
 	CameraFilesystemListFunc folder_list_func;
-	void *list_data;
-
 	CameraFilesystemGetFileFunc get_file_func;
+	CameraFilesystemReadFileFunc read_file_func;
 	CameraFilesystemDeleteFileFunc delete_file_func;
-	void *file_data;
-
 	CameraFilesystemPutFileFunc put_file_func;
 	CameraFilesystemDeleteAllFunc delete_all_func;
 	CameraFilesystemDirFunc make_dir_func;
 	CameraFilesystemDirFunc remove_dir_func;
-	void *folder_data;
-
 	CameraFilesystemStorageInfoFunc	storage_info_func;
+
+	void *data;
 };
 
 #undef  MIN
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 
 #define CHECK_NULL(r)        {if (!(r)) return (GP_ERROR_BAD_PARAMETERS);}
-#define CR(result)           {int r = (result); if (r < 0) return (r);}
+#define CR(result)           {int __r = (result); if (__r < 0) return (__r);}
 #define CHECK_MEM(m)         {if (!(m)) return (GP_ERROR_NO_MEMORY);}
 
 #define CL(result,list)			\
 {					\
-	int r = (result);		\
+	int __r = (result);		\
 					\
-	 if (r < 0) {			\
+	 if (__r < 0) {			\
 		gp_list_free (list);	\
-		return (r);		\
+		return (__r);		\
 	}				\
 }
 
 #define CU(result,file)			\
 {					\
-	int r = (result);		\
+	int __r = (result);		\
 					\
-	if (r < 0) {			\
+	if (__r < 0) {			\
 		gp_file_unref (file);	\
-		return (r);		\
+		return (__r);		\
 	}				\
 }
 
@@ -594,16 +593,12 @@ append_folder (CameraFilesystem *fs,
 }
 
 static int
-append_file (CameraFilesystem *fs, CameraFilesystemFolder *folder, CameraFile *file, GPContext *context)
+append_file (CameraFilesystem *fs, CameraFilesystemFolder *folder, const char *name, CameraFile *file, GPContext *context)
 {
 	CameraFilesystemFile **new;
-	const char *name;
 
 	CHECK_NULL (fs && file);
-
-	CR (gp_file_get_name (file, &name));
 	gp_log (GP_LOG_DEBUG, "gphoto2-filesystem", "Appending file %s...", name);
-
 
 	new = &folder->files;
 	while (*new) {
@@ -919,7 +914,7 @@ gp_filesystem_delete_all (CameraFilesystem *fs, const char *folder,
 	 * First try to use the delete_all function. If that fails,
 	 * fall back to deletion one-by-one.
 	 */
-	r = fs->delete_all_func (fs, folder, fs->folder_data, context);
+	r = fs->delete_all_func (fs, folder, fs->data, context);
 	if (r < 0) {
 		gp_log (GP_LOG_DEBUG, "gphoto2-filesystem",
 			"delete_all failed (%s). Falling back to "
@@ -982,7 +977,7 @@ gp_filesystem_list_files (CameraFilesystem *fs, const char *folder,
 		/* set it to non-dirty now, so we do not recurse via _append. */
 		f->files_dirty = 0;
 		CR (fs->file_list_func (fs, folder, list,
-					fs->list_data, context));
+					fs->data, context));
 
 		CR (count = gp_list_count (list));
 		for (y = 0; y < count; y++) {
@@ -993,7 +988,6 @@ gp_filesystem_list_files (CameraFilesystem *fs, const char *folder,
 		}
 		gp_list_reset (list);
 	}
-
 	/* The folder is clean now */
 	f->files_dirty = 0;
 
@@ -1046,7 +1040,7 @@ gp_filesystem_list_folders (CameraFilesystem *fs, const char *folder,
 	if (f->folders_dirty && fs->folder_list_func) {
 		gp_log (GP_LOG_DEBUG, "gphoto2-filesystem", "... is dirty, getting from camera");
 		CR (fs->folder_list_func (fs, folder, list,
-					  fs->list_data, context));
+					  fs->data, context));
 		CR (delete_all_folders (fs, folder, context));
 
 		CR (count = gp_list_count (list));
@@ -1143,7 +1137,7 @@ gp_filesystem_delete_file (CameraFilesystem *fs, const char *folder,
 			   filename, folder);
 	/* Delete the file */
 	CR (fs->delete_file_func (fs, folder, filename,
-				  fs->file_data, context));
+				  fs->data, context));
 	CR (delete_file (fs, f, file));
 	return (GP_OK);
 }
@@ -1205,7 +1199,7 @@ gp_filesystem_make_dir (CameraFilesystem *fs, const char *folder,
 	if (!f) return (GP_ERROR_DIRECTORY_NOT_FOUND);
 
 	/* Create the directory */
-	CR (fs->make_dir_func (fs, folder, name, fs->folder_data, context));
+	CR (fs->make_dir_func (fs, folder, name, fs->data, context));
 	/* and append to internal fs */
 	return append_folder_one (f, name, NULL);
 }
@@ -1278,7 +1272,7 @@ gp_filesystem_remove_dir (CameraFilesystem *fs, const char *folder,
 	}
 
 	/* Remove the directory */
-	CR (fs->remove_dir_func (fs, folder, name, fs->folder_data, context));
+	CR (fs->remove_dir_func (fs, folder, name, fs->data, context));
 	CR (delete_folder (fs, prev));
 	return (GP_OK);
 }
@@ -1297,10 +1291,13 @@ gp_filesystem_remove_dir (CameraFilesystem *fs, const char *folder,
  * \return a gphoto2 error code.
  **/
 int
-gp_filesystem_put_file (CameraFilesystem *fs, const char *folder,
+gp_filesystem_put_file (CameraFilesystem *fs,
+			const char *folder, const char *filename,
+			CameraFileType type,
 			CameraFile *file, GPContext *context)
 {
 	CameraFilesystemFolder	*f;
+	int ret;
 
 	CHECK_NULL (fs && folder && file);
 	CC (context);
@@ -1318,9 +1315,12 @@ gp_filesystem_put_file (CameraFilesystem *fs, const char *folder,
 	if (!f) return (GP_ERROR_DIRECTORY_NOT_FOUND);
 
 	/* Upload the file */
-	CR (fs->put_file_func (fs, folder, file, fs->folder_data, context));
+	CR (fs->put_file_func (fs, folder, filename, type, file, fs->data, context));
 	/* And upload it to internal structure too */
-	return append_file (fs, f, file, context);
+	ret = append_file (fs, f, filename, file, context);
+	if (type != GP_FILE_TYPE_NORMAL) /* FIXME perhaps check before append_file? */
+		return GP_OK;
+	return ret;
 }
 
 /**
@@ -1519,6 +1519,7 @@ gp_filesystem_get_folder (CameraFilesystem *fs, const char *filename,
 			  char **folder, GPContext *context)
 {
 	int ret;
+
 	CHECK_NULL (fs && filename && folder);
 	CC (context);
 
@@ -1530,108 +1531,6 @@ gp_filesystem_get_folder (CameraFilesystem *fs, const char *filename,
 	return (GP_ERROR_FILE_NOT_FOUND);
 }
 
-/**
- * \brief Set the functions to list folders and files
- * \param fs a #CameraFilesystem
- * \param file_list_func the function that will return listings of files
- * \param folder_list_func the function that will return listings of folders
- * \param data private data structure
- *
- * Tells the fs which functions to use to retrieve listings of folders
- * and/or files. Typically, a camera driver would call this function
- * on initialization. Each function can be NULL indicating that this
- * functionality is not supported. For example, many cameras don't support
- * folders. In this case, you would supply NULL for folder_list_func. Then,
- * the fs assumes that there is only a root folder.
- *
- * \return a gphoto2 error code.
- **/
-int
-gp_filesystem_set_list_funcs (CameraFilesystem *fs,
-			      CameraFilesystemListFunc file_list_func,
-			      CameraFilesystemListFunc folder_list_func,
-			      void *data)
-{
-	CHECK_NULL (fs);
-
-	fs->file_list_func = file_list_func;
-	fs->folder_list_func = folder_list_func;
-	fs->list_data = data;
-
-	return (GP_OK);
-}
-
-/**
- * \brief Set camera filesystem file related functions
- * \param fs a #CameraFilesystem
- * \param get_file_func the function downloading files
- * \param del_file_func the function deleting files
- * \param data private data structure
- *
- * Tells the fs which functions to use for file download or file deletion.
- * Typically, a camera driver would call this function on initialization.
- * A function can be NULL indicating that this functionality is not supported.
- * For example, if a camera does not support file deletion, you would supply
- * NULL for del_file_func.
- *
- * \return a gphoto2 error code.
- **/
-int
-gp_filesystem_set_file_funcs (CameraFilesystem *fs,
-			      CameraFilesystemGetFileFunc get_file_func,
-			      CameraFilesystemDeleteFileFunc del_file_func,
-			      void *data)
-{
-	CHECK_NULL (fs);
-
-	fs->delete_file_func = del_file_func;
-	fs->get_file_func = get_file_func;
-	fs->file_data = data;
-
-	return (GP_OK);
-}
-
-/**
- * \brief Set folder related functions of the filesystem
- * \param fs a #CameraFilesystem
- * \param put_file_func function used to upload files
- * \param delete_all_func function used to delete all files in a folder
- * \param make_dir_func function used to create a new directory
- * \param remove_dir_func function used to remove an existing directory
- * \param data a data object that will passed to all called functions
- *
- * Tells the filesystem which functions to call for file upload, deletion
- * of all files in a given folder, creation or removal of a folder.
- * Typically, a camera driver would call this function on initialization.
- * If one functionality is not supported, NULL can be supplied.
- * If you don't call this function, the fs will assume that neither
- * of these features is supported.
- *
- * The fs will try to compensate missing delete_all_func
- * functionality with the delete_file_func if such a function has been
- * supplied.
- *
- * \return a gphoto2 error code.
- **/
-int
-gp_filesystem_set_folder_funcs (CameraFilesystem *fs,
-				CameraFilesystemPutFileFunc put_file_func,
-				CameraFilesystemDeleteAllFunc delete_all_func,
-				CameraFilesystemDirFunc make_dir_func,
-				CameraFilesystemDirFunc remove_dir_func,
-				void *data)
-{
-	CHECK_NULL (fs);
-
-	fs->put_file_func = put_file_func;
-	fs->delete_all_func = delete_all_func;
-	fs->make_dir_func = make_dir_func;
-	fs->remove_dir_func = remove_dir_func;
-	fs->folder_data = data;
-
-	return (GP_OK);
-}
-
 static int
 gp_filesystem_get_file_impl (CameraFilesystem *fs, const char *folder,
 			     const char *filename, CameraFileType type,
@@ -1639,6 +1538,7 @@ gp_filesystem_get_file_impl (CameraFilesystem *fs, const char *folder,
 {
 	CameraFilesystemFolder	*xfolder;
 	CameraFilesystemFile	*xfile;
+	int			ret;
 
 	CHECK_NULL (fs && folder && file && filename);
 	CC (context);
@@ -1647,7 +1547,6 @@ gp_filesystem_get_file_impl (CameraFilesystem *fs, const char *folder,
 	GP_DEBUG ("Getting file '%s' from folder '%s' (type %i)...",
 		  filename, folder, type);
 
-	CR (gp_file_set_type (file, type));
 	CR (gp_file_set_name (file, filename));
 
 	if (!fs->get_file_func) {
@@ -1659,49 +1558,53 @@ gp_filesystem_get_file_impl (CameraFilesystem *fs, const char *folder,
 	/* Search folder and file */
 	CR( lookup_folder_file (fs, folder, filename, &xfolder, &xfile, context));
 
+	ret = GP_ERROR;
 	switch (type) {
 	case GP_FILE_TYPE_PREVIEW:
 		if (xfile->preview)
-			return (gp_file_copy (file, xfile->preview));
+			ret = gp_file_copy (file, xfile->preview);
 		break;
 	case GP_FILE_TYPE_NORMAL:
 		if (xfile->normal)
-			return (gp_file_copy (file, xfile->normal));
+			ret = gp_file_copy (file, xfile->normal);
 		break;
 	case GP_FILE_TYPE_RAW:
 		if (xfile->raw)
-			return (gp_file_copy (file, xfile->raw));
+			ret = gp_file_copy (file, xfile->raw);
 		break;
 	case GP_FILE_TYPE_AUDIO:
 		if (xfile->audio)
-			return (gp_file_copy (file, xfile->audio));
+			ret = gp_file_copy (file, xfile->audio);
 		break;
 	case GP_FILE_TYPE_EXIF:
 		if (xfile->exif)
-			return (gp_file_copy (file, xfile->exif));
+			ret = gp_file_copy (file, xfile->exif);
 		break;
 	case GP_FILE_TYPE_METADATA:
 		if (xfile->metadata)
-			return (gp_file_copy (file, xfile->metadata));
+			ret = gp_file_copy (file, xfile->metadata);
 		break;
 	default:
 		gp_context_error (context, _("Unknown file type %i."), type);
 		return (GP_ERROR);
 	}
+	if (ret == GP_OK) {
+		gp_log (GP_LOG_DEBUG, "lru", "LRU cache used for type %d!", type);
+		return GP_OK;
+	}
 
 	gp_context_status (context, _("Downloading '%s' from folder '%s'..."),
 			   filename, folder);
 	CR (fs->get_file_func (fs, folder, filename, type, file,
-			       fs->file_data, context));
+			       fs->data, context));
 
 	/* We don't trust the camera drivers */
-	CR (gp_file_set_type (file, type));
 	CR (gp_file_set_name (file, filename));
 
 #if 0
 	/* this disables LRU completely. */
 	/* Cache this file */
-	CR (gp_filesystem_set_file_noop (fs, folder, file, context));
+	CR (gp_filesystem_set_file_noop (fs, folder, filename, type, file, context));
 #endif
 
 	/*
@@ -1787,10 +1690,9 @@ gp_filesystem_get_file (CameraFilesystem *fs, const char *folder,
 		ed->data = NULL;
 		ed->size = 0;
 		exif_data_unref (ed);
-		CR (gp_file_set_type (file, GP_FILE_TYPE_PREVIEW));
 		CR (gp_file_set_name (file, filename));
 		CR (gp_file_set_mime_type (file, GP_MIME_JPEG));
-		CR (gp_filesystem_set_file_noop (fs, folder, file, context));
+		CR (gp_filesystem_set_file_noop (fs, folder, filename, GP_FILE_TYPE_PREVIEW, file, context));
 		CR (gp_file_adjust_name_for_mime_type (file));
 #else
 		GP_DEBUG ("Getting previews is not supported and "
@@ -1826,10 +1728,9 @@ gp_filesystem_get_file (CameraFilesystem *fs, const char *folder,
 			free (buf);
 			return (r);
 		}
-		CR (gp_file_set_type (file, GP_FILE_TYPE_EXIF));
 		CR (gp_file_set_name (file, filename));
 		CR (gp_file_set_mime_type (file, GP_MIME_EXIF));
-		CR (gp_filesystem_set_file_noop (fs, folder, file, context));
+		CR (gp_filesystem_set_file_noop (fs, folder, filename, GP_FILE_TYPE_EXIF, file, context));
 		CR (gp_file_adjust_name_for_mime_type (file));
 #else
 		GP_DEBUG ("Getting EXIF data is not supported and libgphoto2 "
@@ -1847,33 +1748,71 @@ gp_filesystem_get_file (CameraFilesystem *fs, const char *folder,
 }
 
 /**
- * \brief Set file information functions
+ * \brief Get partial file data from the filesystem
  * \param fs a #CameraFilesystem
- * \param get_info_func the function to retrieve file information
- * \param set_info_func the function to set file information
- * \param data private data
+ * \param folder the folder in which the file can be found
+ * \param filename the name of the file to download
+ * \param type the type of the file
+ * \param offset the offset where the data starts
+ * \param buf the targetbuffer where the data will be put
+ * \param size the size to read and that was read into the buffer 
+ * \param context a #GPContext
  *
- * Tells the filesystem which functions to call when file information
- * about a file should be retrieved or set. Typically, this function will
- * get called by the camera driver on initialization.
- *
+ * Downloads the file called filename from the folder using the
+ * read_file_func if such a function has been previously supplied. If the
+ * file has been previously downloaded, the file is retrieved from cache.
+ * 
+ * The file is read partially into the passed buffer. The read starts
+ * at offset on the device and goes for at most size bytes.
+ * Reading over the end of the file might give errors, so get the maximum
+ * file size via an info function before.
+ * 
  * \return a gphoto2 error code.
  **/
 int
-gp_filesystem_set_info_funcs (CameraFilesystem *fs,
-			      CameraFilesystemGetInfoFunc get_info_func,
-			      CameraFilesystemSetInfoFunc set_info_func,
-			      void *data)
+gp_filesystem_read_file (CameraFilesystem *fs, const char *folder,
+			const char *filename, CameraFileType type,
+			uint64_t offset, char *buf, uint64_t *size,
+			GPContext *context)
 {
-	CHECK_NULL (fs);
+	int r;
+	const char	*xdata;
+	unsigned long	xsize;
+	CameraFile	*file;
 
-	fs->get_info_func = get_info_func;
-	fs->set_info_func = set_info_func;
-	fs->info_data = data;
+	CHECK_NULL (fs && folder && filename && buf && size);
+	CC (context);
+	CA (folder, context);
 
-	return (GP_OK);
+	if (fs->read_file_func) {
+		r = fs->read_file_func (fs, folder, filename, type,
+			offset, buf, size, fs->data, context);
+		if (r == GP_OK)
+			return r;
+	}
+	return GP_ERROR_NOT_SUPPORTED;
+	/* fallback code */
+	CR (gp_file_new (&file));
+	CR (gp_filesystem_get_file (fs, folder, filename, type,
+				    file, context));
+	CR (gp_file_get_data_and_size (file, &xdata, &xsize));
+	if (offset > *size) { /* EOF */
+		gp_file_unref (file);
+		*size = 0;
+		return GP_OK;
+	}
+	if ((offset != 0) || (offset + *size != xsize)) {
+		/* Cache this file in the LRU, but only if the user just
+		 * hasn't read all of it at once.
+		 */
+		CR (gp_filesystem_set_file_noop (fs, folder, filename, type, file, context));
+	}
+	if (offset + (*size) > xsize)
+		*size = xsize-offset;
+	memcpy (buf, xdata+offset, *size);
+	gp_file_unref (file);
+	return GP_OK;
 }
-
 /**
  * \brief Set all filesystem related function pointers
  * \param fs a #CameraFilesystem
@@ -1894,23 +1833,17 @@ gp_filesystem_set_funcs	(CameraFilesystem *fs,
 
 	fs->get_info_func	= funcs->get_info_func;
 	fs->set_info_func	= funcs->set_info_func;
-	fs->info_data = data;
-
 	fs->put_file_func	= funcs->put_file_func;
 	fs->delete_all_func	= funcs->delete_all_func;
 	fs->make_dir_func	= funcs->make_dir_func;
 	fs->remove_dir_func	= funcs->remove_dir_func;
-	fs->folder_data = data;
-
 	fs->file_list_func	= funcs->file_list_func;
 	fs->folder_list_func	= funcs->folder_list_func;
-	fs->list_data = data;
-
 	fs->delete_file_func	= funcs->del_file_func;
 	fs->get_file_func	= funcs->get_file_func;
-	fs->file_data = data;
-
+	fs->read_file_func	= funcs->read_file_func;
 	fs->storage_info_func	= funcs->storage_info_func;
+	fs->data = data;
 	return (GP_OK);
 }
 
@@ -1955,7 +1888,7 @@ gp_filesystem_get_info (CameraFilesystem *fs, const char *folder,
 	if (file->info_dirty) {
 		CR (fs->get_info_func (fs, folder, filename,
 						&file->info,
-						fs->info_data, context));
+						fs->data, context));
 		file->info_dirty = 0;
 	}
 
@@ -2110,22 +2043,20 @@ gp_filesystem_lru_count (CameraFilesystem *fs)
 }
 
 static int
-gp_filesystem_lru_update (CameraFilesystem *fs, const char *folder,
+gp_filesystem_lru_update (CameraFilesystem *fs,
+			  const char *folder, const char *filename,
+			  CameraFileType type,
 			  CameraFile *file, GPContext *context)
 {
 	CameraFilesystemFolder	*f;
 	CameraFilesystemFile	*xfile;
-	CameraFileType type;
 	CameraFile *oldfile = NULL;
-	const char *filename;
 	unsigned long int size;
 	int x;
 	char cached_images[1024];
 
 	CHECK_NULL (fs && folder && file);
 
-	CR (gp_file_get_name (file, &filename));
-	CR (gp_file_get_type (file, &type));
 	CR (gp_file_get_data_and_size (file, NULL, &size));
 
 	/*
@@ -2270,14 +2201,14 @@ gp_filesystem_lru_check (CameraFilesystem *fs)
  * \return a gphoto2 error code.
  **/
 int
-gp_filesystem_set_file_noop (CameraFilesystem *fs, const char *folder,
+gp_filesystem_set_file_noop (CameraFilesystem *fs,
+			     const char *folder, const char *filename,
+			     CameraFileType type,
 			     CameraFile *file, GPContext *context)
 {
-	CameraFileType type;
 	CameraFileInfo info;
 	CameraFilesystemFolder	*f;
 	CameraFilesystemFile	*xfile;
-	const char *filename;
 	int r;
 	time_t t;
 
@@ -2285,8 +2216,6 @@ gp_filesystem_set_file_noop (CameraFilesystem *fs, const char *folder,
 	CC (context);
 	CA (folder, context);
 
-	CR (gp_file_get_name (file, &filename));
-	CR (gp_file_get_type (file, &type));
 	GP_DEBUG ("Adding file '%s' to folder '%s' (type %i)...",
 		  filename, folder, type);
 
@@ -2301,7 +2230,7 @@ gp_filesystem_set_file_noop (CameraFilesystem *fs, const char *folder,
 	 */
 	if ((type == GP_FILE_TYPE_RAW) || (type == GP_FILE_TYPE_NORMAL) ||
 	    (type == GP_FILE_TYPE_AUDIO))
-		CR (gp_filesystem_lru_update (fs, folder, file, context));
+		CR (gp_filesystem_lru_update (fs, folder, filename, type, file, context));
 
 	/* Redundant sanity check. */
 	CR (gp_filesystem_lru_check (fs));
@@ -2373,7 +2302,6 @@ gp_filesystem_set_file_noop (CameraFilesystem *fs, const char *folder,
 		GP_DEBUG ("Searching data for mtime...");
 		CR (gp_file_get_data_and_size (file, NULL, &size));
 		if (size < 32*1024*1024) { /* just assume stuff above 32MB is not EXIF capable */
-			/* FIXME: Will leak on "fd" retrieval */
 			CR (gp_file_get_data_and_size (file, &data, &size));
 			t = get_exif_mtime ((unsigned char*)data, size);
 		}
@@ -2409,7 +2337,8 @@ gp_filesystem_set_file_noop (CameraFilesystem *fs, const char *folder,
  * \return a gphoto2 error code
  **/
 int
-gp_filesystem_set_info_noop (CameraFilesystem *fs, const char *folder,
+gp_filesystem_set_info_noop (CameraFilesystem *fs,
+			     const char *folder, const char *filename,
 			     CameraFileInfo info, GPContext *context)
 {
 	CameraFilesystemFolder	*f;
@@ -2420,7 +2349,7 @@ gp_filesystem_set_info_noop (CameraFilesystem *fs, const char *folder,
 	CA (folder, context);
 
 	/* Search folder and file */
-	CR (lookup_folder_file (fs, folder, info.file.name, &f, &xfile, context));
+	CR (lookup_folder_file (fs, folder, filename, &f, &xfile, context));
 
 	memcpy (&xfile->info, &info, sizeof (CameraFileInfo));
 	xfile->info_dirty = 0;
@@ -2444,7 +2373,7 @@ gp_filesystem_set_info (CameraFilesystem *fs, const char *folder,
 			const char *filename, CameraFileInfo info,
 			GPContext *context)
 {
-	int result, name, e;
+	int result;
 	CameraFilesystemFolder	*f;
 	CameraFilesystemFile	*xfile;
 
@@ -2484,12 +2413,8 @@ gp_filesystem_set_info (CameraFilesystem *fs, const char *folder,
 	/*
 	 * Set the info. If anything goes wrong, mark info as dirty,
 	 * because the operation could have been partially successful.
-	 *
-	 * Handle name changes in a separate round.
 	 */
-	name = (info.file.fields & GP_FILE_INFO_NAME);
-	info.file.fields &= ~GP_FILE_INFO_NAME;
-	result = fs->set_info_func (fs, folder, filename, info, fs->info_data,
+	result = fs->set_info_func (fs, folder, filename, info, fs->data,
 				    context);
 	if (result < 0) {
 		xfile->info_dirty = 1;
@@ -2497,28 +2422,6 @@ gp_filesystem_set_info (CameraFilesystem *fs, const char *folder,
 	}
 	if (info.file.fields & GP_FILE_INFO_PERMISSIONS)
 		xfile->info.file.permissions = info.file.permissions;
-
-	/* Handle name change */
-	if (name) {
-		char *xname;
-		/* Make sure the file does not exist */
-		e = gp_filesystem_number (fs, folder, info.file.name, context);
-		if (e != GP_ERROR_FILE_NOT_FOUND)
-			return (e);
-
-		info.preview.fields = GP_FILE_INFO_NONE;
-		info.file.fields = GP_FILE_INFO_NAME;
-		info.audio.fields = GP_FILE_INFO_NONE;
-		CR (fs->set_info_func (fs, folder, filename, info,
-				       fs->info_data, context));
-		strncpy (xfile->info.file.name, info.file.name,
-			 sizeof (xfile->info.file.name));
-		xname = strdup(info.file.name);
-		if (xname) {
-			free (xfile->name);
-			xfile->name = xname;
-		}
-	}
 
 	return (GP_OK);
 }
@@ -2565,5 +2468,5 @@ gp_filesystem_get_storageinfo (
 	}
 	return fs->storage_info_func (fs,
 		storageinfo, nrofstorageinfos,
-		fs->info_data, context);
+		fs->data, context);
 }

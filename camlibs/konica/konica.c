@@ -1291,7 +1291,7 @@ k_localization_data_put (GPPort *p, GPContext *c,
 		}
 		CRF (c, result, rb);
                 free (rb);
-                rb = NULL;
+		rb = NULL;
                 i += PACKET_SIZE;
         }
 }

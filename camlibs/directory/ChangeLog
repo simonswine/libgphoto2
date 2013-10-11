@@ -1,9 +1,12 @@
-2009-09-25  Marcus Meissner  <marcus@jet.franken.de>
+2008-03-15  Marcus Meissner  <marcus@jet.franken.de>
 
-	* directory.c: Merged from TRUNK, but redid the port
-	  info again.
+	* rewritten for new GPPortInfo handling, factored
+	  out common functionality.
 
-	  Will now work with gp_file_new_from_fd().
+2007-10-27  Marcus Meissner  <marcus@jet.franken.de>
+
+	* directory.c: Do not use gp_file_open(), but do
+	  direct UNIX I/O, also to show stepwise and progress.
 
 2007-01-17  Marcus Meissner  <marcus@jet.franken.de>
 

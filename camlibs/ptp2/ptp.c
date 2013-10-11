@@ -1,7 +1,7 @@
 /* ptp.c
  *
  * Copyright (C) 2001-2004 Mariusz Woloszyn <emsi@ipartners.pl>
- * Copyright (C) 2003-2009 Marcus Meissner <marcus@jet.franken.de>
+ * Copyright (C) 2003-2012 Marcus Meissner <marcus@jet.franken.de>
  * Copyright (C) 2006-2008 Linus Walleij <triad@df.lth.se>
  * Copyright (C) 2007 Tero Saarni <tero.saarni@gmail.com>
  * Copyright (C) 2009 Axel Waggershauser <awagger@web.de>
@@ -25,6 +25,10 @@
 #define _BSD_SOURCE
 #include "config.h"
 #include "ptp.h"
+
+#ifdef HAVE_LIBXML2
+# include <libxml/parser.h>
+#endif
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -134,10 +138,10 @@ ptp_error (PTPParams *params, const char *format, ...)
  * Upon success PTPContainer* ptp contains PTP Response Phase container with
  * all fields filled in.
  **/
-static uint16_t
+uint16_t
 ptp_transaction_new (PTPParams* params, PTPContainer* ptp, 
-		uint16_t flags, unsigned int sendlen,
-		PTPDataHandler *handler
+		     uint16_t flags, uint64_t sendlen,
+		     PTPDataHandler *handler
 ) {
 	int 		tries;
 	uint16_t	cmd;
@@ -380,7 +384,7 @@ ptp_exit_fd_handler (PTPDataHandler *handler) {
 /* Old style transaction, based on memory */
 uint16_t
 ptp_transaction (PTPParams* params, PTPContainer* ptp, 
-		uint16_t flags, unsigned int sendlen,
+		uint16_t flags, uint64_t sendlen,
 		unsigned char **data, unsigned int *recvlen
 ) {
 	PTPDataHandler	handler;
@@ -388,10 +392,12 @@ ptp_transaction (PTPParams* params, PTPContainer* ptp,
 
 	switch (flags & PTP_DP_DATA_MASK) {
 	case PTP_DP_SENDDATA:
-		ptp_init_send_memory_handler (&handler, *data, sendlen);
+		ret = ptp_init_send_memory_handler (&handler, *data, sendlen);
+		if (ret != PTP_RC_OK) return ret;
 		break;
 	case PTP_DP_GETDATA:
-		ptp_init_recv_memory_handler (&handler);
+		ret = ptp_init_recv_memory_handler (&handler);
+		if (ret != PTP_RC_OK) return ret;
 		break;
 	default:break;
 	}
@@ -473,6 +479,465 @@ ptp_canon_eos_getdeviceinfo (PTPParams* params, PTPCanonEOSDeviceInfo*di)
 	return ret;
 }
 
+#ifdef HAVE_LIBXML2
+static int
+traverse_tree (PTPParams *params, int depth, xmlNodePtr node) {
+	xmlNodePtr	next;
+	xmlChar		*xchar;
+	int n;
+	char 		*xx;
+
+
+	if (!node) return 0;
+	xx = malloc(depth * 4 + 1);
+	memset (xx, ' ', depth*4);
+	xx[depth*4] = 0;
+
+	n = xmlChildElementCount (node);
+
+	next = node;
+	do {
+		fprintf(stderr,"%snode %s\n", xx,next->name);
+		fprintf(stderr,"%selements %d\n", xx,n);
+		xchar = xmlNodeGetContent (next);
+		fprintf(stderr,"%scontent %s\n", xx,xchar);
+		traverse_tree (params, depth+1,xmlFirstElementChild (next));
+	} while ((next = xmlNextElementSibling (next)));
+	return PTP_RC_OK;
+}
+
+static int
+parse_9301_cmd_tree (PTPParams *params, xmlNodePtr node, PTPDeviceInfo *di) {
+	xmlNodePtr next;
+	int	cnt;
+
+	cnt = 0;
+	next = xmlFirstElementChild (node);
+	while (next) {
+		cnt++;
+		next = xmlNextElementSibling (next);
+	}
+	di->OperationsSupported_len = cnt;
+	di->OperationsSupported = malloc (cnt*sizeof(di->OperationsSupported[0]));
+	cnt = 0;
+	next = xmlFirstElementChild (node);
+	while (next) {
+		unsigned int p;
+
+		sscanf((char*)next->name, "c%04x", &p);
+		ptp_debug( params, "cmd %s / 0x%04x", next->name, p);
+		di->OperationsSupported[cnt++] = p;
+		next = xmlNextElementSibling (next);
+	}
+	return PTP_RC_OK;
+}
+
+static int
+parse_9301_value (PTPParams *params, const char *str, uint16_t type, PTPPropertyValue *propval) {
+	switch (type) {
+	case 6: { /*UINT32*/
+		unsigned int x;
+		if (!sscanf(str,"%08x", &x)) {
+			ptp_debug( params, "could not parse uint32 %s", str);
+			return PTP_RC_GeneralError;
+		}
+		ptp_debug( params, "\t%d", x);
+		propval->u32 = x;
+		break;
+	}
+	case 5: { /*INT32*/
+		int x;
+		if (!sscanf(str,"%08x", &x)) {
+			ptp_debug( params, "could not parse int32 %s", str);
+			return PTP_RC_GeneralError;
+		}
+		ptp_debug( params, "\t%d", x);
+		propval->i32 = x;
+		break;
+	}
+	case 4: { /*UINT16*/
+		unsigned int x;
+		if (!sscanf(str,"%04x", &x)) {
+			ptp_debug( params, "could not parse uint16 %s", str);
+			return PTP_RC_GeneralError;
+		}
+		ptp_debug( params, "\t%d", x);
+		propval->u16 = x;
+		break;
+	}
+	case 3: { /*INT16*/
+		int x;
+		if (!sscanf(str,"%04x", &x)) {
+			ptp_debug( params, "could not parse int16 %s", str);
+			return PTP_RC_GeneralError;
+		}
+		ptp_debug( params, "\t%d", x);
+		propval->i16 = x;
+		break;
+	}
+	case 2: { /*UINT8*/
+		unsigned int x;
+		if (!sscanf(str,"%02x", &x)) {
+			ptp_debug( params, "could not parse uint8 %s", str);
+			return PTP_RC_GeneralError;
+		}
+		ptp_debug( params, "\t%d", x);
+		propval->u8 = x;
+		break;
+	}
+	case 1: { /*INT8*/
+		int x;
+		if (!sscanf(str,"%02x", &x)) {
+			ptp_debug( params, "could not parse int8 %s", str);
+			return PTP_RC_GeneralError;
+		} 
+		ptp_debug( params, "\t%d", x);
+		propval->i8 = x;
+		break;
+	}
+	case 65535: { /* string */
+		int len;
+
+		/* ascii ptp string, 1 byte length, little endian 16 bit chars */
+		if (sscanf(str,"%02x", &len)) {
+			int i;
+			char *xstr = malloc(len+1);
+			for (i=0;i<len;i++) {
+				int xc;
+				if (sscanf(str+2+i*4,"%04x", &xc)) {
+					int cx;
+
+					cx = ((xc>>8) & 0xff) | ((xc & 0xff) << 8);
+					xstr[i] = cx;
+				}
+				xstr[len] = 0;
+			}
+			ptp_debug( params, "\t%s", xstr);
+			propval->str = xstr;
+			break;
+		}
+		ptp_debug( params, "string %s not parseable!", str);
+		return PTP_RC_GeneralError;
+	}
+	case 7: /*INT64*/
+	case 8: /*UINT64*/
+	case 9: /*INT128*/
+	case 10: /*UINT128*/
+	default:
+		ptp_debug( params, "unhandled data type %d!", type);
+		return PTP_RC_GeneralError;
+	}
+	return PTP_RC_OK;
+}
+
+static int
+parse_9301_propdesc (PTPParams *params, xmlNodePtr next, PTPDevicePropDesc *dpd) {
+	int type = -1;
+
+	if (!next)
+		return PTP_RC_GeneralError;
+
+	ptp_debug (params, "parse_9301_propdesc");
+	dpd->FormFlag	= PTP_DPFF_None;
+	dpd->GetSet	= PTP_DPGS_Get;
+	do {
+		if (!strcmp((char*)next->name,"type")) {	/* propdesc.DataType */
+			if (!sscanf((char*)xmlNodeGetContent (next), "%04x", &type)) {
+				ptp_debug( params, "\ttype %s not parseable?",xmlNodeGetContent (next));
+				return 0;
+			}
+			ptp_debug( params, "type 0x%x", type);
+			dpd->DataType = type;
+			continue;
+		}
+		if (!strcmp((char*)next->name,"attribute")) {	/* propdesc.GetSet */
+			int attr;
+
+			if (!sscanf((char*)xmlNodeGetContent (next), "%02x", &attr)) {
+				ptp_debug( params, "\tattr %s not parseable",xmlNodeGetContent (next));
+				return 0;
+			}
+			ptp_debug( params, "attribute 0x%x", attr);
+			dpd->GetSet = attr;
+			continue;
+		}
+		if (!strcmp((char*)next->name,"default")) {	/* propdesc.FactoryDefaultValue */
+			ptp_debug( params, "default value");
+			parse_9301_value (params, (char*)xmlNodeGetContent (next), type, &dpd->FactoryDefaultValue);
+			continue;
+		}
+		if (!strcmp((char*)next->name,"value")) {	/* propdesc.CurrentValue */
+			ptp_debug( params, "current value");
+			parse_9301_value (params, (char*)xmlNodeGetContent (next), type, &dpd->CurrentValue);
+			continue;
+		}
+		if (!strcmp((char*)next->name,"enum")) {	/* propdesc.FORM.Enum */
+			int n,i;
+			char *s;
+
+			ptp_debug( params, "enum");
+			dpd->FormFlag = PTP_DPFF_Enumeration;
+			s = (char*)xmlNodeGetContent (next);
+			n = 0;
+			do {
+				s = strchr(s,' ');
+				if (s) s++;
+				n++;
+			} while (s);
+			dpd->FORM.Enum.NumberOfValues = n;
+			dpd->FORM.Enum.SupportedValue = malloc (n * sizeof(PTPPropertyValue));
+			s = (char*)xmlNodeGetContent (next);
+			i = 0;
+			do {
+				parse_9301_value (params, s, type, &dpd->FORM.Enum.SupportedValue[i]); /* should turn ' ' into \0? */
+				i++;
+				s = strchr(s,' ');
+				if (s) s++;
+			} while (s && (i<n));
+			continue;
+		}
+		if (!strcmp((char*)next->name,"range")) {	/* propdesc.FORM.Enum */
+			char *s = (char*)xmlNodeGetContent (next);
+			dpd->FormFlag = PTP_DPFF_Range;
+			ptp_debug( params, "range");
+			parse_9301_value (params, s, type, &dpd->FORM.Range.MinimumValue); /* should turn ' ' into \0? */
+			s = strchr(s,' ');
+			if (!s) continue;
+			s++;
+			parse_9301_value (params, s, type, &dpd->FORM.Range.MaximumValue); /* should turn ' ' into \0? */
+			s = strchr(s,' ');
+			if (!s) continue;
+			s++;
+			parse_9301_value (params, s, type, &dpd->FORM.Range.StepSize); /* should turn ' ' into \0? */
+
+			continue;
+		}
+		ptp_debug (params, "\tpropdescvar: %s", next->name);
+		traverse_tree (params, 3, next);
+	} while ((next = xmlNextElementSibling (next)));
+	return PTP_RC_OK;
+}
+
+static int
+parse_9301_prop_tree (PTPParams *params, xmlNodePtr node, PTPDeviceInfo *di) {
+	xmlNodePtr next;
+	int	cnt;
+
+	cnt = 0;
+	next = xmlFirstElementChild (node);
+	while (next) {
+		cnt++;
+		next = xmlNextElementSibling (next);
+	}
+
+	di->DevicePropertiesSupported_len = cnt;
+	di->DevicePropertiesSupported = malloc (cnt*sizeof(di->DevicePropertiesSupported[0]));
+	cnt = 0;
+	next = xmlFirstElementChild (node);
+	while (next) {
+		unsigned int p;
+		PTPDevicePropDesc	dpd;
+
+		sscanf((char*)next->name, "p%04x", &p);
+		ptp_debug( params, "prop %s / 0x%04x", next->name, p);
+		parse_9301_propdesc (params, xmlFirstElementChild (next), &dpd);
+		di->DevicePropertiesSupported[cnt++] = p;
+		next = xmlNextElementSibling (next);
+	}
+	return PTP_RC_OK;
+}
+
+static int
+parse_9301_event_tree (PTPParams *params, xmlNodePtr node, PTPDeviceInfo *di) {
+	xmlNodePtr next;
+	int	cnt;
+
+	cnt = 0;
+	next = xmlFirstElementChild (node);
+	while (next) {
+		cnt++;
+		next = xmlNextElementSibling (next);
+	}
+	di->EventsSupported_len = cnt;
+	di->EventsSupported = malloc (cnt*sizeof(di->EventsSupported[0]));
+	cnt = 0;
+	next = xmlFirstElementChild (node);
+	while (next) {
+		unsigned int p;
+
+		sscanf((char*)next->name, "e%04x", &p);
+		ptp_debug( params, "event %s / 0x%04x", next->name, p);
+		di->EventsSupported[cnt++] = p;
+		next = xmlNextElementSibling (next);
+	}
+	return PTP_RC_OK;
+}
+
+static int
+parse_9301_tree (PTPParams *params, xmlNodePtr node, PTPDeviceInfo *di) {
+	xmlNodePtr	next;
+
+	next = xmlFirstElementChild (node);
+	while (next) {
+		if (!strcmp ((char*)next->name, "cmd")) {
+			parse_9301_cmd_tree (params, next, di);
+			next = xmlNextElementSibling (next);
+			continue;
+		}
+		if (!strcmp ((char*)next->name, "prop")) {
+			parse_9301_prop_tree (params, next, di);
+			next = xmlNextElementSibling (next);
+			continue;
+		}
+		if (!strcmp ((char*)next->name, "event")) {
+			parse_9301_event_tree (params, next, di);
+			next = xmlNextElementSibling (next);
+			continue;
+		}
+		fprintf (stderr,"9301: unhandled type %s\n", next->name);
+		next = xmlNextElementSibling (next);
+	}
+	/*traverse_tree (0, node);*/
+	return PTP_RC_OK;
+}
+
+static uint16_t
+ptp_olympus_parse_output_xml(PTPParams* params, char*data, int len, xmlNodePtr *code) {
+        xmlDocPtr       docin;
+        xmlNodePtr      docroot, output, next;
+	int 		result, xcode;
+
+	*code = NULL;
+
+        docin = xmlReadMemory ((char*)data, len, "http://gphoto.org/", "utf-8", 0);
+        if (!docin) return PTP_RC_GeneralError;
+        docroot = xmlDocGetRootElement (docin);
+        if (!docroot) {
+		xmlFreeDoc (docin);
+		return PTP_RC_GeneralError;
+	}
+
+        if (strcmp((char*)docroot->name,"x3c")) {
+                ptp_debug (params, "olympus: docroot is not x3c, but %s", docroot->name);
+		xmlFreeDoc (docin);
+                return PTP_RC_GeneralError;
+        }
+        if (xmlChildElementCount(docroot) != 1) {
+                ptp_debug (params, "olympus: x3c: expected 1 child, got %ld", xmlChildElementCount(docroot));
+		xmlFreeDoc (docin);
+                return PTP_RC_GeneralError;
+        }
+        output = xmlFirstElementChild (docroot);
+        if (strcmp((char*)output->name, "output") != 0) {
+                ptp_debug (params, "olympus: x3c node: expected child 'output', but got %s", (char*)output->name);
+		xmlFreeDoc (docin);
+                return PTP_RC_GeneralError;
+	}
+        next = xmlFirstElementChild (output);
+
+	result = PTP_RC_GeneralError;
+
+	while (next) {
+		if (!strcmp((char*)next->name,"result")) {
+			xmlChar	 *xchar;
+
+			xchar = xmlNodeGetContent (next);
+			if (!sscanf((char*)xchar,"%04x",&result))
+				ptp_debug (params, "failed scanning result from %s", xchar);
+			ptp_debug (params,  "ptp result is 0x%04x", result);
+			next = xmlNextElementSibling (next);
+			continue;
+		}
+		if (sscanf((char*)next->name,"c%x", &xcode)) {
+			ptp_debug (params,  "ptp code node found %s", (char*)next->name);
+			*code = next;
+			next = xmlNextElementSibling (next);
+			continue;
+		}
+		ptp_debug (params, "unhandled node %s", (char*)next->name);
+		next = xmlNextElementSibling (next);
+	}
+
+	if (result != PTP_RC_OK) {
+		*code = NULL;
+		xmlFreeDoc (docin);
+	}
+	return result;
+}
+#endif
+
+uint16_t
+ptp_olympus_getdeviceinfo (PTPParams* params, PTPDeviceInfo *di)
+{
+#ifdef HAVE_LIBXML2
+	uint16_t 	ret;
+	PTPContainer	ptp;
+	PTPDataHandler	handler;
+	unsigned char	*data;
+	unsigned long	len;
+	xmlNodePtr	code;
+
+	memset (di, 0, sizeof(PTPDeviceInfo));
+	ptp_init_recv_memory_handler (&handler);
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code   = PTP_OC_OLYMPUS_GetDeviceInfo;
+	ptp.Nparam = 0;
+	len	   = 0;
+	data       = NULL;
+	ret=ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, &handler);
+
+	ptp_exit_recv_memory_handler (&handler, &data, &len);
+
+	ret = ptp_olympus_parse_output_xml(params,(char*)data,len,&code);
+	if (ret != PTP_RC_OK)
+		return ret;
+
+	ret = parse_9301_tree (params, code, di);
+
+	xmlFreeDoc(code->doc);
+	return ret;
+#else
+	return PTP_RC_GeneralError;
+#endif
+}
+
+uint16_t
+ptp_olympus_opensession (PTPParams* params, unsigned char**data, unsigned long *len)
+{
+	uint16_t 	ret;
+	PTPContainer	ptp;
+	PTPDataHandler	handler;
+
+	ptp_init_recv_memory_handler (&handler);
+	PTP_CNT_INIT(ptp);
+	ptp.Code   = PTP_OC_OLYMPUS_OpenSession;
+	ptp.Nparam = 0;
+	*len	   = 0;
+	*data      = NULL;
+	ret=ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, &handler);
+	ptp_exit_recv_memory_handler (&handler, data, len);
+	return ret;
+}
+
+uint16_t
+ptp_olympus_getcameraid (PTPParams* params, unsigned char**data, unsigned long *len)
+{
+	uint16_t 	ret;
+	PTPContainer	ptp;
+	PTPDataHandler	handler;
+
+	ptp_init_recv_memory_handler (&handler);
+	PTP_CNT_INIT(ptp);
+	ptp.Code   = PTP_OC_OLYMPUS_GetCameraID;
+	ptp.Nparam = 0;
+	*len	   = 0;
+	*data       = NULL;
+	ret=ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, &handler);
+	ptp_exit_recv_memory_handler (&handler, data, len);
+	return ret;
+}
+
 /**
  * ptp_generic_no_data:
  * params:	PTPParams*
@@ -544,6 +1009,89 @@ ptp_opensession (PTPParams* params, uint32_t session)
 	return ret;
 }
 
+void
+ptp_free_devicepropvalue(uint16_t dt, PTPPropertyValue* dpd) {
+	switch (dt) {
+	case PTP_DTC_INT8:	case PTP_DTC_UINT8:
+	case PTP_DTC_UINT16:	case PTP_DTC_INT16:
+	case PTP_DTC_UINT32:	case PTP_DTC_INT32:
+	case PTP_DTC_UINT64:	case PTP_DTC_INT64:
+	case PTP_DTC_UINT128:	case PTP_DTC_INT128:
+		/* Nothing to free */
+		break;
+	case PTP_DTC_AINT8:	case PTP_DTC_AUINT8:
+	case PTP_DTC_AUINT16:	case PTP_DTC_AINT16:
+	case PTP_DTC_AUINT32:	case PTP_DTC_AINT32:
+	case PTP_DTC_AUINT64:	case PTP_DTC_AINT64:
+	case PTP_DTC_AUINT128:	case PTP_DTC_AINT128:
+		if (dpd->a.v)
+			free(dpd->a.v);
+		break;
+	case PTP_DTC_STR:
+		if (dpd->str)
+			free(dpd->str);
+		break;
+	}
+}
+
+void
+ptp_free_devicepropdesc(PTPDevicePropDesc* dpd)
+{
+	uint16_t i;
+
+	ptp_free_devicepropvalue (dpd->DataType, &dpd->FactoryDefaultValue);
+	ptp_free_devicepropvalue (dpd->DataType, &dpd->CurrentValue);
+	switch (dpd->FormFlag) {
+	case PTP_DPFF_Range:
+		ptp_free_devicepropvalue (dpd->DataType, &dpd->FORM.Range.MinimumValue);
+		ptp_free_devicepropvalue (dpd->DataType, &dpd->FORM.Range.MaximumValue);
+		ptp_free_devicepropvalue (dpd->DataType, &dpd->FORM.Range.StepSize);
+		break;
+	case PTP_DPFF_Enumeration:
+		if (dpd->FORM.Enum.SupportedValue) {
+			for (i=0;i<dpd->FORM.Enum.NumberOfValues;i++)
+				ptp_free_devicepropvalue (dpd->DataType, dpd->FORM.Enum.SupportedValue+i);
+			free (dpd->FORM.Enum.SupportedValue);
+		}
+	}
+}
+
+
+void
+ptp_free_objectpropdesc(PTPObjectPropDesc* opd)
+{
+	uint16_t i;
+
+	ptp_free_devicepropvalue (opd->DataType, &opd->FactoryDefaultValue);
+	switch (opd->FormFlag) {
+	case PTP_OPFF_None:
+		break;
+	case PTP_OPFF_Range:
+		ptp_free_devicepropvalue (opd->DataType, &opd->FORM.Range.MinimumValue);
+		ptp_free_devicepropvalue (opd->DataType, &opd->FORM.Range.MaximumValue);
+		ptp_free_devicepropvalue (opd->DataType, &opd->FORM.Range.StepSize);
+		break;
+	case PTP_OPFF_Enumeration:
+		if (opd->FORM.Enum.SupportedValue) {
+			for (i=0;i<opd->FORM.Enum.NumberOfValues;i++)
+				ptp_free_devicepropvalue (opd->DataType, opd->FORM.Enum.SupportedValue+i);
+			free (opd->FORM.Enum.SupportedValue);
+		}
+		break;
+	case PTP_OPFF_DateTime:
+	case PTP_OPFF_FixedLengthArray:
+	case PTP_OPFF_RegularExpression:
+	case PTP_OPFF_ByteArray:
+	case PTP_OPFF_LongString:
+		/* Ignore these presently, we cannot unpack them, so there is nothing to be freed. */
+		break;
+	default:
+		fprintf (stderr, "Unknown OPFF type %d\n", opd->FormFlag);
+		break;
+	}
+}
+
+
 /**
  * ptp_free_params:
  * params:	PTPParams*
@@ -556,29 +1104,18 @@ void
 ptp_free_params (PTPParams *params) {
 	int i;
 
-	for (i=0;i<params->nrofprops;i++) {
-		MTPProperties	*xpl = &params->props[i];
-
-		if ((xpl->datatype == PTP_DTC_STR) && (xpl->propval.str))
-			free (xpl->propval.str);
-	}
-	if (params->props) free (params->props);
-	if (params->canon_flags) free (params->canon_flags);
-
-	if (params->canon_props) {
-		for (i=0;i<params->nrofcanon_props;i++) {
-			free (params->canon_props[i].data);
-			ptp_free_devicepropdesc (&params->canon_props[i].dpd);
-		}
-		free (params->canon_props);
-	}
-
 	if (params->cameraname) free (params->cameraname);
 	if (params->wifi_profiles) free (params->wifi_profiles);
-	free (params->handles.Handler);
-	for (i=0;i<params->handles.n;i++)
-		ptp_free_objectinfo (&params->objectinfo[i]);
-	free (params->objectinfo);
+	for (i=0;i<params->nrofobjects;i++)
+		ptp_free_object (&params->objects[i]);
+	free (params->objects);
+	free (params->events);
+	for (i=0;i<params->nrofcanon_props;i++) {
+		free (params->canon_props[i].data);
+		ptp_free_devicepropdesc (&params->canon_props[i].dpd);
+	}
+	free (params->canon_props);
+	free (params->backlogentries);
 	ptp_free_DI (&params->deviceinfo);
 }
 
@@ -689,6 +1226,26 @@ ptp_getobjecthandles (PTPParams* params, uint32_t storage,
 	return ret;
 }
 
+uint16_t
+ptp_getfilesystemmanifest (PTPParams* params, uint32_t storage,
+			uint32_t objectformatcode, uint32_t associationOH,
+			unsigned char** data)
+{
+	uint16_t ret;
+	PTPContainer ptp;
+	unsigned int len;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code=PTP_OC_GetFilesystemManifest;
+	ptp.Param1=storage;
+	ptp.Param2=objectformatcode;
+	ptp.Param3=associationOH;
+	ptp.Nparam=3;
+	len=0;
+	ret=ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, data, &len);
+	return ret;
+}
+
 /**
  * ptp_getnumobjects:
  * params:	PTPParams*
@@ -710,7 +1267,6 @@ ptp_getnumobjects (PTPParams* params, uint32_t storage,
 {
 	uint16_t ret;
 	PTPContainer ptp;
-	int len;
 
 	PTP_CNT_INIT(ptp);
 	ptp.Code=PTP_OC_GetNumObjects;
@@ -718,7 +1274,6 @@ ptp_getnumobjects (PTPParams* params, uint32_t storage,
 	ptp.Param2=objectformatcode;
 	ptp.Param3=associationOH;
 	ptp.Nparam=3;
-	len=0;
 	ret=ptp_transaction(params, &ptp, PTP_DP_NODATA, 0, NULL, NULL);
 	if (ret == PTP_RC_OK) {
 		if (ptp.Nparam >= 1)
@@ -881,29 +1436,6 @@ ptp_getobject_to_handler (PTPParams* params, uint32_t handle, PTPDataHandler *ha
 }
 
 /**
- * ptp_canon_eos_getobject_to_handler:
- * params:	PTPParams*
- *		handle			- Object handle
- *		PTPDataHandler*		- pointer datahandler
- *
- * Get object 'handle' from device and store the data in newly
- * allocated 'object'.
- *
- * Return values: Some PTP_RC_* code.
- **/
-uint16_t
-ptp_canon_eos_getobject_to_handler (PTPParams* params, uint32_t handle, PTPDataHandler *handler)
-{
-	PTPContainer ptp;
-
-	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_CANON_EOS_GetObject;
-	ptp.Param1=handle;
-	ptp.Nparam=1;
-	return ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, handler);
-}
-
-/**
  * ptp_getobject_tofd:
  * params:	PTPParams*
  *		handle			- Object handle
@@ -982,6 +1514,7 @@ ptp_getthumb (PTPParams* params, uint32_t handle, unsigned char** object, unsign
 	ptp.Code=PTP_OC_GetThumb;
 	ptp.Param1=handle;
 	ptp.Nparam=1;
+	*len = 0;
 	return ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, object, len);
 }
 
@@ -1062,7 +1595,7 @@ ptp_sendobjectinfo (PTPParams* params, uint32_t* store,
  * ptp_sendobject:
  * params:	PTPParams*
  *		char*	object		- contains the object that is to be sent
- *		uint32_t size		- object size
+ *		uint64_t size		- object size
  *		
  * Sends object to Responder.
  *
@@ -1070,7 +1603,7 @@ ptp_sendobjectinfo (PTPParams* params, uint32_t* store,
  *
  */
 uint16_t
-ptp_sendobject (PTPParams* params, unsigned char* object, uint32_t size)
+ptp_sendobject (PTPParams* params, unsigned char* object, uint64_t size)
 {
 	PTPContainer ptp;
 
@@ -1085,7 +1618,7 @@ ptp_sendobject (PTPParams* params, unsigned char* object, uint32_t size)
  * ptp_sendobject_from_handler:
  * params:	PTPParams*
  *		PTPDataHandler*         - File descriptor to read() object from
- *              uint32_t size           - File/object size
+ *              uint64_t size           - File/object size
  *
  * Sends object from file descriptor by consecutive reads from this
  * descriptor.
@@ -1093,7 +1626,7 @@ ptp_sendobject (PTPParams* params, unsigned char* object, uint32_t size)
  * Return values: Some PTP_RC_* code.
  **/
 uint16_t
-ptp_sendobject_from_handler (PTPParams* params, PTPDataHandler *handler, uint32_t size)
+ptp_sendobject_from_handler (PTPParams* params, PTPDataHandler *handler, uint64_t size)
 {
 	PTPContainer	ptp;
 
@@ -1108,7 +1641,7 @@ ptp_sendobject_from_handler (PTPParams* params, PTPDataHandler *handler, uint32_
  * ptp_sendobject_fromfd:
  * params:	PTPParams*
  *		fd                      - File descriptor to read() object from
- *              uint32_t size           - File/object size
+ *              uint64_t size           - File/object size
  *
  * Sends object from file descriptor by consecutive reads from this
  * descriptor.
@@ -1116,7 +1649,7 @@ ptp_sendobject_from_handler (PTPParams* params, PTPDataHandler *handler, uint32_
  * Return values: Some PTP_RC_* code.
  **/
 uint16_t
-ptp_sendobject_fromfd (PTPParams* params, int fd, uint32_t size)
+ptp_sendobject_fromfd (PTPParams* params, int fd, uint64_t size)
 {
 	PTPContainer	ptp;
 	PTPDataHandler	handler;
@@ -1131,6 +1664,7 @@ ptp_sendobject_fromfd (PTPParams* params, int fd, uint32_t size)
 	return ret;
 }
 
+#define PROPCACHE_TIMEOUT 5	/* seconds */
 
 uint16_t
 ptp_getdevicepropdesc (PTPParams* params, uint16_t propcode, 
@@ -1141,18 +1675,43 @@ ptp_getdevicepropdesc (PTPParams* params, uint16_t propcode,
 	unsigned int len;
 	unsigned char* dpd=NULL;
 
+
 	PTP_CNT_INIT(ptp);
-	ptp.Code=PTP_OC_GetDevicePropDesc;
-	ptp.Param1=propcode;
-	ptp.Nparam=1;
-	len=0;
+	ptp.Code   = PTP_OC_GetDevicePropDesc;
+	ptp.Param1 = propcode;
+	ptp.Nparam = 1;
+	len        = 0;
 	ret=ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &dpd, &len);
-	if (ret != PTP_RC_OK) {
-		free (dpd);
-		return ret;
+
+	if (ret == PTP_RC_OK) {
+		if (params->device_flags & DEVICE_FLAG_OLYMPUS_XML_WRAPPED) {
+#ifdef HAVE_LIBXML2
+			xmlNodePtr	code;
+
+			ret = ptp_olympus_parse_output_xml (params,(char*)dpd,len,&code);
+			if (ret == PTP_RC_OK) {
+				int x;
+
+				if (	(xmlChildElementCount(code) == 1) &&
+					(!strcmp((char*)code->name,"c1014"))
+				) {
+					code = xmlFirstElementChild (code);
+
+					if (	(sscanf((char*)code->name,"p%x", &x)) &&
+						(x == propcode)
+					) {
+						ret = parse_9301_propdesc (params, xmlFirstElementChild (code), devicepropertydesc);
+						xmlFreeDoc(code->doc);
+					}
+				}
+			} else {
+				ptp_debug(params,"failed to parse output xml, ret %x?", ret);
+			}
+#endif
+		} else {
+			ptp_unpack_DPD(params, dpd, devicepropertydesc, len);
+		}
 	}
-	if (!dpd) return PTP_RC_GeneralError;
-	ptp_unpack_DPD(params, dpd, devicepropertydesc, len);
 	free(dpd);
 	return ret;
 }
@@ -1646,6 +2205,17 @@ ptp_canon_checkevent (PTPParams* params, PTPContainer* event, int* isevent)
 }
 
 uint16_t
+ptp_add_event (PTPParams *params, PTPContainer *evt) {
+	if (params->nrofevents)
+		params->events = realloc(params->events, sizeof(PTPContainer)*(params->nrofevents+1));
+	else
+		params->events = malloc(sizeof(PTPContainer)*1);
+	memcpy (&params->events[params->nrofevents],evt,1*sizeof(PTPContainer));
+	params->nrofevents += 1;
+	return PTP_RC_OK;
+}
+
+uint16_t
 ptp_check_event (PTPParams *params) {
 	PTPContainer		event;
 	uint16_t		ret;
@@ -1706,12 +2276,7 @@ ptp_check_event (PTPParams *params) {
 store_event:
 	if (ret == PTP_RC_OK) {
 		ptp_debug (params, "event: nparams=0x%X, code=0x%X, trans_id=0x%X, p1=0x%X, p2=0x%X, p3=0x%X", event.Nparam,event.Code,event.Transaction_ID, event.Param1, event.Param2, event.Param3);
-		if (params->nrofevents)
-			params->events = realloc(params->events, sizeof(PTPContainer)*(params->nrofevents+1));
-		else
-			params->events = malloc(sizeof(PTPContainer)*1);
-		memcpy (&params->events[params->nrofevents],&event,1*sizeof(PTPContainer));
-		params->nrofevents += 1;
+		ptp_add_event (params, &event);
 	}
 	if (ret == PTP_ERROR_TIMEOUT) /* ok, just new events */
 		ret = PTP_RC_OK;
@@ -1769,10 +2334,9 @@ uint16_t
 ptp_check_eos_events (PTPParams *params) {
 	uint16_t		ret;
 	PTPCanon_changes_entry	*entries = NULL, *nentries;
-	int			nrofentries;
+	int			nrofentries = 0;
 
-	while (1) { /* try to read until we get no new events */
-		nrofentries = 0;
+	while (1) { /* call it repeatedly until the camera does not report any */
 		ret = ptp_canon_eos_getevent (params, &entries, &nrofentries);
 		if (ret != PTP_RC_OK)
 			return ret;
@@ -1895,6 +2459,11 @@ ptp_canon_eos_getobjectinfoex (
 	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &data, &size);
 	if (ret != PTP_RC_OK)
 		return ret;
+
+	if (!data) {
+		*nrofentries = 0;
+		return PTP_RC_OK;
+	}
 
 	*nrofentries = dtoh32a(data);
 	*entries = malloc(*nrofentries * sizeof(PTPCANONFolderEntry));
@@ -2376,6 +2945,10 @@ ptp_nikon_get_preview_image (PTPParams* params, unsigned char **xdata, unsigned 
         PTP_CNT_INIT(ptp);
         ptp.Code=PTP_OC_NIKON_GetPreviewImg;
         ptp.Nparam=0;
+	/* FIXME:
+	 * pdslrdashboard passes 3 parameters:
+	 * objectid, minimum size, maximum size
+	 */
         ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, xdata, xsize);
 	if (ret == PTP_RC_OK) {
 		if (ptp.Nparam > 0)
@@ -2404,6 +2977,18 @@ ptp_canon_eos_get_viewfinder_image (PTPParams* params, unsigned char **data, uns
         ptp.Nparam=1;
         ptp.Param1=0x00100000; /* from trace */
         return ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, data, size);
+}
+
+uint16_t
+ptp_canon_eos_get_viewfinder_image_handler (PTPParams* params, PTPDataHandler*handler)
+{
+        PTPContainer ptp;
+        
+        PTP_CNT_INIT(ptp);
+        ptp.Code=PTP_OC_CANON_EOS_GetViewFinderData;
+        ptp.Nparam=1;
+        ptp.Param1=0x00100000; /* from trace */
+        return ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, handler);
 }
 
 /**
@@ -2618,9 +3203,11 @@ ptp_nikon_writewifiprofile (PTPParams* params, PTPNIKONWifiProfile* profile)
 	ptp_pack_string(params, "19990909T090909", data, 0x19, &len);
 	
 	/* IP parameters */
-	*((unsigned int*)&buffer[0x3A]) = profile->ip_address; /* Do not reverse bytes */
+	memcpy(&buffer[0x3A],&profile->ip_address,sizeof(profile->ip_address));
+	/**((unsigned int*)&buffer[0x3A]) = profile->ip_address; *//* Do not reverse bytes */
 	buffer[0x3E] = profile->subnet_mask;
-	*((unsigned int*)&buffer[0x3F]) = profile->gateway_address; /* Do not reverse bytes */
+	memcpy(&buffer[0x3F],&profile->gateway_address,sizeof(profile->gateway_address));
+	/**((unsigned int*)&buffer[0x3F]) = profile->gateway_address; */ /* Do not reverse bytes */
 	buffer[0x43] = profile->address_mode;
 	
 	/* Wifi parameters */
@@ -2851,8 +3438,31 @@ ptp_mtp_getobjectproplist (PTPParams* params, uint32_t handle, MTPProperties **p
 	ptp.Param1 = handle;
 	ptp.Param2 = 0x00000000U;  /* 0x00000000U should be "all formats" */
 	ptp.Param3 = 0xFFFFFFFFU;  /* 0xFFFFFFFFU should be "all properties" */
-	ptp.Param4 = 0x00000000U;  /* marks it unused */
-	ptp.Param5 = 0xFFFFFFFFU;  /* return full depth of all objects within the tree */
+	ptp.Param4 = 0x00000000U;
+	ptp.Param5 = 0xFFFFFFFFU;  /* means - return full tree below the Param1 handle */
+	ptp.Nparam = 5;
+	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &opldata, &oplsize);  
+	if (ret == PTP_RC_OK) *nrofprops = ptp_unpack_OPL(params, opldata, props, oplsize);
+	if (opldata != NULL)
+		free(opldata);
+	return ret;
+}
+
+uint16_t
+ptp_mtp_getobjectproplist_single (PTPParams* params, uint32_t handle, MTPProperties **props, int *nrofprops)
+{
+	uint16_t ret;
+	PTPContainer ptp;
+	unsigned char* opldata = NULL;
+	unsigned int oplsize;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code = PTP_OC_MTP_GetObjPropList;
+	ptp.Param1 = handle;
+	ptp.Param2 = 0x00000000U;  /* 0x00000000U should be "all formats" */
+	ptp.Param3 = 0xFFFFFFFFU;  /* 0xFFFFFFFFU should be "all properties" */
+	ptp.Param4 = 0x00000000U;
+	ptp.Param5 = 0x00000000U;  /* means - return single tree below the Param1 handle */
 	ptp.Nparam = 5;
 	ret = ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, &opldata, &oplsize);  
 	if (ret == PTP_RC_OK) *nrofprops = ptp_unpack_OPL(params, opldata, props, oplsize);
@@ -2907,6 +3517,28 @@ ptp_mtp_setobjectproplist (PTPParams* params, MTPProperties *props, int nrofprop
 	free(opldata);
 
 	return ret;
+}
+
+uint16_t
+ptp_mtpz_sendwmdrmpdapprequest (PTPParams* params, unsigned char *appcertmsg, uint32_t size)
+{
+	PTPContainer ptp;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code=PTP_OC_MTP_WMDRMPD_SendWMDRMPDAppRequest;
+	return ptp_transaction (params, &ptp, PTP_DP_SENDDATA, size, &appcertmsg, NULL);
+}
+
+uint16_t
+ptp_mtpz_getwmdrmpdappresponse (PTPParams* params, unsigned char **response, uint32_t *size)
+{
+	PTPContainer ptp;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code = PTP_OC_MTP_WMDRMPD_GetWMDRMPDAppResponse;
+	*size = 0;
+	*response = NULL;
+	return ptp_transaction (params, &ptp, PTP_DP_GETDATA, 0, response, size);
 }
 
 /****** CHDK interface ******/
@@ -3239,24 +3871,70 @@ ptp_chdk_get_video_settings(PTPParams* params, ptp_chdk_videosettings* vsettings
 	return ret;
 }
 
-uint16_t
-ptp_olympus_getdeviceinfo (PTPParams* params, PTPDeviceInfo *deviceinfo) {
-	uint16_t 	ret;
-	unsigned long	len;
-	PTPContainer	ptp;
-	unsigned char*	di=NULL;
-	PTPDataHandler	handler;
 
-	ptp_init_recv_memory_handler (&handler);
+/**
+ * Android MTP Extensions
+ */
+
+/**
+ * ptp_android_getpartialobject64:
+ * params:	PTPParams*
+ *		handle			- Object handle
+ *		offset			- Offset into object
+ *		maxbytes		- Maximum of bytes to read
+ *		object			- pointer to data area
+ *		len			- pointer to returned length
+ *
+ * Get object 'handle' from device and store the data in newly
+ * allocated 'object'. Start from offset and read at most maxbytes.
+ *
+ * This is a 64bit offset version of the standard GetPartialObject.
+ *
+ * Return values: Some PTP_RC_* code.
+ **/
+uint16_t
+ptp_android_getpartialobject64 (PTPParams* params, uint32_t handle, uint64_t offset,
+				uint32_t maxbytes, unsigned char** object,
+				uint32_t *len)
+{
+	PTPContainer ptp;
+
 	PTP_CNT_INIT(ptp);
-	ptp.Code = PTP_OC_OLYMPUS_GetDeviceInfo;
-	ptp.Nparam=0;
-	ret=ptp_transaction_new(params, &ptp, PTP_DP_GETDATA, 0, &handler);
-	ptp_exit_recv_memory_handler (&handler, &di, &len);
-	if (!di) ret = PTP_RC_GeneralError;
-	if (ret == PTP_RC_OK) ptp_unpack_DI(params, di, deviceinfo, len);
-	free(di);
-	return ret;
+	ptp.Code=PTP_OC_ANDROID_GetPartialObject64;
+	ptp.Param1=handle;
+	ptp.Param2=offset & 0xFFFFFFFF;
+	ptp.Param3=offset >> 32;
+	ptp.Param4=maxbytes;
+	ptp.Nparam=4;
+	*len=0;
+	return ptp_transaction(params, &ptp, PTP_DP_GETDATA, 0, object, len);
+}
+
+uint16_t
+ptp_android_sendpartialobject (PTPParams* params, uint32_t handle, uint64_t offset,
+				unsigned char* object,	uint32_t len)
+{
+	uint32_t err;
+	PTPContainer ptp;
+
+	PTP_CNT_INIT(ptp);
+	ptp.Code=PTP_OC_ANDROID_SendPartialObject;
+	ptp.Param1=handle;
+	ptp.Param2=offset & 0xFFFFFFFF;
+	ptp.Param3=offset >> 32;
+	ptp.Param4=len;
+	ptp.Nparam=4;
+
+	/*
+	 * MtpServer.cpp is buggy: it uses write() without offset
+	 * rather than pwrite to send the data for data coming with
+	 * the header packet
+	 */
+	params->split_header_data = 1;
+	err=ptp_transaction(params, &ptp, PTP_DP_SENDDATA, len, &object, NULL);
+	params->split_header_data = 0;
+
+	return err;
 }
 
 
@@ -3287,88 +3965,6 @@ ptp_property_issupported(PTPParams* params, uint16_t property)
 	return 0;
 }
 
-/* ptp structures freeing functions */
-void
-ptp_free_devicepropvalue(uint16_t dt, PTPPropertyValue* dpd) {
-	switch (dt) {
-	case PTP_DTC_INT8:	case PTP_DTC_UINT8:
-	case PTP_DTC_UINT16:	case PTP_DTC_INT16:
-	case PTP_DTC_UINT32:	case PTP_DTC_INT32:
-	case PTP_DTC_UINT64:	case PTP_DTC_INT64:
-	case PTP_DTC_UINT128:	case PTP_DTC_INT128:
-		/* Nothing to free */
-		break;
-	case PTP_DTC_AINT8:	case PTP_DTC_AUINT8:
-	case PTP_DTC_AUINT16:	case PTP_DTC_AINT16:
-	case PTP_DTC_AUINT32:	case PTP_DTC_AINT32:
-	case PTP_DTC_AUINT64:	case PTP_DTC_AINT64:
-	case PTP_DTC_AUINT128:	case PTP_DTC_AINT128:
-		if (dpd->a.v)
-			free(dpd->a.v);
-		break;
-	case PTP_DTC_STR:
-		if (dpd->str)
-			free(dpd->str);
-		break;
-	}
-}
-
-void
-ptp_free_devicepropdesc(PTPDevicePropDesc* dpd)
-{
-	uint16_t i;
-
-	ptp_free_devicepropvalue (dpd->DataType, &dpd->FactoryDefaultValue);
-	ptp_free_devicepropvalue (dpd->DataType, &dpd->CurrentValue);
-	switch (dpd->FormFlag) {
-	case PTP_DPFF_Range:
-		ptp_free_devicepropvalue (dpd->DataType, &dpd->FORM.Range.MinimumValue);
-		ptp_free_devicepropvalue (dpd->DataType, &dpd->FORM.Range.MaximumValue);
-		ptp_free_devicepropvalue (dpd->DataType, &dpd->FORM.Range.StepSize);
-		break;
-	case PTP_DPFF_Enumeration:
-		if (dpd->FORM.Enum.SupportedValue) {
-			for (i=0;i<dpd->FORM.Enum.NumberOfValues;i++)
-				ptp_free_devicepropvalue (dpd->DataType, dpd->FORM.Enum.SupportedValue+i);
-			free (dpd->FORM.Enum.SupportedValue);
-		}
-	}
-}
-
-void
-ptp_free_objectpropdesc(PTPObjectPropDesc* opd)
-{
-	uint16_t i;
-
-	ptp_free_devicepropvalue (opd->DataType, &opd->FactoryDefaultValue);
-	switch (opd->FormFlag) {
-	case PTP_OPFF_None:
-		break;
-	case PTP_OPFF_Range:
-		ptp_free_devicepropvalue (opd->DataType, &opd->FORM.Range.MinimumValue);
-		ptp_free_devicepropvalue (opd->DataType, &opd->FORM.Range.MaximumValue);
-		ptp_free_devicepropvalue (opd->DataType, &opd->FORM.Range.StepSize);
-		break;
-	case PTP_OPFF_Enumeration:
-		if (opd->FORM.Enum.SupportedValue) {
-			for (i=0;i<opd->FORM.Enum.NumberOfValues;i++)
-				ptp_free_devicepropvalue (opd->DataType, opd->FORM.Enum.SupportedValue+i);
-			free (opd->FORM.Enum.SupportedValue);
-		}
-		break;
-	case PTP_OPFF_DateTime:
-	case PTP_OPFF_FixedLengthArray:
-	case PTP_OPFF_RegularExpression:
-	case PTP_OPFF_ByteArray:
-	case PTP_OPFF_LongString:
-		/* Ignore these presently, we cannot unpack them, so there is nothing to be freed. */
-		break;
-	default:
-		fprintf (stderr, "Unknown OPFF type %d\n", opd->FormFlag);
-		break;
-	}
-}
-
 void
 ptp_free_objectinfo (PTPObjectInfo *oi)
 {
@@ -3377,8 +3973,20 @@ ptp_free_objectinfo (PTPObjectInfo *oi)
         free (oi->Keywords); oi->Keywords = NULL;
 }
 
-void 
-ptp_perror(PTPParams* params, uint16_t error) {
+void
+ptp_free_object (PTPObject *ob)
+{
+	int i;
+	if (!ob) return;
+
+	ptp_free_objectinfo (&ob->oi);
+	for (i=0;i<ob->nrofmtpprops;i++)
+		ptp_destroy_object_prop(&ob->mtpprops[i]);
+	ob->flags = 0;
+}
+
+const char *
+ptp_strerror(uint16_t error) {
 
 	int i;
 	/* PTP error descriptions */
@@ -3435,7 +4043,15 @@ ptp_perror(PTPParams* params, uint16_t error) {
 
 	for (i=0; ptp_errors[i].txt!=NULL; i++)
 		if (ptp_errors[i].n == error)
-			ptp_error(params, ptp_errors[i].txt);
+			return ptp_errors[i].txt;
+	return NULL;
+}
+
+void
+ptp_perror(PTPParams* params, uint16_t error) {
+	const char *txt = ptp_strerror(error);
+	if (txt != NULL)
+		ptp_error(params, txt);
 }
 
 const char*
@@ -3652,6 +4268,14 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Color Space")},
 		{PTP_DPC_NIKON_AutoDXCrop,			/* 0xD033 */
 		 N_("Auto DX Crop")},
+		{PTP_DPC_NIKON_FlickerReduction,		/* 0xD034 */
+		 N_("Flicker Reduction")},
+		{PTP_DPC_NIKON_RemoteMode,			/* 0xD035 */
+		 N_("Remote Mode")},
+		{PTP_DPC_NIKON_VideoMode,			/* 0xD036 */
+		 N_("Video Mode")},
+		{PTP_DPC_NIKON_EffectMode,			/* 0xD037 */
+		 N_("Effect Mode")},
 		{PTP_DPC_NIKON_CSMMenuBankSelect,		/* 0xD040 */
 		 "PTP_DPC_NIKON_CSMMenuBankSelect"},
 		{PTP_DPC_NIKON_MenuBankNameA,			/* 0xD041 */
@@ -3722,6 +4346,8 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("LCD Off Time")},
 		{PTP_DPC_NIKON_ImgConfTime,			/* 0xD065 */
 		 N_("Img Conf Time")},
+		{PTP_DPC_NIKON_AutoOffTimers,			/* 0xD066 */
+		 N_("Auto Off Timers")},
 		{PTP_DPC_NIKON_AngleLevel,			/* 0xD067 */
 		 N_("Angle Level")},
 		{PTP_DPC_NIKON_D1ShootingSpeed,			/* 0xD068 */
@@ -3795,6 +4421,8 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("AF Area Point")},
 		{PTP_DPC_NIKON_NormalAFOn,			/* 0xD08E */
 		 N_("Normal AF On")},
+		{PTP_DPC_NIKON_CleanImageSensor,		/* 0xD08F */
+		 N_("Clean Image Sensor")},
 		{PTP_DPC_NIKON_ImageCommentString,		/* 0xD090 */
 		 N_("Image Comment String")},
 		{PTP_DPC_NIKON_ImageCommentEnable,		/* 0xD091 */
@@ -3807,6 +4435,14 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Movie Screen Size")},
 		{PTP_DPC_NIKON_MovVoice,			/* 0xD0A1 */
 		 N_("Movie Voice")},
+		{PTP_DPC_NIKON_MovMicrophone,			/* 0xD0A2 */
+		 N_("Movie Microphone")},
+		{PTP_DPC_NIKON_MovFileSlot,			/* 0xD0A3 */
+		 N_("Movie Card Slot")},
+		{PTP_DPC_NIKON_ManualMovieSetting,		/* 0xD0A6 */
+		 N_("Manual Movie Setting")},
+		{PTP_DPC_NIKON_MonitorOffDelay,			/* 0xD0B3 */
+		 N_("Monitor Off Delay")},
 		{PTP_DPC_NIKON_Bracketing,			/* 0xD0C0 */
 		 N_("Bracketing Enable")},
 		{PTP_DPC_NIKON_AutoExposureBracketStep,		/* 0xD0C1 */
@@ -3843,6 +4479,10 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Self Timer Shot Number")},
 		{PTP_DPC_NIKON_VignetteCtrl,			/* 0xD0F7 */
 		 N_("Vignette Control")},
+		{PTP_DPC_NIKON_AutoDistortionControl,		/* 0xD0F8 */
+		 N_("Auto Distortion Control")},
+		{PTP_DPC_NIKON_SceneMode,			/* 0xD0F9 */
+		 N_("Scene Mode")},
 		{PTP_DPC_NIKON_ExposureTime,			/* 0xD100 */
 		 N_("Nikon Exposure Time")},
 		{PTP_DPC_NIKON_ACPower, N_("AC Power")},	/* 0xD101 */
@@ -3896,6 +4536,12 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("External Flash Mode")},
 		{PTP_DPC_NIKON_FlashExposureCompensation,	/* 0xD126 */
 		 N_("Flash Exposure Compensation")},
+		{PTP_DPC_NIKON_HDRMode,				/* 0xD130 */
+		 N_("HDR Mode")},
+		{PTP_DPC_NIKON_HDRHighDynamic,			/* 0xD131 */
+		 N_("HDR High Dynamic")},
+		{PTP_DPC_NIKON_HDRSmoothing,			/* 0xD132 */
+		 N_("HDR Smoothing")},
 		{PTP_DPC_NIKON_OptimizeImage,			/* 0xD140 */
 		 N_("Optimize Image")},
 		{PTP_DPC_NIKON_Saturation,			/* 0xD142 */
@@ -3946,7 +4592,7 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Flash Commander Mode")},
 		{PTP_DPC_NIKON_FlashSign,			/* 0xD169 */
 		 N_("Flash Sign")},
-		{PTP_DPC_NIKON_ISOAuto,				/* 0xD16A */
+		{PTP_DPC_NIKON_ISO_Auto,			/* 0xD16A */
 		 N_("ISO Auto")},
 		{PTP_DPC_NIKON_RemoteTimeout,			/* 0xD16B */
 		 N_("Remote Timeout")},
@@ -3998,7 +4644,9 @@ ptp_get_property_description(PTPParams* params, uint16_t dpc)
 		 N_("Exposure Display Status")},
 		{PTP_DPC_NIKON_ExposureIndicateStatus,		/* 0xD1B1 */
 		 N_("Exposure Indicate Status")},
-		{PTP_DPC_NIKON_ExposureIndicateLightup,		/* 0xD1B2 */
+		{PTP_DPC_NIKON_InfoDispErrStatus,		/* 0xD1B2 */
+		 N_("Info Display Error Status")},
+		{PTP_DPC_NIKON_ExposureIndicateLightup,		/* 0xD1B3 */
 		 N_("Exposure Indicate Lightup")},
 		{PTP_DPC_NIKON_FlashOpen,			/* 0xD1C0 */
 		 N_("Flash Open")},
@@ -4185,6 +4833,7 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_NIKON_MaxApAtMaxFocalLength, PTP_VENDOR_NIKON, 0.01, 0.0, "f/%.2g"}, /* D0E6 */
 		{PTP_DPC_NIKON_ExternalFlashCompensation, PTP_VENDOR_NIKON, 1.0/6.0, 0.0,"%.0f"}, /* D124 */
 		{PTP_DPC_NIKON_ExposureIndicateStatus, PTP_VENDOR_NIKON, 0.08333, 0.0, N_("%.1f stops")},/* D1B1 - FIXME: check if correct. */
+		{PTP_DPC_NIKON_AngleLevel, PTP_VENDOR_NIKON, 1.0/65536, 0.0, "%.1f'"},/* 0xD067 */
 		{0, 0, 0.0, 0.0, NULL}
 	};
 
@@ -4394,6 +5043,9 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 		{PTP_DPC_NIKON_FinderISODisp, PTP_VENDOR_NIKON, 1, "Show ISO/Easy ISO"},
 		{PTP_DPC_NIKON_FinderISODisp, PTP_VENDOR_NIKON, 2, "Show frame count"},
 
+		{PTP_DPC_NIKON_RawCompression, PTP_VENDOR_NIKON, 0, N_("Lossless")},	/* D016 */
+		{PTP_DPC_NIKON_RawCompression, PTP_VENDOR_NIKON, 1, N_("Lossy")},
+
 		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ACPower,PTP_VENDOR_NIKON),		/* D101 */
 		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_AFLockStatus,PTP_VENDOR_NIKON),		/* D104 */
 		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_AELockStatus,PTP_VENDOR_NIKON),		/* D105 */
@@ -4531,6 +5183,22 @@ ptp_render_property_value(PTPParams* params, uint16_t dpc,
 
 		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FlashOpen,PTP_VENDOR_NIKON),		/* D1C0 */
 		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_FlashCharged,PTP_VENDOR_NIKON),		/* D1C1 */
+
+		PTP_VENDOR_VAL_YN(PTP_DPC_NIKON_ManualMovieSetting,PTP_VENDOR_NIKON),	/* 0xD0A6 */
+
+		{PTP_DPC_NIKON_FlickerReduction, PTP_VENDOR_NIKON, 0, "50Hz"},		/* 0xD034 */
+		{PTP_DPC_NIKON_FlickerReduction, PTP_VENDOR_NIKON, 1, "60Hz"},
+
+		{PTP_DPC_NIKON_RemoteMode, PTP_VENDOR_NIKON, 0, N_("Delayed Remote")},	/* 0xD035 */
+		{PTP_DPC_NIKON_RemoteMode, PTP_VENDOR_NIKON, 1, N_("Quick Response")},	/* 0xD035 */
+		{PTP_DPC_NIKON_RemoteMode, PTP_VENDOR_NIKON, 2, N_("Remote Mirror Up")},/* 0xD035 */
+
+		{PTP_DPC_NIKON_MonitorOffDelay, PTP_VENDOR_NIKON, 0, "5min"},	/* 0xD0b3 */
+		{PTP_DPC_NIKON_MonitorOffDelay, PTP_VENDOR_NIKON, 1, "10min"},	/* 0xD0b3 */
+		{PTP_DPC_NIKON_MonitorOffDelay, PTP_VENDOR_NIKON, 2, "15min"},	/* 0xD0b3 */
+		{PTP_DPC_NIKON_MonitorOffDelay, PTP_VENDOR_NIKON, 3, "20min"},	/* 0xD0b3 */
+		{PTP_DPC_NIKON_MonitorOffDelay, PTP_VENDOR_NIKON, 4, "30min"},	/* 0xD0b3 */
+
 
 		/* Canon stuff */
 		PTP_VENDOR_VAL_BOOL(PTP_DPC_CANON_AssistLight,PTP_VENDOR_CANON),
@@ -5023,7 +5691,14 @@ struct {
 	{PTP_OC_MTP_WMDRMND_GetWMDRMNDLicenseResponse,N_("Get WMDRM-ND License Response")},
 
 	/* WiFi Provisioning MTP Extension Codes (microsoft.com/WPDWCN: 1.0) */
-	{PTP_OC_MTP_WPDWCN_ProcessWFCObject,N_("Process WFC Object")}
+	{PTP_OC_MTP_WPDWCN_ProcessWFCObject,N_("Process WFC Object")},
+
+	/* Android Direct I/O Extensions */
+	{PTP_OC_ANDROID_GetPartialObject64,N_("Get Partial Object (64bit Offset)")},
+	{PTP_OC_ANDROID_SendPartialObject,N_("Send Partial Object")},
+	{PTP_OC_ANDROID_TruncateObject,N_("Truncate Object")},
+	{PTP_OC_ANDROID_BeginEditObject,N_("Begin Edit Object")},
+	{PTP_OC_ANDROID_EndEditObject,N_("End Edit Object")},
 };
 
 int
@@ -5293,16 +5968,19 @@ ptp_destroy_object_prop_list(MTPProperties *props, int nrofprops)
 MTPProperties *
 ptp_find_object_prop_in_cache(PTPParams *params, uint32_t const handle, uint32_t const attribute_id)
 {
-	int i;
-	MTPProperties *prop = params->props;
-	
-	if (!prop)
+	int	i;
+	MTPProperties	*prop;
+	PTPObject	*ob;
+	uint16_t	ret;
+
+	ret = ptp_object_find (params, handle, &ob);
+	if (ret != PTP_RC_OK)
 		return NULL;
-	
-	for (i=0;i<params->nrofprops;i++) {
-		if (handle == prop->ObjectHandle && attribute_id == prop->property)
+	prop = ob->mtpprops;
+	for (i=0;i<ob->nrofmtpprops;i++) {
+		if (attribute_id == prop->property)
 			return prop;
-		prop ++;
+		prop++;
 	}
 	return NULL;
 }
@@ -5311,108 +5989,364 @@ void
 ptp_remove_object_from_cache(PTPParams *params, uint32_t handle)
 {
 	int i;
+	PTPObject	*ob;
+	uint16_t	ret;
 
+	ret = ptp_object_find (params, handle, &ob);
+	if (ret != PTP_RC_OK)
+		return;
+	i = ob-params->objects;
 	/* remove object from object info cache */
-	for (i = 0; i < params->handles.n; i++) {
-		if (params->handles.Handler[i] == handle) {
-			ptp_free_objectinfo(&params->objectinfo[i]);
+	ptp_free_object (ob);
 
-			if (i < params->handles.n-1) {
-				memmove(params->handles.Handler+i, params->handles.Handler+i+1,
-					(params->handles.n-i-1)*sizeof(uint32_t));
-				memmove(params->objectinfo+i, params->objectinfo+i+1,
-					(params->handles.n-i-1)*sizeof(PTPObjectInfo));
-			}
-			params->handles.n--;
-			/* We use less memory than before so this shouldn't fail */
-			params->handles.Handler = realloc(params->handles.Handler, sizeof(uint32_t)*params->handles.n);
-			params->objectinfo = realloc(params->objectinfo, sizeof(PTPObjectInfo)*params->handles.n);
-			break;
-		}
-	}
-	
-	/* delete cached object properties if metadata cache exists */
-	if (params->props != NULL) {
-		int nrofoldprops = 0;
-		int firstoldprop = 0;
-		
-		for (i=0; i<params->nrofprops; i++) {
-			MTPProperties *prop = &params->props[i];
-			if (prop->ObjectHandle == handle)
-				{
-					nrofoldprops++;
-					if (nrofoldprops == 1) {
-						firstoldprop = i;
-					}
-				}
-		}
-		for (i=firstoldprop;i<(firstoldprop+nrofoldprops);i++) {
-			ptp_destroy_object_prop(&params->props[i]);
-		}
-		memmove(&params->props[firstoldprop], 
-			&params->props[firstoldprop+nrofoldprops], 
-			(params->nrofprops-firstoldprop-nrofoldprops)*sizeof(MTPProperties));
-		/* We use less memory than before so this shouldn't fail */
-		params->props = realloc(params->props, 
-					(params->nrofprops - nrofoldprops)*sizeof(MTPProperties));
-		params->nrofprops -= nrofoldprops;
-	}
+	if (i < params->nrofobjects-1)
+		memmove (ob,ob+1,(params->nrofobjects-1-i)*sizeof(PTPObject));
+	params->nrofobjects--;
+	/* We use less memory than before so this shouldn't fail */
+	params->objects = realloc(params->objects, sizeof(PTPObject)*params->nrofobjects);
 }
+
+static int _cmp_ob (const void *a, const void *b) {
+	PTPObject *oa = (PTPObject*)a;
+	PTPObject *ob = (PTPObject*)b;
+
+	return oa->oid - ob->oid;
+}
+	
+void
+ptp_objects_sort (PTPParams *params) {
+	qsort (params->objects, params->nrofobjects, sizeof(PTPObject), _cmp_ob);
+}
+
+/* Binary search in objects. Needs "objects" to be a sorted by objectid list!  */
+uint16_t
+ptp_object_find (PTPParams *params, uint32_t handle, PTPObject **retob) {
+	PTPObject	tmpob;
+
+	tmpob.oid = handle;
+	*retob = bsearch (&tmpob, params->objects, params->nrofobjects, sizeof(tmpob), _cmp_ob);
+	if (!*retob)
+		return PTP_RC_GeneralError;
+	return PTP_RC_OK;
+}
+
+/* Binary search in objects + insert of not found. Needs "objects" to be a sorted by objectid list!  */
+uint16_t
+ptp_object_find_or_insert (PTPParams *params, uint32_t handle, PTPObject **retob) {
+	int 		begin, end, cursor;
+	int		insertat;
+	PTPObject	*newobs;
+
+	if (!handle) return PTP_RC_GeneralError;
+	*retob = NULL;
+	if (!params->nrofobjects) {
+		params->objects = calloc(1,sizeof(PTPObject));
+		params->nrofobjects = 1;
+		params->objects[0].oid = handle;
+		*retob = &params->objects[0];
+		return PTP_RC_OK;
+	}
+	begin = 0;
+	end = params->nrofobjects-1;
+	/*ptp_debug (params, "searching %08x, total=%d", handle, params->nrofobjects);*/
+	while (1) {
+		cursor = (end-begin)/2+begin;
+		/*ptp_debug (params, "ob %d: %08x [%d-%d]", cursor, params->objects[cursor].oid, begin, end);*/
+		if (params->objects[cursor].oid == handle) {
+			*retob = &params->objects[cursor];
+			return PTP_RC_OK;
+		}
+		if (params->objects[cursor].oid < handle)
+			begin = cursor;
+		else
+			end = cursor;
+		if ((end - begin) <= 1)
+			break;
+	}
+	if (params->objects[begin].oid == handle) {
+		*retob = &params->objects[begin];
+		return PTP_RC_OK;
+	}
+	if (params->objects[end].oid == handle) {
+		*retob = &params->objects[end];
+		return PTP_RC_OK;
+	}
+	if ((begin == 0) && (handle < params->objects[0].oid)) {
+		insertat=begin;
+	} else {
+		if ((end == params->nrofobjects-1) && (handle > params->objects[end].oid))
+			insertat=end+1;
+		else
+			insertat=begin+1;
+	}
+	/*ptp_debug (params, "inserting oid %x at [%x,%x], begin=%d, end=%d, insertat=%d\n", handle, params->objects[begin].oid, params->objects[end].oid, begin, end, insertat);*/
+	newobs = realloc (params->objects, sizeof(PTPObject)*(params->nrofobjects+1));
+	if (!newobs) return PTP_RC_GeneralError;
+	params->objects = newobs;
+	if (insertat<=params->nrofobjects)
+		memmove (&params->objects[insertat+1],&params->objects[insertat],(params->nrofobjects-insertat)*sizeof(PTPObject));
+	memset(&params->objects[insertat],0,sizeof(PTPObject));
+	params->objects[insertat].oid = handle;
+	*retob = &params->objects[insertat];
+	params->nrofobjects++;
+	return PTP_RC_OK;
+}
+
+uint16_t
+ptp_object_want (PTPParams *params, uint32_t handle, int want, PTPObject **retob) {
+	uint16_t	ret;
+	PTPObject	*ob;
+	/*Camera 		*camera = ((PTPData *)params->data)->camera;*/
+
+	/* If GetObjectInfo is broken, force GetPropList */
+	if (params->device_flags & DEVICE_FLAG_PROPLIST_OVERRIDES_OI)
+		want |= PTPOBJECT_MTPPROPLIST_LOADED;
+
+	*retob = NULL;
+	if (!handle) {
+		ptp_debug (params, "ptp_object_want: querying handle 0?\n");
+		return PTP_RC_GeneralError;
+	}
+	ret = ptp_object_find_or_insert (params, handle, &ob);
+	if (ret != PTP_RC_OK)
+		return PTP_RC_GeneralError;
+	*retob = ob;
+	/* Do we have all of it already? */
+	if ((ob->flags & want) == want)
+		return PTP_RC_OK;
+
+#define X (PTPOBJECT_OBJECTINFO_LOADED|PTPOBJECT_STORAGEID_LOADED|PTPOBJECT_PARENTOBJECT_LOADED)
+	if ((want & X) && ((ob->flags & X) != X)) {
+		uint32_t	saveparent = 0;
+		
+		/* One EOS issue, where getobjecthandles(root) returns obs without root flag. */
+		if (ob->flags & PTPOBJECT_PARENTOBJECT_LOADED)
+			saveparent = ob->oi.ParentObject;
+
+		ret = ptp_getobjectinfo (params, handle, &ob->oi);
+		if (ret != PTP_RC_OK) {
+			/* kill it from the internal list ... */
+			ptp_remove_object_from_cache(params, handle);
+			return ret;
+		}
+		if (!ob->oi.Filename) ob->oi.Filename=strdup("<none>");
+		if (ob->flags & PTPOBJECT_PARENTOBJECT_LOADED)
+			ob->oi.ParentObject = saveparent;
+
+		/* Second EOS issue, 0x20000000 has 0x20000000 as parent */
+		if (ob->oi.ParentObject == handle)
+			ob->oi.ParentObject = 0;
+
+		/* Read out the canon special flags */
+		if ((params->deviceinfo.VendorExtensionID == PTP_VENDOR_CANON) &&
+		    ptp_operation_issupported(params,PTP_OC_CANON_GetObjectInfoEx)) {
+			PTPCANONFolderEntry *ents = NULL;
+			uint32_t            numents = 0;
+
+			ret = ptp_canon_getobjectinfo(params,
+				ob->oi.StorageID,0,
+				ob->oi.ParentObject,handle,
+				&ents,&numents
+			);
+			if ((ret == PTP_RC_OK) && (numents >= 1))
+				ob->canon_flags = ents[0].Flags;
+			free (ents);
+		}
+
+		ob->flags |= X;
+	}
+#undef X
+	if (	(want & PTPOBJECT_MTPPROPLIST_LOADED) &&
+		(!(ob->flags & PTPOBJECT_MTPPROPLIST_LOADED))
+	) {
+		int		nrofprops = 0;
+		MTPProperties 	*props = NULL;
+
+		if (params->device_flags & DEVICE_FLAG_BROKEN_MTPGETOBJPROPLIST) {
+			want &= ~PTPOBJECT_MTPPROPLIST_LOADED;
+			goto fallback;
+		}
+		/* Microsoft/MTP has fast directory retrieval. */
+		if (!ptp_operation_issupported(params,PTP_OC_MTP_GetObjPropList)) {
+			want &= ~PTPOBJECT_MTPPROPLIST_LOADED;
+			goto fallback;
+		}
+
+		ptp_debug (params, "ptp2/mtpfast: reading mtp proplist of %08x", handle);
+		/* We just want this one object, not all at once. */
+		ret = ptp_mtp_getobjectproplist_single (params, handle, &props, &nrofprops);
+		if (ret != PTP_RC_OK)
+			goto fallback;
+		ob->mtpprops = props;
+		ob->nrofmtpprops = nrofprops;
+
+		/* Override the ObjectInfo data with data from properties */
+		if (params->device_flags & DEVICE_FLAG_PROPLIST_OVERRIDES_OI) {
+			int i;
+			MTPProperties *prop = ob->mtpprops;
+
+			for (i=0;i<ob->nrofmtpprops;i++,prop++) {
+				/* in case we got all subtree objects */
+				if (prop->ObjectHandle != handle) continue;
+
+				switch (prop->property) {
+				case PTP_OPC_StorageID:
+					ob->oi.StorageID = prop->propval.u32;
+					break;
+				case PTP_OPC_ObjectFormat:
+					ob->oi.ObjectFormat = prop->propval.u16;
+					break;
+				case PTP_OPC_ProtectionStatus:
+					ob->oi.ProtectionStatus = prop->propval.u16;
+					break;
+				case PTP_OPC_ObjectSize:
+					if (prop->datatype == PTP_DTC_UINT64) {
+						if (prop->propval.u64 > 0xFFFFFFFFU)
+							ob->oi.ObjectCompressedSize = 0xFFFFFFFFU;
+						else
+							ob->oi.ObjectCompressedSize = (uint32_t)prop->propval.u64;
+					} else if (prop->datatype == PTP_DTC_UINT32) {
+						ob->oi.ObjectCompressedSize = prop->propval.u32;
+					}
+					break;
+				case PTP_OPC_AssociationType:
+					ob->oi.AssociationType = prop->propval.u16;
+					break;
+				case PTP_OPC_AssociationDesc:
+					ob->oi.AssociationDesc = prop->propval.u32;
+					break;
+				case PTP_OPC_ObjectFileName:
+					if (prop->propval.str) {
+						free(ob->oi.Filename);
+						ob->oi.Filename = strdup(prop->propval.str);
+					}
+					break;
+				case PTP_OPC_DateCreated:
+					ob->oi.CaptureDate = ptp_unpack_PTPTIME(prop->propval.str);
+					break;
+				case PTP_OPC_DateModified:
+					ob->oi.ModificationDate = ptp_unpack_PTPTIME(prop->propval.str);
+					break;
+				case PTP_OPC_Keywords:
+					if (prop->propval.str) {
+						free(ob->oi.Keywords);
+						ob->oi.Keywords = strdup(prop->propval.str);
+					}
+					break;
+				case PTP_OPC_ParentObject:
+					ob->oi.ParentObject = prop->propval.u32;
+					break;
+				}
+			}
+		}
+
+#if 0
+		MTPProperties 	*xpl;
+		int j;
+		PTPObjectInfo	oinfo;	
+
+		memset (&oinfo,0,sizeof(oinfo));
+		/* hmm, not necessary ... only if we would use it */
+		for (j=0;j<nrofprops;j++) {
+			xpl = &props[j];
+			switch (xpl->property) {
+			case PTP_OPC_ParentObject:
+				if (xpl->datatype != PTP_DTC_UINT32) {
+					ptp_debug (params, "ptp2/mtpfast: parentobject has type 0x%x???", xpl->datatype);
+					break;
+				}
+				oinfo.ParentObject = xpl->propval.u32;
+				ptp_debug (params, "ptp2/mtpfast: parent 0x%x", xpl->propval.u32);
+				break;
+			case PTP_OPC_ObjectFormat:
+				if (xpl->datatype != PTP_DTC_UINT16) {
+					ptp_debug (params, "ptp2/mtpfast: objectformat has type 0x%x???", xpl->datatype);
+					break;
+				}
+				oinfo.ObjectFormat = xpl->propval.u16;
+				ptp_debug (params, "ptp2/mtpfast: ofc 0x%x", xpl->propval.u16);
+				break;
+			case PTP_OPC_ObjectSize:
+				switch (xpl->datatype) {
+				case PTP_DTC_UINT32:
+					oinfo.ObjectCompressedSize = xpl->propval.u32;
+					break;
+				case PTP_DTC_UINT64:
+					oinfo.ObjectCompressedSize = xpl->propval.u64;
+					break;
+				default:
+					ptp_debug (params, "ptp2/mtpfast: objectsize has type 0x%x???", xpl->datatype);
+					break;
+				}
+				ptp_debug (params, "ptp2/mtpfast: objectsize %u", xpl->propval.u32);
+				break;
+			case PTP_OPC_StorageID:
+				if (xpl->datatype != PTP_DTC_UINT32) {
+					ptp_debug (params, "ptp2/mtpfast: storageid has type 0x%x???", xpl->datatype);
+					break;
+				}
+				oinfo.StorageID = xpl->propval.u32;
+				ptp_debug (params, "ptp2/mtpfast: storageid 0x%x", xpl->propval.u32);
+				break;
+			case PTP_OPC_ProtectionStatus:/*UINT16*/
+				if (xpl->datatype != PTP_DTC_UINT16) {
+					ptp_debug (params, "ptp2/mtpfast: protectionstatus has type 0x%x???", xpl->datatype);
+					break;
+				}
+				oinfo.ProtectionStatus = xpl->propval.u16;
+				ptp_debug (params, "ptp2/mtpfast: protection 0x%x", xpl->propval.u16);
+				break;
+			case PTP_OPC_ObjectFileName:
+				if (xpl->datatype != PTP_DTC_STR) {
+					ptp_debug (params, "ptp2/mtpfast: filename has type 0x%x???", xpl->datatype);
+					break;
+				}
+				if (xpl->propval.str) {
+					ptp_debug (params, "ptp2/mtpfast: filename %s", xpl->propval.str);
+					oinfo.Filename = strdup(xpl->propval.str);
+				} else {
+					oinfo.Filename = NULL;
+				}
+				break;
+			case PTP_OPC_DateCreated:
+				if (xpl->datatype != PTP_DTC_STR) {
+					ptp_debug (params, "ptp2/mtpfast: datecreated has type 0x%x???", xpl->datatype);
+					break;
+				}
+				ptp_debug (params, "ptp2/mtpfast: capturedate %s", xpl->propval.str);
+				oinfo.CaptureDate = ptp_unpack_PTPTIME (xpl->propval.str);
+				break;
+			case PTP_OPC_DateModified:
+				if (xpl->datatype != PTP_DTC_STR) {
+					ptp_debug (params, "ptp2/mtpfast: datemodified has type 0x%x???", xpl->datatype);
+					break;
+				}
+				ptp_debug (params, "ptp2/mtpfast: moddate %s", xpl->propval.str);
+				oinfo.ModificationDate = ptp_unpack_PTPTIME (xpl->propval.str);
+				break;
+			default:
+				if ((xpl->property & 0xfff0) == 0xdc00)
+					ptp_debug (params, "ptp2/mtpfast:case %x type %x unhandled", xpl->property, xpl->datatype);
+				break;
+			}
+		}
+		if (!oinfo.Filename)
+			/* i have one such file on my Creative */
+			oinfo.Filename = strdup("<null>");
+#endif
+		ob->flags |= PTPOBJECT_MTPPROPLIST_LOADED;
+fallback:	;
+	}
+	if ((ob->flags & want) == want)
+		return PTP_RC_OK;
+	ptp_debug (params, "ptp_object_want: oid 0x%08x, want flags %x, have only %x?", handle, want, ob->flags);
+	return PTP_RC_GeneralError;
+}
+
 
 uint16_t
 ptp_add_object_to_cache(PTPParams *params, uint32_t handle)
 {
-	uint32_t n;
-	uint32_t *xhandler;
-	PTPObjectInfo *xoi;
-	
-	/* We have a new handle */
-	params->handles.n++;
-	n = params->handles.n;
-	
-	/* Insert the new handle */
-	xhandler = (uint32_t*) realloc(params->handles.Handler,
-				       sizeof(uint32_t)*n);
-	if (!xhandler) {
-		/* Well, out of memory is no I/O error really... */
-		return PTP_ERROR_IO;
-	}
-	params->handles.Handler = xhandler;
-	params->handles.Handler[n-1] = handle;
-	
-	/* Insert a new object info struct and populate it */
-	xoi = (PTPObjectInfo*)realloc(params->objectinfo,
-				      sizeof(PTPObjectInfo)*n);
-	if (!xoi) {
-		/* Well, out of memory is no I/O error really... */
-		return PTP_ERROR_IO;
-	}
-	params->objectinfo = xoi;
-	memset(&params->objectinfo[n-1], 0, sizeof(PTPObjectInfo));
-	ptp_getobjectinfo(params, handle, &params->objectinfo[n-1]);
-
-	/* Update proplist if we use cached props */
-	if (params->props != NULL) {
-		MTPProperties *props = NULL;
-		MTPProperties *xprops;
-		int no_new_props = 0;
-		uint16_t ret;
-		
-		ret = ptp_mtp_getobjectproplist(params, handle, &props, &no_new_props);
-		if (ret != PTP_RC_OK) {
-			return ret;
-		}
-		xprops = realloc(params->props, (params->nrofprops+no_new_props)*sizeof(MTPProperties));
-		if (!xprops) {
-			free(props);
-			/* Well, out of memory is no I/O error really... */
-			return PTP_ERROR_IO;
-		}
-		params->props = xprops;
-		memcpy(&params->props[params->nrofprops],&props[0],no_new_props*sizeof(MTPProperties));
-		/* do not free the sub strings, we copied them above! Only free the array. */
-		free(props);
-		params->nrofprops += no_new_props;
-	}
-	return PTP_RC_OK;
+	PTPObject *ob;
+	return ptp_object_want (params, handle, PTPOBJECT_OBJECTINFO_LOADED|PTPOBJECT_MTPPROPLIST_LOADED, &ob);
 }

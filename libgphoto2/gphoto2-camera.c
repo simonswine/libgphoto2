@@ -3,7 +3,7 @@
  * Implement Camera object representing a camera attached to the system.
  *
  * \author Copyright 2000 Scott Fritzinger
- * \author Copyright 2001-2002 Lutz Müller <lutz@users.sf.net>
+ * \author Copyright 2001-2002 Lutz MÃ¼ller <lutz@users.sf.net>
  *
  * \note
  * This library is free software; you can redistribute it and/or
@@ -433,6 +433,7 @@ gp_camera_get_port_info (Camera *camera, GPPortInfo *info)
 int
 gp_camera_set_port_info (Camera *camera, GPPortInfo info)
 {
+	char	*name, *path;
 	CHECK_NULL (camera);
 
 	/*
@@ -442,8 +443,10 @@ gp_camera_set_port_info (Camera *camera, GPPortInfo info)
 	if (camera->pc->lh)
 		gp_camera_exit (camera, NULL);
 
+	gp_port_info_get_name (info, &name);
+	gp_port_info_get_path (info, &path);
 	gp_log (GP_LOG_DEBUG, "gphoto2-camera", "Setting port info for "
-		"port '%s' at '%s'...", info.name, info.path);
+		"port '%s' at '%s'...", name, path);
 	CR (camera, gp_port_set_info (camera->port, info), NULL);
 
 	return (GP_OK);
@@ -622,6 +625,69 @@ gp_camera_free (Camera *camera)
 	return (GP_OK);
 }
 
+/**
+ * Autodetect all detectable camera
+ *
+ * @param list a #CameraList that receives the autodetected cameras
+ * @param context a #GPContext
+ * @return a gphoto2 error code
+ *
+ * This camera will autodetected all cameras that can be autodetected.
+ * This will for instance detect all USB cameras.
+ *
+ *   CameraList *list;
+ *   gp_list_new (&list);
+ *   gp_camera_autodetect (list, context);
+ *   ... done! ...
+ */
+int
+gp_camera_autodetect (CameraList *list, GPContext *context)
+{
+	CameraAbilitiesList	*al = NULL;
+	GPPortInfoList		*il = NULL;
+	int			ret, i;
+	CameraList		*xlist = NULL;
+
+	ret = gp_list_new (&xlist);
+	if (ret < GP_OK) goto out;
+	if (!il) {
+		/* Load all the port drivers we have... */
+		ret = gp_port_info_list_new (&il);
+		if (ret < GP_OK) goto out;
+		ret = gp_port_info_list_load (il);
+		if (ret < 0) goto out;
+		ret = gp_port_info_list_count (il);
+		if (ret < 0) goto out;
+	}
+	/* Load all the camera drivers we have... */
+	ret = gp_abilities_list_new (&al);
+	if (ret < GP_OK) goto out;
+	ret = gp_abilities_list_load (al, context);
+	if (ret < GP_OK) goto out;
+
+	/* ... and autodetect the currently attached cameras. */
+        ret = gp_abilities_list_detect (al, il, xlist, context);
+	if (ret < GP_OK) goto out;
+
+	/* Filter out the "usb:" entry */
+        ret = gp_list_count (xlist);
+	if (ret < GP_OK) goto out;
+	for (i=0;i<ret;i++) {
+		const char *name, *value;
+
+		gp_list_get_name (xlist, i, &name);
+		gp_list_get_value (xlist, i, &value);
+		if (!strcmp ("usb:",value)) continue;
+		gp_list_append (list, name, value);
+	}
+out:
+	if (il) gp_port_info_list_free (il);
+	if (al) gp_abilities_list_free (al);
+	gp_list_free (xlist);
+	if (ret < GP_OK)
+		return ret;
+	return gp_list_count(list);
+}
 
 /**
  * Initiate a connection to the \c camera. 
@@ -631,11 +697,11 @@ gp_camera_free (Camera *camera)
  * @return a gphoto2 error code
  *
  * Before calling this function, the
- * \c camera should be set up using #gp_camera_set_port_path or
- * #gp_camera_set_port_name and #gp_camera_set_abilities. If that has been
+ * \c camera should be set up using gp_camera_set_port_path() or
+ * gp_camera_set_port_name() and gp_camera_set_abilities(). If that has been
  * omitted, gphoto2 tries to autodetect any cameras and chooses the first one
  * if any cameras are found. It is generally a good idea to call
- * #gp_camera_exit after transactions have been completed in order to give
+ * gp_camera_exit() after transactions have been completed in order to give
  * other applications the chance to access the camera, too.
  *
  */
@@ -664,9 +730,10 @@ gp_camera_init (Camera *camera, GPContext *context)
 	if (strcasecmp (camera->pc->a.model, "Directory Browse") &&
 	    !strcmp ("", camera->pc->a.model)) {
 		CameraAbilitiesList *al;
-		GPPortInfo	pinfo;
 		GPPortInfoList	*il;
 		int		m, p;
+		char		*ppath;
+		GPPortType	ptype;
 		GPPortInfo	info;
         	CameraList	*list;
 
@@ -674,13 +741,6 @@ gp_camera_init (Camera *camera, GPContext *context)
 		if (result < GP_OK)
 			return result;
 
-		result = gp_port_get_info (camera->port, &pinfo);
-		if (result < GP_OK)
-			return result;
-
-		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "pinfo.type %d", pinfo.type);
-		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "pinfo.path %s", pinfo.path);
-		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "pinfo.name %s", pinfo.name);
 		gp_log (GP_LOG_DEBUG, "gphoto2-camera", "Neither "
 			"port nor model set. Trying auto-detection...");
 
@@ -693,25 +753,26 @@ gp_camera_init (Camera *camera, GPContext *context)
 		if (!gp_list_count (list)) {
 			gp_abilities_list_free (al);
 			gp_port_info_list_free (il);
-			gp_context_error (context, _("Could not detect any camera"));
+			gp_context_error (context, _("Could not detect "
+					     "any camera"));
 			gp_list_free (list);
 			return (GP_ERROR_MODEL_NOT_FOUND);
 		}
 		p = 0;
-		/* if the port was set before, then use that entry. but not if it is "usb:" */
-		if (	(pinfo.type == GP_PORT_USB) &&
-			strlen(pinfo.path) &&
-			strcmp(pinfo.path,"usb:")
-		) {
+		gp_port_get_info (camera->port, &info);
+		gp_port_info_get_path (info, &ppath);
+		gp_port_info_get_type (info, &ptype);
+		/* if the port was set before, then use that entry, but not if it is "usb:" */
+		if ((ptype == GP_PORT_USB) && strlen(ppath) && strcmp(ppath, "usb:")) {
 			for (p = gp_list_count (list);p--;) {
 				const char *xp;
 
 				gp_list_get_value (list, p, &xp);
-				if (!strcmp (xp, pinfo.path))
+				if (!strcmp (xp, ppath))
 					break;
 			}
 			if (p<0) {
-				gp_context_error (context, _("Could not detect any camera at port %s"), pinfo.path);
+				gp_context_error (context, _("Could not detect any camera at port %s"), ppath);
 				return (GP_ERROR_FILE_NOT_FOUND);
 			}
 		}
@@ -724,8 +785,8 @@ gp_camera_init (Camera *camera, GPContext *context)
 		CRSL (camera, gp_list_get_value (list, p, &port), context, list);
 		p = gp_port_info_list_lookup_path (il, port);
 		gp_port_info_list_get_info (il, p, &info);
-		gp_port_info_list_free (il);
 		CRSL (camera, gp_camera_set_port_info (camera, info), context, list);
+		gp_port_info_list_free (il);
 		gp_list_free (list);
 	}
 
@@ -824,7 +885,7 @@ gp_camera_get_config (Camera *camera, CameraWidget **window, GPContext *context)
 
 	if (!camera->functions->get_config) {
 		gp_context_error (context, _("This camera does "
-			"not offer any configuration options."));
+			"not provide any configuration options."));
 		CAMERA_UNUSED (camera, context);
                 return (GP_ERROR_NOT_SUPPORTED);
 	}
@@ -920,7 +981,7 @@ gp_camera_get_manual (Camera *camera, CameraText *manual, GPContext *context)
 
 	if (!camera->functions->manual) {
 		gp_context_error (context, _("This camera "
-			"does not offer a manual."));
+			"does not provide a manual."));
 		CAMERA_UNUSED (camera, context);
                 return (GP_ERROR_NOT_SUPPORTED);
 	}
@@ -998,6 +1059,34 @@ gp_camera_capture (Camera *camera, CameraCaptureType type,
 }
 
 /**
+ * Triggers capture of one or more images.
+ *
+ * @param camera a #Camera
+ * @param context a #GPContext
+ * @return a gphoto2 error code
+ *
+ * This functions just remotely causes the shutter release and returns
+ * immediately. You will want to run #gp_camera_wait_event until a image
+ * is added which can be downloaded using #gp_camera_file_get.
+ **/
+int
+gp_camera_trigger_capture (Camera *camera, GPContext *context)
+{
+	CHECK_NULL (camera);
+	CHECK_INIT (camera, context);
+
+	if (!camera->functions->trigger_capture) {
+		gp_context_error (context, _("This camera can not trigger capture."));
+		CAMERA_UNUSED (camera, context);
+                return (GP_ERROR_NOT_SUPPORTED);
+	}
+	CHECK_RESULT_OPEN_CLOSE (camera, camera->functions->trigger_capture (camera,
+						context), context);
+	CAMERA_UNUSED (camera, context);
+	return (GP_OK);
+}
+
+/**
  * Captures a preview that won't be stored on the camera but returned in 
  * supplied file. 
  *
@@ -1006,13 +1095,14 @@ gp_camera_capture (Camera *camera, CameraCaptureType type,
  * @param context a #GPContext
  * @return a gphoto2 error code
  *
- * For example, you could use #gp_capture_preview for taking some sample
- * pictures before calling #gp_capture.
+ * For example, you could use gp_capture_preview() for taking some sample
+ * pictures before calling gp_capture().
  *
  **/
 int
 gp_camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 {
+	char *xname;
 	CHECK_NULL (camera && file);
 	CHECK_INIT (camera, context);
 
@@ -1027,6 +1117,10 @@ gp_camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 
 	CHECK_RESULT_OPEN_CLOSE (camera, camera->functions->capture_preview (
 					camera, file, context), context);
+	gp_file_get_name_by_type (file, "capture_preview", GP_FILE_TYPE_NORMAL, &xname);
+	/* FIXME: Marcus ... will go away, just keep compatible now. */
+	gp_file_set_name (file, xname);
+	free (xname);
 
 	CAMERA_UNUSED (camera, context);
 	return (GP_OK);
@@ -1165,7 +1259,9 @@ gp_camera_folder_delete_all (Camera *camera, const char *folder,
  *
  **/
 int
-gp_camera_folder_put_file (Camera *camera, const char *folder,
+gp_camera_folder_put_file (Camera *camera,
+			   const char *folder, const char *filename,
+			   CameraFileType type,
 			   CameraFile *file, GPContext *context)
 {
 	gp_log (GP_LOG_DEBUG, "gphoto2-camera", "Uploading file into '%s'...",
@@ -1175,7 +1271,7 @@ gp_camera_folder_put_file (Camera *camera, const char *folder,
 	CHECK_INIT (camera, context);
 
 	CHECK_RESULT_OPEN_CLOSE (camera, gp_filesystem_put_file (camera->fs,
-					folder, file, context), context);
+					folder, filename, type, file, context), context);
 
 	CAMERA_UNUSED (camera, context);
 	return (GP_OK);
@@ -1244,11 +1340,6 @@ gp_camera_file_get_info (Camera *camera, const char *folder,
 	}
 	gp_file_unref (cfile);
 
-	/* We don't trust the camera libraries */
-	info->file.fields |= GP_FILE_INFO_NAME;
-	strncpy (info->file.name, file, sizeof (info->file.name));
-	info->preview.fields &= ~GP_FILE_INFO_NAME;
-
 	CAMERA_UNUSED (camera, context);
 	return (GP_OK);
 }
@@ -1316,6 +1407,49 @@ gp_camera_file_get (Camera *camera, const char *folder, const char *file,
   
 	CHECK_RESULT_OPEN_CLOSE (camera, gp_filesystem_get_file (camera->fs,
 			folder, file, type, camera_file, context), context);
+
+	CAMERA_UNUSED (camera, context);
+	return (GP_OK);
+}
+
+/**
+ * Reads a file partially from the #Camera.
+ *
+ * @param camera a #Camera
+ * @param folder a folder
+ * @param file the name of a file
+ * @param type the #CameraFileType
+ * @param offset the offset into the camera file
+ * @param data the buffer receiving the data
+ * @param size the size to be read and that was read
+ * @param context a #GPContext
+ * @return a gphoto2 error code
+ *
+ **/
+int
+gp_camera_file_read (Camera *camera, const char *folder, const char *file,
+		    CameraFileType type,
+		    uint64_t offset, char *buf, uint64_t *size,
+		    GPContext *context)
+{
+	gp_log (GP_LOG_DEBUG, "gphoto2-camera", "Getting file '%s' in "
+		"folder '%s'...", file, folder);
+
+	CHECK_NULL (camera && folder && file && buf && size);
+	CHECK_INIT (camera, context);
+
+	/* Did we get reasonable foldername/filename? */
+	if (strlen (folder) == 0) {
+		CAMERA_UNUSED (camera, context);
+		return (GP_ERROR_DIRECTORY_NOT_FOUND);
+	}
+	if (strlen (file) == 0) {
+		CAMERA_UNUSED (camera, context);
+		return (GP_ERROR_FILE_NOT_FOUND);
+	}
+  
+	CHECK_RESULT_OPEN_CLOSE (camera, gp_filesystem_read_file (camera->fs,
+			folder, file, type, offset, buf, size, context), context);
 
 	CAMERA_UNUSED (camera, context);
 	return (GP_OK);

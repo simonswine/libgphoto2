@@ -1,6 +1,6 @@
 /* SCSI commands to USB Mass storage devices port library for Linux
  * 
- *   Copyright (c) 2010 Hans de Goede <hdegoede@redhat.com>
+ *   Copyright (c) 2010-2012 Hans de Goede <hdegoede@redhat.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,9 +16,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+#define _BSD_SOURCE	/* for flock */
+
 #include "config.h"
 #include <gphoto2/gphoto2-port-library.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -28,6 +32,9 @@
 #endif
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
+#endif
+#ifdef HAVE_SYS_FILE_H
+# include <sys/file.h>
 #endif
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -39,9 +46,6 @@
 #endif
 #ifdef HAVE_SCSI_SG_H
 # include <scsi/sg.h>
-#endif
-#ifdef HAVE_LOCKDEV
-#  include <lockdev.h>
 #endif
 
 #include <gphoto2/gphoto2-port-result.h>
@@ -80,62 +84,43 @@ gp_port_library_type ()
 }
 
 static int
-gp_port_usbscsi_lock (GPPort *port, const char *path)
+gp_port_usbscsi_lock (GPPort *port)
 {
-#ifdef HAVE_LOCKDEV
-	int pid;
-
+#if HAVE_FLOCK
 	gp_log (GP_LOG_DEBUG, "gphoto2-port-usbscsi",
-		"Trying to lock '%s'...", path);
+		"Trying to lock '%s'...", port->settings.usbscsi.path);
 
-	pid = dev_lock (path);
-	if (pid) {
-		if (port) {
-			if (pid > 0)
-				gp_port_set_error (port, _("Device '%s' is "
-					"locked by pid %d"), path, pid);
-			else
-				gp_port_set_error (port, _("Device '%s' could "
-					"not be locked (dev_lock returned "
-					"%d)"), path, pid);
+	if (flock(port->pl->fd, LOCK_EX | LOCK_NB) != 0) {
+		switch (errno) {
+		case EWOULDBLOCK:
+			gp_port_set_error (port,
+				_("Device '%s' is locked by another app."),
+				port->settings.usbscsi.path);
+			return GP_ERROR_IO_LOCK;
+		default:
+			gp_port_set_error (port,
+				_("Failed to lock '%s' (%m)."),
+				port->settings.usbscsi.path);
+			return GP_ERROR_IO;
 		}
-		return GP_ERROR_IO_LOCK;
 	}
 #else
-# ifdef __GCC__
-#  warning No locking library found. 
-#  warning You will run into problems if you use
-#  warning gphoto2 with a usbscsi picframe in 
-#  warning combination with Konqueror (KDE) or Nautilus (GNOME).
-#  warning This will *not* concern USB cameras.
-# endif
+	gp_log (GP_LOG_DEBUG, "gphoto2-port-usbscsi",
+		"Locking '%s' not possible, flock not availbale.", port->settings.usbscsi.path);
 #endif
-
 	return GP_OK;
 }
 
 static int
-gp_port_usbscsi_unlock (GPPort *port, const char *path)
+gp_port_usbscsi_unlock (GPPort *port)
 {
-#ifdef HAVE_LOCKDEV
-	int pid;
-
-	pid = dev_unlock (path, 0);
-	if (pid) {
-		if (port) {
-			if (pid > 0)
-				gp_port_set_error (port, _("Device '%s' could "
-					"not be unlocked as it is locked by "
-					"pid %d."), path, pid);
-			else
-				gp_port_set_error (port, _("Device '%s' could "
-					"not be unlocked (dev_unlock "
-					"returned %d)"), path, pid);
-		}
-		return GP_ERROR_IO_LOCK;
+#ifdef HAVE_FLOCK
+	if (flock(port->pl->fd, LOCK_UN) != 0) {
+		gp_port_set_error (port, _("Failed to unlock '%s' (%m)."),
+				   port->settings.usbscsi.path);
+		return GP_ERROR_IO;
 	}
-#endif /* !HAVE_LOCKDEV */
-
+#endif
 	return GP_OK;
 }
 
@@ -220,16 +205,18 @@ gp_port_library_list (GPPortInfoList *list)
 		return GP_OK;
 
 	while ((dirent = readdir (dir))) {
+		char path[4096];
 		if (gp_port_usbscsi_get_usb_id (dirent->d_name,
 				&vendor_id, &product_id) != GP_OK)
 			continue; /* Not a usb device */
 
-		info.type = GP_PORT_USB_SCSI;
-		snprintf (info.path, sizeof (info.path),
+		gp_port_info_new (&info);
+		gp_port_info_set_type (info, GP_PORT_USB_SCSI);
+		snprintf (path, sizeof (path),
 			  "usbscsi:/dev/%s",
 			  dirent->d_name);
-		snprintf (info.name, sizeof (info.name),
-			  _("USB Mass Storage raw SCSI"));
+		gp_port_info_set_path (info, path);
+		gp_port_info_set_name (info, _("USB Mass Storage raw SCSI"));
 		CHECK (gp_port_info_list_append (list, info))
 	}
 	closedir (dir);
@@ -269,33 +256,35 @@ gp_port_usbscsi_open (GPPort *port)
 	const int max_tries = 5;
 	const char *path = port->settings.usbscsi.path;
 
-	result = gp_port_usbscsi_lock (port, path);
-	if (result != GP_OK) {
-		for (i = 0; i < max_tries; i++) {
-			result = gp_port_usbscsi_lock (port, path);
-			if (result == GP_OK)
-				break;
-			gp_log (GP_LOG_DEBUG, "gphoto2-port-usbscsi",
-				"Failed to get a lock, trying again...");
-			sleep (1);
-		}
-		CHECK (result)
-	}
 	port->pl->fd = open (path, O_RDWR);
 	if (port->pl->fd == -1) {
-		gp_port_usbscsi_unlock (port, path);
 		gp_port_set_error (port, _("Failed to open '%s' (%m)."), path);
 		return GP_ERROR_IO;
 	}
 
-	return GP_OK;
+	result = gp_port_usbscsi_lock (port);
+	for (i = 0; i < max_tries && result == GP_ERROR_IO_LOCK; i++) {
+		gp_log (GP_LOG_DEBUG, "gphoto2-port-usbscsi",
+			"Failed to get a lock, trying again...");
+		sleep (1);
+		result = gp_port_usbscsi_lock (port);
+	}
+	if (result != GP_OK) {
+		close (port->pl->fd);
+		port->pl->fd = -1;
+	}
+	return result;
 }
 
 static int
 gp_port_usbscsi_close (GPPort *port)
 {
+	int result;
+
 	if (!port || port->pl->fd == -1)
 		return GP_OK;
+
+	result = gp_port_usbscsi_unlock (port);
 
 	if (close (port->pl->fd) == -1) {
 		gp_port_set_error (port, _("Could not close "
@@ -304,10 +293,7 @@ gp_port_usbscsi_close (GPPort *port)
 	}
 	port->pl->fd = -1;
 
-	CHECK (gp_port_usbscsi_unlock (port,
-					port->settings.usbscsi.path))
-
-	return GP_OK;
+	return result;
 }
 
 static int gp_port_usbscsi_send_scsi_cmd (GPPort *port, int to_dev, char *cmd,
@@ -338,36 +324,17 @@ static int gp_port_usbscsi_send_scsi_cmd (GPPort *port, int to_dev, char *cmd,
 	io_hdr.mx_sb_len = sense_size;
 	io_hdr.dxferp = (unsigned char *)data;
 	io_hdr.dxfer_len = data_size;
-	io_hdr.timeout = 500;
+	/*io_hdr.timeout = 1500;*/
+	io_hdr.timeout = port->timeout;
+	gp_log (GP_LOG_DEBUG, "port/usbscsi", "setting scsi command timeout to %d", port->timeout);
+	if (io_hdr.timeout < 1500)
+		io_hdr.timeout = 1500;
 
 	if (ioctl (port->pl->fd, SG_IO, &io_hdr) < 0)
 	{
 		gp_port_set_error (port, _("Could not send scsi command to: "
 			"'%s' (%m)."), port->settings.usbscsi.path);
 		return GP_ERROR_IO;
-	}
-	/* https://secure.wikimedia.org/wikipedia/en/wiki/Key_Code_Qualifier */
-	if (sense[0] != 0) {
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","Request Sense reports:");
-		if ((sense[0]&0x7f)!=0x70) {
-			gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tInvalid header.");
-			return GP_ERROR_IO;
-		}
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tCurrent command read filemark: %s",(sense[2]&0x80)?"yes":"no");
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tEarly warning passed: %s",(sense[2]&0x40)?"yes":"no");
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tIncorrect blocklengt: %s",(sense[2]&0x20)?"yes":"no");
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tSense Key: %d",sense[2]&0xf);
-		if (sense[0]&0x80)
-			gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tResidual Length: %d",sense[3]*0x1000000+sense[4]*0x10000+sense[5]*0x100+sense[6]);
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tAdditional Sense Length: %d",sense[7]);
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tAdditional Sense Code: %d",sense[12]);
-		gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tAdditional Sense Code Qualifier: %d",sense[13]);
-		if (sense[15]&0x80) {
-			gp_log(GP_LOG_DEBUG,"send_scsi_cmd","\tIllegal Param is in %s",(sense[15]&0x40)?"the CDB":"the Data Out Phase");
-			if (sense[15]&0x8) {
-				gp_log(GP_LOG_DEBUG,"send_scsi_cmd","Pointer at %d, bit %d",sense[16]*256+sense[17],sense[15]&0x7);
-			}
-		}
 	}
 	return GP_OK;
 #else

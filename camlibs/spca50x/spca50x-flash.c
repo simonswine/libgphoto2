@@ -26,6 +26,8 @@
 /* Free Software Foundation, Inc., 59 Temple Place - Suite 330, */
 /* Boston, MA 02111-1307, USA.                                  */
 /****************************************************************/
+#define _BSD_SOURCE
+
 #include "config.h"
 #include <string.h>
 #include <stdio.h>
@@ -981,7 +983,7 @@ spca50x_flash_init (CameraPrivateLibrary *pl, GPContext *context)
 	};
 
 	int len = sizeof (jpReg) / sizeof (jpReg[0]);
-	uint8_t bytes[4];
+	uint8_t bytes[7];
 	int i;
 
 	if (pl->fw_rev == 1) {
@@ -1023,11 +1025,8 @@ spca50x_flash_init (CameraPrivateLibrary *pl, GPContext *context)
 					NULL, 0x00));
 
 	} else {
-
-		uint8_t bytes[7];
 		time_t t;
 		struct tm *ftm;
-		int i;
 
 		/* firmware detection */
 		CHECK (gp_port_usb_msg_read (pl->gpdev, 0x20, 0x0000, 0x0000,

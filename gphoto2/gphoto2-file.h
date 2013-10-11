@@ -2,6 +2,7 @@
  * \brief Abstracted gphoto2 file operations.
  *
  * \author Copyright 2000 Scott Fritzinger
+ * \author Copyright 2008-2009 Marcus Meissner
  *
  * \note
  * This library is free software; you can redistribute it and/or
@@ -26,6 +27,7 @@
 #define __GPHOTO2_FILE_H__
 
 #include <time.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,8 +85,18 @@ typedef enum {
  */
 typedef enum {
 	GP_FILE_ACCESSTYPE_MEMORY,	/**< File is in system memory. */
-	GP_FILE_ACCESSTYPE_FD		/**< File is associated with a UNIX filedescriptor. */
+	GP_FILE_ACCESSTYPE_FD,		/**< File is associated with a UNIX filedescriptor. */
+	GP_FILE_ACCESSTYPE_HANDLER	/**< File is associated with a programmatic handler. */
 } CameraFileAccessType;
+
+/* FIXME: api might be unstable. function return gphoto results codes. */
+typedef struct _CameraFileHandler {
+	int (*size) (void*priv, uint64_t *size); /* only for read? */
+	int (*read) (void*priv, unsigned char *data, uint64_t *len);
+	int (*write) (void*priv, unsigned char *data, uint64_t *len);
+	/* FIXME: should we have both read/write methods? */
+	/* FIXME: how to finish method, due to LRU it might be longlived. */
+} CameraFileHandler;
 
 /*! \struct CameraFile
  * \brief File structure.
@@ -96,10 +108,28 @@ typedef struct _CameraFile CameraFile;
 
 int gp_file_new            (CameraFile **file);
 int gp_file_new_from_fd    (CameraFile **file, int fd);
+int gp_file_new_from_handler (CameraFile **file, CameraFileHandler *handler, void*priv);
 int gp_file_ref            (CameraFile *file);
 int gp_file_unref          (CameraFile *file);
 int gp_file_free           (CameraFile *file);
 
+int gp_file_set_name       (CameraFile *file, const char  *name);
+int gp_file_get_name       (CameraFile *file, const char **name);
+
+int gp_file_set_mime_type  (CameraFile *file, const char  *mime_type);
+int gp_file_get_mime_type  (CameraFile *file, const char **mime_type);
+
+int gp_file_set_mtime   (CameraFile *file, time_t  mtime);
+int gp_file_get_mtime   (CameraFile *file, time_t *mtime);
+
+int gp_file_detect_mime_type          (CameraFile *file);
+int gp_file_adjust_name_for_mime_type (CameraFile *file);
+int gp_file_get_name_by_type (CameraFile *file, const char *basename, CameraFileType type, char **newname);
+
+int gp_file_set_data_and_size (CameraFile*,       char *data,
+			       unsigned long int size);
+int gp_file_get_data_and_size (CameraFile*, const char **data,
+			       unsigned long int *size);
 /* "Do not use those"
  *
  * These functions probably were originally intended for internal use only.
@@ -129,29 +159,12 @@ int gp_file_save           (CameraFile *file, const char *filename);
 int gp_file_clean          (CameraFile *file);
 int gp_file_copy           (CameraFile *destination, CameraFile *source);
 
-int gp_file_set_name       (CameraFile *file, const char  *name);
-int gp_file_get_name       (CameraFile *file, const char **name);
 
-int gp_file_set_mime_type  (CameraFile *file, const char  *mime_type);
-int gp_file_get_mime_type  (CameraFile *file, const char **mime_type);
-
-int gp_file_set_type       (CameraFile *file, CameraFileType  type);
-int gp_file_get_type       (CameraFile *file, CameraFileType *type);
-
-int gp_file_set_mtime   (CameraFile *file, time_t  mtime);
-int gp_file_get_mtime   (CameraFile *file, time_t *mtime);
-
-int gp_file_detect_mime_type          (CameraFile *file);
-int gp_file_adjust_name_for_mime_type (CameraFile *file);
-
+/* These are for use by camera drivers only */
 int gp_file_append            (CameraFile*, const char *data,
 			       unsigned long int size);
 int gp_file_slurp             (CameraFile*, char *data,
 			       size_t size, size_t *readlen);
-int gp_file_set_data_and_size (CameraFile*,       char *data,
-			       unsigned long int size);
-int gp_file_get_data_and_size (CameraFile*, const char **data,
-			       unsigned long int *size);
 
 #ifdef __cplusplus
 }

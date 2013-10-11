@@ -12,6 +12,8 @@
  *
  ****************************************************************************/
 
+#define _BSD_SOURCE
+
 #include "config.h"
 
 #include <stdio.h>
@@ -964,7 +966,7 @@ canon_serial_error_type (Camera *camera)
  *
  */
 int
-canon_serial_put_file (Camera *camera, CameraFile *file, char *destname, char *destpath,
+canon_serial_put_file (Camera *camera, CameraFile *file, const char *name, const char *destname, const char *destpath,
 		       GPContext *context)
 {
 	unsigned char *msg;
@@ -978,11 +980,10 @@ canon_serial_put_file (Camera *camera, CameraFile *file, char *destname, char *d
 	int i, j = 0;
 	unsigned int len, hdr_len;
 	unsigned long int size;
-	const char *data, *name;
+	const char *data;
 	unsigned int id;
 
 	camera->pl->uploading = 1;
-	gp_file_get_name (file, &name);
 	for (i = 0; name[i]; i++)
 		filename[i] = toupper (name[i]);
 	filename[i] = '\0';

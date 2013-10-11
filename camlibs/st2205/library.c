@@ -16,6 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#define _BSD_SOURCE
 #include "config.h"
 
 #include <string.h>
@@ -248,13 +249,12 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 }
 
 static int
-put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
-	       void *data, GPContext *context)
+put_file_func (CameraFilesystem *fs, const char *folder, const char *name, 
+	CameraFileType type, CameraFile *file, void *data, GPContext *context)
 {
 #ifdef HAVE_GD
 	Camera *camera = data;
 	char *c, *in_name, *out_name, *filedata = NULL;
-	const char *name;
 	int ret, in_width, in_height, in_x, in_y;
 	size_t inc, outc;
 	double aspect_in, aspect_out;
@@ -268,8 +268,6 @@ put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
 
 	if (strcmp (folder, "/"))
 		return GP_ERROR_DIRECTORY_NOT_FOUND;
-
-	gp_file_get_name (file, &name);
 
 	inc = strlen (name);
 	in_name = strdup (name);

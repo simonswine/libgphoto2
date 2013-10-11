@@ -19,6 +19,8 @@
 *                                                                     *
 **********************************************************************/
 
+#define _BSD_SOURCE
+
 #include "config.h"
 
 #ifdef ENABLE_NLS
@@ -135,7 +137,6 @@ static int get_file_func (CameraFilesystem *fs, const char *folder,
 {
 	Camera *camera = data;
 	int file_number=0, result;
-	char buffer[128];
 
 	file_number = gp_filesystem_number(fs, folder, filename, context);
 	if (file_number < 0)
@@ -144,17 +145,10 @@ static int get_file_func (CameraFilesystem *fs, const char *folder,
 	switch (type) {
 	case GP_FILE_TYPE_NORMAL:
 		gp_file_set_mime_type (file, GP_MIME_JPEG);
-		gp_file_set_name (file, filename);
 		result = dimagev_get_picture (camera->pl, file_number + 1, file);
 		break;
 	case GP_FILE_TYPE_PREVIEW:
 		gp_file_set_mime_type (file, GP_MIME_PPM);
-#if defined HAVE_SNPRINTF
-		snprintf(buffer, sizeof(buffer), DIMAGEV_THUMBNAIL_FMT, ( file_number + 1) );
-#else
-		sprintf(buffer, DIMAGEV_THUMBNAIL_FMT, ( file_number + 1) );
-#endif 
-		gp_file_set_name (file, buffer);
 		result = dimagev_get_thumbnail (camera->pl, file_number + 1, file);
 		break;
 	default:
@@ -214,8 +208,8 @@ static int camera_capture (Camera *camera, CameraCaptureType type, CameraFilePat
 	return GP_OK;
 }
 
-static int put_file_func (CameraFilesystem *fs, const char *folder, 
-			  CameraFile *file, void *data, GPContext *context) 
+static int put_file_func (CameraFilesystem *fs, const char *folder, const char *name,
+			  CameraFileType type, CameraFile *file, void *data, GPContext *context) 
 {
 	Camera *camera = data;
 

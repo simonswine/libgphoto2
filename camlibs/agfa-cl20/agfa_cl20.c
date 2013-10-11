@@ -148,10 +148,10 @@ camera_exit (Camera *camera, GPContext *context)
 
 static int
 get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
-	       CameraFileType type, CameraFile *file, void *data,
+	       CameraFileType type, CameraFile *file, void *privdata,
 	       GPContext *context)
 {
-	Camera *camera = data;
+	Camera *camera = privdata;
 	int n = -1;
 	int size = -1;
 	unsigned char hb, lb;
@@ -234,7 +234,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 			size = size - app1len + 24;
 
 			gp_file_set_mime_type(file, GP_MIME_JPEG);
-			gp_file_set_name(file, filename);
 			gp_file_append(file, (char*)result, size);
 
 			free(result);
@@ -243,8 +242,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 
 		} else {
 			unsigned char * data;
-			unsigned char * ptr;
-			unsigned char * result = NULL;
 			char dummy;
 
 			gp_port_usb_msg_read(camera->port,0x00,0x0000,0x0521,&dummy,0x0001);
@@ -330,7 +327,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 			size = offset;
 
 			gp_file_set_mime_type(file, GP_MIME_PPM);
-			gp_file_set_name(file, filename);
 			gp_file_append(file, (char*)result, size);
 
 			free( result );
@@ -367,7 +363,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		size = size * 0x100;
 
 		gp_file_set_mime_type(file, GP_MIME_RAW);
-		gp_file_set_name(file, filename);
 		gp_file_append(file, (char*)result, size);
 
 		free( result );
@@ -432,7 +427,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		size = size - app1len + 24;
 
 		gp_file_set_mime_type(file, GP_MIME_JPEG);
-		gp_file_set_name(file, filename);
 		gp_file_append(file, (char*)result, size);
 
 		free(result);

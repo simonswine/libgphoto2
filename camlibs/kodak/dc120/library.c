@@ -1,8 +1,11 @@
+#define _BSD_SOURCE
+#define _POSIX_C_SOURCE 199309L
 #include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <gphoto2/gphoto2.h>
 
 #include "dc120.h"
@@ -285,10 +288,10 @@ int dc120_get_status (Camera *camera, Kodak_dc120_status *status, GPContext *con
         if( retval == (GP_OK) && status != NULL )
         {
 	    const char *data;
-	    long int  size;
+	    long int  lsize;
 
-	    gp_file_get_data_and_size( file, &data, &size );
-	    if( size<122 ) {
+	    gp_file_get_data_and_size( file, &data, &lsize );
+	    if( lsize<122 ) {
 	      gp_file_free (file);
 	      free (p);
 	      return (GP_ERROR);

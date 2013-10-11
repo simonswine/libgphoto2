@@ -76,9 +76,9 @@ static const struct {
 	{"Argus QuickClix", GP_DRIVER_STATUS_DEPRECATED, 0x093a, 0x010f},
 	{"Pixart Gemini Keychain Camera", GP_DRIVER_STATUS_TESTING, 0x093a, 0x010e},
 	{"Sakar Digital no. 56379 Spyshot", GP_DRIVER_STATUS_TESTING, 0x093a, 0x010e},
-	{"Sakar no. 1638x CyberPix", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010f},	
+	{"Sakar no. 1638x CyberPix", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010f},
 	{"Shift3", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010e},
-	{"Vivitar Mini Digital Camera", GP_DRIVER_STATUS_TESTING, 0x093a, 0x010e},	
+	{"Vivitar Mini Digital Camera", GP_DRIVER_STATUS_TESTING, 0x093a, 0x010e},
 	{NULL,0,0,0}
 };
 
@@ -269,7 +269,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		p_data[43] = ((raw_size)>>24)&0xff;		
 		memcpy (p_data+44, data, raw_size);
 		gp_file_set_mime_type(file, GP_MIME_WAV);
-		gp_file_set_name(file, filename);
 		gp_file_set_data_and_size(file, (char *)p_data , raw_size+44);
 		return GP_OK;
 	}
@@ -287,7 +286,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		if (!audio) 
 			data[6] = (data[6] | res_code);
 		gp_file_set_mime_type(file, GP_MIME_RAW);
-		gp_file_set_name(file, filename);
 		gp_file_set_data_and_size(file, (char *)data , raw_size );
 		return GP_OK;
 	}
@@ -323,7 +321,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	gp_gamma_correct_single (gtable, ptr, w * h);
 	mars_white_balance (ptr, w*h, 1.4, gamma_factor);
         gp_file_set_mime_type (file, GP_MIME_PPM);
-        gp_file_set_name (file, filename); 
 	gp_file_set_data_and_size (file, (char *)ppm, size);
 	free (p_data);
 
