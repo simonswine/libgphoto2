@@ -1,4 +1,4 @@
-# $Id: Makefile.am 12088 2009-05-16 22:25:13Z marcusmeissner $
+# $Id: Makefile.am 12090 2009-05-16 22:28:39Z marcusmeissner $
 #
 # create an RPM package out of an automake based source distribution
 # © 2001 Hans Ulrich Niedermann <gp@n-dimensional.de>

@@ -40,10 +40,8 @@ const char **gp_port_library_version(GPVersionVerbosity verbose)
 #else
 			"no ltdl",
 #endif
-#ifdef HAVE_LIBUSB1
-			"USB (libusb1)",
-#elif HAVE_LIBUSB
-			"USB (libusb0)",
+#ifdef HAVE_LIBUSB
+			"USB",
 #else
 			"no USB",
 #endif
@@ -80,8 +78,10 @@ const char **gp_port_library_version(GPVersionVerbosity verbose)
 #endif
 #ifdef HAVE_LIBUSB_WIN32
 			"USB (libusb-win32, for USB cameras)",
+#elif defined(HAVE_LIBUSB1)
+			"USB (libusb1, for USB cameras)",
 #elif defined(HAVE_LIBUSB)
-			"USB (libusb, for USB cameras)",
+			"USB (libusb0, for USB cameras)",
 #else
 			"no USB (for USB cameras)",
 #endif

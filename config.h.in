@@ -13,16 +13,11 @@
 /* The gettext domain we're using */
 #undef GETTEXT_PACKAGE
 
+/* Define if there is asm .symver support. */
+#undef HAVE_ASM_SYMVERS
+
 /* The C compiler we're using */
 #undef HAVE_CC
-
-/* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
-   CoreFoundation framework. */
-#undef HAVE_CFLOCALECOPYCURRENT
-
-/* Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in
-   the CoreFoundation framework. */
-#undef HAVE_CFPREFERENCESCOPYAPPVALUE
 
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
@@ -53,7 +48,7 @@
 /* Define to 1 if you have the `gmtime_r' function. */
 #undef HAVE_GMTIME_R
 
-/* Define if you have the iconv() function and it works. */
+/* Define if you have the iconv() function. */
 #undef HAVE_ICONV
 
 /* Define to 1 if you have the <inttypes.h> header file. */
@@ -70,6 +65,9 @@
 
 /* define if we found LIBJPEG and its headers */
 #undef HAVE_LIBJPEG
+
+/* define if we found LIBXML2 and its headers */
+#undef HAVE_LIBXML2
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -175,11 +173,17 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Whether we have the va_copy() function */
+#undef HAVE_VA_COPY
+
 /* Define to 1 if you have the `vsnprintf' function. */
 #undef HAVE_VSNPRINTF
 
 /* Define as const if the declaration of iconv() needs const. */
 #undef ICONV_CONST
+
+/* Whether the set of camlibs built is incomplete */
+#undef INCOMPLETE_CAMLIB_SET
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
@@ -254,6 +258,11 @@
 # endif
 #endif
 
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
@@ -271,3 +280,6 @@
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
+
+/* __va_copy() was the originally proposed name */
+#undef va_copy

@@ -19,6 +19,8 @@
  *
  */
 
+#define _BSD_SOURCE
+
 #include "config.h"
 
 #include "mesalib.h"
@@ -279,7 +281,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	if (num < 0)
 		return num;
 
-	gp_file_set_name (file, filename);
 	switch (type) {
 	case GP_FILE_TYPE_NORMAL:
 		data = Dimera_Get_Full_Image (num, &size,
@@ -347,9 +348,8 @@ static int get_info_func (CameraFilesystem *fs, const char *folder, const char *
 	info->preview.width = 64;
 	info->preview.height = 48;
 
-	info->file.fields = GP_FILE_INFO_ALL;
+	info->file.fields = GP_FILE_INFO_TYPE|GP_FILE_INFO_PERMISSIONS|GP_FILE_INFO_WIDTH|GP_FILE_INFO_HEIGHT|GP_FILE_INFO_SIZE;
 	strcpy(info->file.type, GP_MIME_PPM);
-	strcpy(info->file.name, filename);
 	info->file.permissions = GP_FILE_PERM_READ;
 
 	if (std_res) {
@@ -392,7 +392,6 @@ static int camera_capture_preview(Camera *camera, CameraFile *file, GPContext *c
         long size;
 	uint8_t *data;
 
-	gp_file_set_name (file, RAM_IMAGE_TEMPLATE);
 	gp_file_set_mime_type (file, GP_MIME_PGM);
 
         data = Dimera_Preview( &size, camera, context);

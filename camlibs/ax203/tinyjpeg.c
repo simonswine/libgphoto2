@@ -39,6 +39,8 @@
  *
  */
 
+#define _BSD_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -124,16 +126,16 @@ static const unsigned char zigzag[64] =
 #define fill_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted) do { \
    while (nbits_in_reservoir<nbits_wanted) \
     { \
-      unsigned char c; \
+      unsigned char __c; \
       if (stream >= priv->stream_end) { \
 	snprintf(priv->error_string, sizeof(priv->error_string), \
 	  "fill_nbits error: need %u more bits\n", \
 	  nbits_wanted - nbits_in_reservoir); \
 	longjmp(priv->jump_state, -EIO); \
       } \
-      c = *stream++; \
+      __c = *stream++; \
       reservoir <<= 8; \
-      reservoir |= c; \
+      reservoir |= __c; \
       nbits_in_reservoir+=8; \
     } \
 }  while(0);
@@ -544,15 +546,15 @@ static void decode_MCU_1x1_3planes(struct jdec_private *priv, int block_nr)
   priv->nbits_in_reservoir = 0;
   priv->reservoir = 0;
 
-  // Cb
+  /* Cb */
   process_Huffman_data_unit(priv, cCb, block_nr);
   IDCT(&priv->component_infos[cCb], priv->Cb, 8);
 
-  // Cr
+  /* Cr */
   process_Huffman_data_unit(priv, cCr, block_nr);
   IDCT(&priv->component_infos[cCr], priv->Cr, 8);
 
-  // Y
+  /* Y */
   process_Huffman_data_unit(priv, cY, block_nr);
   IDCT(&priv->component_infos[cY], priv->Y, 8);
 
@@ -573,15 +575,15 @@ static void decode_MCU_2x2_3planes(struct jdec_private *priv, int block_nr)
   priv->nbits_in_reservoir = 0;
   priv->reservoir = 0;
 
-  // Cb
+  /* Cb */
   process_Huffman_data_unit(priv, cCb, 0);
   IDCT(&priv->component_infos[cCb], priv->Cb, 8);
 
-  // Cr
+  /* Cr */
   process_Huffman_data_unit(priv, cCr, 0);
   IDCT(&priv->component_infos[cCr], priv->Cr, 8);
 
-  // Y
+  /* Y */
   process_Huffman_data_unit(priv, cY, block_nr);
   IDCT(&priv->component_infos[cY], priv->Y, 16);
   process_Huffman_data_unit(priv, cY, -1);
@@ -940,7 +942,7 @@ void tinyjpeg_get_size(struct jdec_private *priv, unsigned int *width, unsigned 
 int tinyjpeg_get_components(struct jdec_private *priv, unsigned char **components)
 {
   int i;
-  for (i=0; priv->components[i] && i<COMPONENTS; i++)
+  for (i=0; i<COMPONENTS && priv->components[i]; i++)
     components[i] = priv->components[i];
   return 0;
 }

@@ -18,6 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#define _BSD_SOURCE
+
 #include <config.h>
 
 #include <stdlib.h>
@@ -202,7 +204,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	unsigned int CAM_OFFSET;
 	unsigned char POST_CODE;
 	unsigned char compressed=0;
-	char name[16];
 	int ret = 0;
 
 	GP_DEBUG ("Downloading pictures!\n");
@@ -295,7 +296,6 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 			GP_DEBUG("CAM_OFFSET=%i\n",CAM_OFFSET);
 			frame_size = w*h;
 			gp_file_set_mime_type (file, GP_MIME_AVI);
-			gp_file_set_name (file, name); 
 			frame_data = malloc(frame_size);
 			if (!frame_data) {
 				free (frame_data);
@@ -435,13 +435,11 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		white_balance(ptr, w * h, 1.2);
 		GP_DEBUG("white_balance run on photo number %03d \n", k+1);
 		gp_file_set_mime_type (file, GP_MIME_PPM);
-		gp_file_set_name (file, filename); 
 		gp_file_set_data_and_size (file, (char *)ppm, size);
 		free (data);
 		return GP_OK;
 	case GP_FILE_TYPE_RAW: 
 		gp_file_set_mime_type(file, GP_MIME_RAW);
-		gp_file_set_name(file, filename);
 		gp_file_append( file, (char *)data, rawsize);
 		free(data);
 		GP_DEBUG("rawsize= 0x%x = %i\n", rawsize, rawsize);
@@ -539,11 +537,8 @@ camera_exit (Camera *camera, GPContext *context)
 
 static CameraFilesystemFuncs fsfuncs = {
 	.file_list_func = file_list_func,
-	.folder_list_func = NULL,
-	.get_info_func = NULL,
 	.get_file_func = get_file_func,
 	.del_file_func = delete_file_func,
-	.put_file_func = NULL, 
 	.delete_all_func = delete_all_func,
 };
 

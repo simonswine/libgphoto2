@@ -1,5 +1,5 @@
 /*
-        $Id: dc.c 12314 2009-07-30 21:00:08Z marcusmeissner $
+        $Id: dc.c 12305 2009-07-30 18:15:21Z dfandrich $
 
         Copyright © 2000 Mariusz Zynel <mariusz@mizar.org> (gPhoto port)
         Copyright © 2000 Fredrik Roubert <roubert@df.lth.se> (idea)

@@ -19,6 +19,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#define _BSD_SOURCE
+
 #include "config.h"
 
 #include <stdlib.h>
@@ -338,8 +340,6 @@ static int get_file_func(CameraFilesystem *fs, const char *folder,
 
 	if (!data)
 		return GP_ERROR;
-
-	gp_file_set_name(file, filename);
 
 	switch (type) {
 	case GP_FILE_TYPE_NORMAL:

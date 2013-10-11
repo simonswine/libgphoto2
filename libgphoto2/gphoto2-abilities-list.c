@@ -161,7 +161,7 @@ foreach_func (const char *filename, lt_ptr data)
 }
 
 
-static int
+int
 gp_abilities_list_load_dir (CameraAbilitiesList *list, const char *dir,
 			    GPContext *context)
 {
@@ -186,7 +186,6 @@ gp_abilities_list_load_dir (CameraAbilitiesList *list, const char *dir,
 		return ret;
 	}
 	if (1) { /* a new block in which we can define a temporary variable */
-		int ret;
 		foreach_data_t foreach_data = { NULL, GP_OK };
 		foreach_data.list = flist;
 		lt_dlinit ();
@@ -431,19 +430,26 @@ gp_abilities_list_detect (CameraAbilitiesList *list,
 	CHECK_RESULT (gp_port_new (&port));
 	for (i = 0; i < info_count; i++) {
 		int res;
+		char *xpath;
+		GPPortType	type;
 
 		CHECK_RESULT (gp_port_info_list_get_info (info_list, i, &info));
 		CHECK_RESULT (gp_port_set_info (port, info));
-		switch (info.type) {
+		gp_port_info_get_type (info, &type);
+		res = gp_port_info_get_path (info, &xpath);
+		if (res <GP_OK)
+			continue;
+		switch (type) {
 		case GP_PORT_USB:
 		case GP_PORT_USB_SCSI:
 		case GP_PORT_USB_DISK_DIRECT: {
 			int ability;
+			
 			res = gp_abilities_list_detect_usb (list, &ability, port);
 			if (res == GP_OK) {
 				gp_list_append(l,
 					list->abilities[ability].model,
-					info.path);
+					xpath);
 			} else if (res < 0)
 				gp_port_set_error (port, NULL);
 
@@ -453,7 +459,7 @@ gp_abilities_list_detect (CameraAbilitiesList *list,
 			char	*s, path[1024];
 			struct stat stbuf;
 		
-			s = strchr (info.path, ':');
+			s = strchr (xpath, ':');
 			if (!s)
 				break;
 			s++;
@@ -463,17 +469,17 @@ gp_abilities_list_detect (CameraAbilitiesList *list,
 				if (-1 == stat(path, &stbuf))
 					continue;
 			}
-			gp_list_append (l, "Mass Storage Camera", info.path);
+			gp_list_append (l, "Mass Storage Camera", xpath);
 			break;
 		}
 		case GP_PORT_PTPIP: {
 			char	*s;
 
-			s = strchr (info.path, ':');
+			s = strchr (xpath, ':');
 			if (!s) break;
 			s++;
 			if (!strlen(s)) break;
-			gp_list_append (l, "PTP/IP Camera", info.path);
+			gp_list_append (l, "PTP/IP Camera", xpath);
 			break;
 		}
 		default:

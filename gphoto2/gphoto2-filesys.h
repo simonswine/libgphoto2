@@ -2,6 +2,7 @@
  * \brief Filesystem related operations and declarations.
  *
  * \author Copyright 2000 Scott Fritzinger
+ * \author Copyright 2008-2009 Marcus Meissner
  *
  * \note
  * Contributions:
@@ -30,6 +31,7 @@
 #define __GPHOTO2_FILESYS_H__
 
 #include <time.h>
+#include <stdint.h>
 
 #include <gphoto2/gphoto2-context.h>
 #include <gphoto2/gphoto2-list.h>
@@ -53,7 +55,6 @@ extern "C" {
 typedef enum {
 	GP_FILE_INFO_NONE            = 0,	/**< \brief No fields set. */
 	GP_FILE_INFO_TYPE            = 1 << 0,	/**< \brief The MIME type is set. */
-	GP_FILE_INFO_NAME            = 1 << 1,	/**< \brief The name is set. */
 	GP_FILE_INFO_SIZE            = 1 << 2,	/**< \brief The filesize is set. */
 	GP_FILE_INFO_WIDTH           = 1 << 3,	/**< \brief The width is set. */
 	GP_FILE_INFO_HEIGHT          = 1 << 4,	/**< \brief The height is set. */
@@ -94,12 +95,10 @@ typedef enum {
 typedef struct _CameraFileInfoFile {
 	CameraFileInfoFields fields;	/**< \brief Bitmask containing the set members. */
 	CameraFileStatus status;	/**< \brief Status of the file. */
-	unsigned long size;		/**< \brief Size of the file. */
+	uint64_t size;			/**< \brief Size of the file. */
 	char type[64];			/**< \brief MIME type of the file. */
-
-	unsigned int width;		/**< \brief Height of the file. */
-	unsigned int height;		/**< \brief Width of the file. */
-	char name[64];			/**< \brief Filename of the file. */
+	uint32_t width;			/**< \brief Height of the file. */
+	uint32_t height;		/**< \brief Width of the file. */
 	CameraFilePermissions permissions;/**< \brief Permissions of the file. */
 	time_t mtime;			/**< \brief Modification time of the file. */
 } CameraFileInfoFile;
@@ -113,11 +112,11 @@ typedef struct _CameraFileInfoFile {
 typedef struct _CameraFileInfoPreview {
 	CameraFileInfoFields fields;	/**< \brief Bitmask containing the set members. */
 	CameraFileStatus status;	/**< \brief Status of the preview. */
-	unsigned long size;		/**< \brief Size of the preview. */
+	uint64_t size;			/**< \brief Size of the preview. */
 	char type[64];			/**< \brief MIME type of the preview. */
 
-	unsigned int width;		/**< \brief Width of the preview. */
-	unsigned int height;		/**< \brief Height of the preview. */
+	uint32_t width;			/**< \brief Width of the preview. */
+	uint32_t height;		/**< \brief Height of the preview. */
 } CameraFileInfoPreview;
 
 /**
@@ -129,7 +128,7 @@ typedef struct _CameraFileInfoPreview {
 typedef struct _CameraFileInfoAudio {
 	CameraFileInfoFields fields;	/**< \brief Bitmask containing the set members. */
 	CameraFileStatus status;	/**< \brief Status of the preview file. */
-	unsigned long size;		/**< \brief Size of the audio file. */
+	uint64_t size;		/**< \brief Size of the audio file. */
 	char type[64];			/**< \brief MIME type of the audio file. */
 } CameraFileInfoAudio;
 
@@ -220,9 +219,9 @@ typedef struct _CameraStorageInformation {
 	CameraStorageType		type;		/**< \brief Hardware type of the storage. */
 	CameraStorageFilesystemType	fstype;		/**< \brief Hierarchy type of the filesystem. */
 	CameraStorageAccessType		access;		/**< \brief Access permissions. */
-	unsigned long			capacitykbytes;	/**< \brief Total capacity in kbytes. */
-	unsigned long			freekbytes;	/**< \brief Free space in kbytes. */
-	unsigned long			freeimages;	/**< \brief Free space in images (guessed by camera). */
+	uint64_t			capacitykbytes;	/**< \brief Total capacity in kbytes. */
+	uint64_t			freekbytes;	/**< \brief Free space in kbytes. */
+	uint64_t			freeimages;	/**< \brief Free space in images (guessed by camera). */
 } CameraStorageInformation;
 
 /** 
@@ -240,9 +239,12 @@ int gp_filesystem_free	 (CameraFilesystem *fs);
 /* Manual editing */
 int gp_filesystem_append           (CameraFilesystem *fs, const char *folder,
 			            const char *filename, GPContext *context);
-int gp_filesystem_set_info_noop    (CameraFilesystem *fs, const char *folder,
+int gp_filesystem_set_info_noop    (CameraFilesystem *fs,
+				    const char *folder, const char *filename,
 				    CameraFileInfo info, GPContext *context);
-int gp_filesystem_set_file_noop    (CameraFilesystem *fs, const char *folder,
+int gp_filesystem_set_file_noop    (CameraFilesystem *fs,
+				    const char *folder, const char *filename,
+				    CameraFileType type,
 				    CameraFile *file, GPContext *context);
 int gp_filesystem_delete_file_noop (CameraFilesystem *fs, const char *folder,
 				    const char *filename, GPContext *context);
@@ -263,10 +265,6 @@ int gp_filesystem_number       (CameraFilesystem *fs, const char *folder,
 typedef int (*CameraFilesystemListFunc) (CameraFilesystem *fs,
 					 const char *folder, CameraList *list,
 					 void *data, GPContext *context);
-int gp_filesystem_set_list_funcs (CameraFilesystem *fs,
-				  CameraFilesystemListFunc file_list_func,
-				  CameraFilesystemListFunc folder_list_func,
-				  void *data);
 int gp_filesystem_list_files     (CameraFilesystem *fs, const char *folder,
 				  CameraList *list, GPContext *context);
 int gp_filesystem_list_folders   (CameraFilesystem *fs, const char *folder,
@@ -283,10 +281,6 @@ typedef int (*CameraFilesystemGetInfoFunc) (CameraFilesystem *fs,
 					    const char *filename,
 					    CameraFileInfo *info, void *data,
 					    GPContext *context);
-int gp_filesystem_set_info_funcs (CameraFilesystem *fs,
-				  CameraFilesystemGetInfoFunc get_info_func,
-				  CameraFilesystemSetInfoFunc set_info_func,
-				  void *data);
 int gp_filesystem_get_info       (CameraFilesystem *fs, const char *folder,
 				  const char *filename, CameraFileInfo *info,
 				  GPContext *context);
@@ -301,24 +295,36 @@ typedef int (*CameraFilesystemGetFileFunc)    (CameraFilesystem *fs,
 					       CameraFileType type,
 					       CameraFile *file, void *data,
 					       GPContext *context);
+typedef int (*CameraFilesystemReadFileFunc)    (CameraFilesystem *fs,
+					       const char *folder,
+					       const char *filename,
+					       CameraFileType type,
+					       uint64_t offset,
+					       char *buf,
+					       uint64_t *size,
+					       void *data,
+					       GPContext *context);
 typedef int (*CameraFilesystemDeleteFileFunc) (CameraFilesystem *fs,
 					       const char *folder,
 					       const char *filename,
 					       void *data, GPContext *context);
-int gp_filesystem_set_file_funcs (CameraFilesystem *fs,
-				  CameraFilesystemGetFileFunc get_file_func,
-				  CameraFilesystemDeleteFileFunc del_file_func,
-				  void *data);
 int gp_filesystem_get_file       (CameraFilesystem *fs, const char *folder,
 				  const char *filename, CameraFileType type,
 				  CameraFile *file, GPContext *context);
+int gp_filesystem_read_file	(CameraFilesystem *fs, const char *folder,
+				 const char *filename, CameraFileType type,
+				 uint64_t offset, char *buf, uint64_t *size,
+				 GPContext *context);
 int gp_filesystem_delete_file    (CameraFilesystem *fs, const char *folder,
 				  const char *filename, GPContext *context);
 
 /* Folders */
 typedef int (*CameraFilesystemPutFileFunc)   (CameraFilesystem *fs,
 					      const char *folder,
-					      CameraFile *file, void *data,
+					      const char *filename,
+					      CameraFileType type,
+					      CameraFile *file,
+					      void *data,
 					      GPContext *context);
 typedef int (*CameraFilesystemDeleteAllFunc) (CameraFilesystem *fs,
 					      const char *folder, void *data,
@@ -327,12 +333,6 @@ typedef int (*CameraFilesystemDirFunc)       (CameraFilesystem *fs,
 					      const char *folder,
 					      const char *name, void *data,
 					      GPContext *context);
-int gp_filesystem_set_folder_funcs (CameraFilesystem *fs,
-				  CameraFilesystemPutFileFunc put_file_func,
-				  CameraFilesystemDeleteAllFunc delete_all_func,
-				  CameraFilesystemDirFunc make_dir_func,
-				  CameraFilesystemDirFunc remove_dir_func,
-				  void *data);
 
 typedef int (*CameraFilesystemStorageInfoFunc) (CameraFilesystem *fs,
 					      CameraStorageInformation **,
@@ -355,8 +355,8 @@ struct _CameraFilesystemFuncs {
 	CameraFilesystemDirFunc		make_dir_func;
 	CameraFilesystemDirFunc		remove_dir_func;
 	CameraFilesystemGetFileFunc	get_file_func;
+	CameraFilesystemReadFileFunc	read_file_func;
 	CameraFilesystemDeleteFileFunc	del_file_func;
-
 	CameraFilesystemStorageInfoFunc	storage_info_func;
 
 	/* for later use. Remove one if you add a new function */
@@ -365,8 +365,8 @@ struct _CameraFilesystemFuncs {
 int gp_filesystem_set_funcs	(CameraFilesystem *fs,
 				 CameraFilesystemFuncs *funcs,
 				 void *data);
-int gp_filesystem_put_file   (CameraFilesystem *fs, const char *folder,
-			      CameraFile *file, GPContext *context);
+int gp_filesystem_put_file   (CameraFilesystem *fs, const char *folder, const char *filename,
+			      CameraFileType type, CameraFile *file, GPContext *context);
 int gp_filesystem_delete_all (CameraFilesystem *fs, const char *folder,
 			      GPContext *context);
 int gp_filesystem_make_dir   (CameraFilesystem *fs, const char *folder,

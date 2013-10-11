@@ -23,23 +23,12 @@
 
 #include "samples.h"
 
-struct timeval starttime;
+static void errordumper(GPLogLevel level, const char *domain, const char *str,
+                 void *data) {
+  struct timeval tv;
 
-static void errordumper(GPLogLevel level, const char *domain, const char *format,
-                 va_list args, void *data) {
-	struct timeval tv;
-
-	gettimeofday(&tv,NULL);
-	tv.tv_sec -= starttime.tv_sec;
-	tv.tv_usec -= starttime.tv_usec;
-	if (tv.tv_usec <0) {
-		tv.tv_usec += 1000000;
-		tv.tv_sec--;
-	}
-	fprintf(stdout,"%d.%06d: ", (int)tv.tv_sec, (int)tv.tv_usec);
-	vfprintf(stdout, format, args);
-	fprintf(stdout, "\n");
-	fflush (stdout);
+  gettimeofday (&tv, NULL);
+  fprintf(stdout, "%d.%d: %s\n", tv.tv_sec, tv.tv_usec, str);
 }
 
 /* This seems to have no effect on where images go
@@ -140,7 +129,6 @@ main(int argc, char **argv) {
 	int	retval;
 	GPContext *canoncontext = sample_create_context();
 
-	gettimeofday(&starttime,NULL);
 	gp_log_add_func(GP_LOG_ERROR, errordumper, NULL);
 	gp_camera_new(&canon);
 

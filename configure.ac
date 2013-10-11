@@ -4,8 +4,9 @@ AC_PREREQ(2.59)
 dnl NOTE: Be version style _higher_ than the last release.
 dnl       So lastversion.X.trunk for instance. Bump X if necessary.
 
-dnl ******* THE NEXT RELEASE VERSION MUST BE 2.4.15 at least or higher!
-AC_INIT([libgphoto2 photo camera library], [2.4.14], [gphoto-devel@lists.sourceforge.net], [libgphoto2])
+dnl ******* THE NEXT RELEASE VERSION MUST BE 2.5.3 at least or higher!
+AC_INIT([libgphoto2 photo camera library], [2.5.2], [gphoto-devel@lists.sourceforge.net], [libgphoto2])
+
 AC_CONFIG_SRCDIR([libgphoto2/gphoto2-version.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([auto-m4])
@@ -17,12 +18,16 @@ dnl The generated Makefile rule fails to remove the absolute part at
 dnl the beginning of the /path/to/buildroot/PACKAGE-VERSION/foo/bar
 dnl before determining the string length. However, the only relevant
 dnl string to determine the length of would be PACKAGE-VERSION/foo/bar
-AM_INIT_AUTOMAKE([-Wall gnu 1.9 dist-bzip2 check-news subdir-objects])
+AM_INIT_AUTOMAKE([-Wall foreign 1.9 dist-bzip2 check-news subdir-objects])
+
+
+# Use the silent-rules feature when possible.
+m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
+AM_SILENT_RULES([no])
 
 GP_CHECK_SHELL_ENVIRONMENT
 GP_CONFIG_MSG([Build])
 GP_CONFIG_MSG([Source code location],[${srcdir}])
-
 
 dnl ---------------------------------------------------------------------------
 dnl Advanced information about versioning:
@@ -32,14 +37,14 @@ dnl   * libtool.info chapter "Versioning"
 dnl   * libtool.info chapter "Updating library version information"
 dnl ---------------------------------------------------------------------------
 dnl Versioning:
-dnl  - CURRENT (Major):  Increment if the interface has changes. AGE is always
-dnl                      *changed* at the same time.
 dnl  - AGE (Micro):      Increment if any interfaces have been added; set to 0
 dnl		         if any interfaces have been removed. Removal has 
 dnl                      precedence over adding, so set to 0 if both happened.
 dnl                      It denotes upward compatibility.
 dnl  - REVISION (Minor): Increment any time the source changes; set to 
 dnl			 0 if you incremented CURRENT.
+dnl  - CURRENT (Major):  Increment if the interface has changes. AGE is always
+dnl                      *changed* at the same time.
 dnl
 dnl  To summarize. Any interface *change* increment CURRENT. If that interface
 dnl  change does not break upward compatibility (ie it is an addition), 
@@ -49,27 +54,17 @@ dnl ---------------------------------------------------------------------------
 dnl A:R:C=1:1:3  libgphoto2-2.2
 dnl A:R:C=2:0:4  libgphoto2-2.3 (since libgphoto2-2.2.1.5.trunk)
 dnl A:R:C=2:1:4  libgphoto2-2.3.1 (since libgphoto2-2.3.0.1.trunk)
-dnl A:R:C=3:0:5  libgphoto2-2.4.0 (since libgphoto2-2.3.0.3.trunk (new gp_file_new_from_fd(), gp_file_slurp(), gp_camera_get_storageinfo() functions + enums + struct)
-dnl A:R:C=4:0:6  libgphoto2-2.4.3 (since libgphoto2-2.4.0: gp_ahd_bayer())
-AC_SUBST([LIBGPHOTO2_AGE],      [4])
+dnl A:R:C=3:0:5  libgphoto2-2.3.0.3.trunk (new gp_file_new_from_fd() function)
+dnl              libgphoto2-2.3.1.1.trunk (new gp_file_slurp() function)
+dnl              libgphoto2-2.3.1.2.trunk (new gp_camera_get_storageinfo() function + enums + struct)
+dnl A:R:C=0:0:6  libgphoto2-2.5.0	(fixed CameraList API, ... )
+AC_SUBST([LIBGPHOTO2_AGE],      [0])
 AC_SUBST([LIBGPHOTO2_REVISION], [0])
 AC_SUBST([LIBGPHOTO2_CURRENT],  [6])
 AC_SUBST([LIBGPHOTO2_CURRENT_MIN],
          [`expr $LIBGPHOTO2_CURRENT - $LIBGPHOTO2_AGE`])
 AC_SUBST([LIBGPHOTO2_VERSION_INFO],
          [$LIBGPHOTO2_CURRENT:$LIBGPHOTO2_REVISION:$LIBGPHOTO2_AGE])
-
-
-dnl Set up compiler options
-dnl "CPPFLAGS" concerns the C preprocessor, i.e. both C and C++ source code.
-dnl C only would be CFLAGS, C++ only CXXFLAGS
-AM_CPPFLAGS="$CPPFLAGS"
-
-AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_srcdir)"
-AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_builddir)"
-AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_srcdir)/libgphoto2_port"
-AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_srcdir)/libgphoto2"
-AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_builddir)/libgphoto2"
 
 
 dnl ---------------------------------------------------------------------------
@@ -81,33 +76,20 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_INSTALL
 AM_PROG_CC_C_O
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 dnl Something with the sequences is not quite alright yet.
 dnl SED is supposed to be set in AC_LIBTOOL_SETUP, but the
 dnl sequence seems to get mixed up.
 SED=${SED-sed}
 
-
-# Make sure that the *FLAGS given at ./configure time will be active by
-# default in AM_*FLAGS
-AM_CPPFLAGS="$AM_CPPFLAGS $CPPFLAGS"
-AM_CFLAGS="$AM_CFLAGS $CFLAGS"
-AM_CXXFLAGS="$AM_CXXFLAGS $CXXFLAGS"
-AM_LDFLAGS="$AM_LDFLAGS $LDFLAGS"
-
 dnl ---------------------------------------------------------------------------
 dnl Turn on (almost) all warnings when using gcc
 dnl ---------------------------------------------------------------------------
 if test "x$GCC" = "xyes"; then
-	AM_CPPFLAGS="$AM_CPPFLAGS -Wall"
-	# AM_CFLAGS="$AM_CFLAGS --std=c99 -Wall -Wextra -Werror -pedantic"
-	AM_CFLAGS="$AM_CFLAGS -Wall"
-	# AM_CFLAGS="$AM_CFLAGS -Wno-pointer-sign -Wno-unused -Wno-sign-compare"
-	AM_CFLAGS="$AM_CFLAGS -Wmissing-declarations -Wmissing-prototypes"
-	AM_LDFLAGS="$AM_LDFLAGS -Wall"
-	# FIXME: Check for --enable-debug here
-	AM_CPPFLAGS="$AM_CPPFLAGS -g"
-	AM_LDFLAGS="$AM_LDFLAGS -g"
+	# CFLAGS="$CFLAGS --std=c99 -Wall -Wextra -Werror -pedantic"
+	CFLAGS="$CFLAGS -Wall -g -Wmissing-declarations -Wmissing-prototypes"
+	LDFLAGS="$LDFLAGS -g"
 	AC_SUBST([NO_UNUSED_CFLAGS], [-Wno-unused])
 fi
 AM_CONDITIONAL([HAVE_GCC], [test "x$GCC" = "xyes"])
@@ -124,11 +106,11 @@ AC_SUBST([AM_CXXFLAGS])
 # LDFLAGS: Linker flags
 AC_SUBST([AM_LDFLAGS])
 
-# Define compiler flags for later compile tests
+# Check for va_copy()
+GP_VA_COPY
+
 # Note: Do NOT add specific libraries and stuff to the generic _FLAGS.
 #       Put these into LIBFOO_CFLAGS and LIBFOO_LIBS instead.
-CFLAGS="$AM_CFLAGS"
-CPPFLAGS="$AM_CPPFLAGS"
 
 
 try_gp2ddb=false
@@ -225,8 +207,9 @@ dnl ---------------------------------------------------------------------------
 
 ALL_LINGUAS="da de es eu fr hu it ja nl pl ru sv uk vi zh_CN"
 GP_GETTEXT_HACK([${PACKAGE}-${LIBGPHOTO2_CURRENT_MIN}],[The gPhoto Team],[${MAIL_GPHOTO_TRANSLATION}])
-AM_GNU_GETTEXT_VERSION([0.18.1])
+AM_GNU_GETTEXT_VERSION([0.14.1])
 AM_GNU_GETTEXT([external])
+AM_PO_SUBDIRS()
 AM_ICONV()
 GP_GETTEXT_FLAGS()
 
@@ -244,6 +227,25 @@ AC_SUBST([localedir],["\$(datadir)/locale"])
 AM_CPPFLAGS="$AM_CPPFLAGS -DLOCALEDIR=\\\"${localedir}\\\""
 
 AC_SYS_LARGEFILE
+
+AC_MSG_CHECKING([for asm .symver support])
+AC_COMPILE_IFELSE([dnl
+	AC_LANG_PROGRAM([[]],[[
+		int f1() { }
+		int f2() { }
+		asm(".symver f1, f@VER1");
+		asm(".symver f2, f@@VER2");
+		int main(int argc, char **argv) { }
+	]])dnl
+],[
+	AC_DEFINE([HAVE_ASM_SYMVERS],1,[Define if there is asm .symver support.])
+	VERSIONMAPLDFLAGS="-Wl,--version-script=\$(srcdir)/libgphoto2.ver"
+	AC_MSG_RESULT(yes)
+],[
+	VERSIONMAPLDFLAGS=""
+	AC_MSG_RESULT(no)
+])
+AC_SUBST(VERSIONMAPLDFLAGS)
 
 dnl ---------------------------------------------------------------------------
 dnl FIXME: What is this good for?
@@ -269,6 +271,24 @@ AS_IF([test "x$with_jpeg" != "xno"], [
 	])
 ])
 GP_CONFIG_MSG([JPEG mangling support],[${libjpeg_msg}])
+
+dnl ---------------------------------------------------------------------------
+dnl check for libxml22
+dnl ---------------------------------------------------------------------------
+LIBXML2=""
+libxml2_msg="no"
+AC_SUBST(LIBXML2)
+AC_ARG_WITH([libxml2], AS_HELP_STRING([--without-libxml2], [Build without libxml2 library (default: no)]))
+AS_IF([test "x$with_libxml2" != "xno"], [
+	AC_CHECK_LIB(xml2,xmlFirstElementChild,[
+		AC_CHECK_HEADER(libxml/parser.h,[
+			AC_DEFINE(HAVE_LIBXML2,1,[define if we found LIBXML2 and its headers])
+			LIBXML2="-lxml2"
+			libxml2_msg="yes"
+		])
+	])
+])
+GP_CONFIG_MSG([LIBXML2 to support Olympus E remote control],[${libxml2_msg}])
 
 dnl ---------------------------------------------------------------------------
 dnl check for libgd
@@ -458,18 +478,17 @@ AC_MSG_RESULT([${camlibdir}])
 AC_SUBST([camlibdir])
 AM_CPPFLAGS="$AM_CPPFLAGS -DCAMLIBS=\\\"\$(camlibdir)\\\""
 
-CAMLIB_LDFLAGS="-module -no-undefined -avoid-version -export-dynamic"
-CAMLIB_LDFLAGS="$CAMLIB_LDFLAGS -export-symbols \$(top_srcdir)/camlibs/camlib.sym"
-AC_SUBST([CAMLIB_LDFLAGS],[${CAMLIB_LDFLAGS}])
-AC_SUBST([CAMLIB_LIBS],["\$(top_builddir)/libgphoto2/libgphoto2.la"])
-
 
 dnl ---------------------------------------------------------------------------
 dnl Camera drivers (camlibs)
 dnl ---------------------------------------------------------------------------
 dnl * See m4m/gp-camlibs.m4 for usage details, e.g. for marking camlibs as
-dnl   obsolete.
+dnl   unlisted.
 dnl * Please add new camlibs in alphabetical order.
+dnl * Selective build:
+dnl   $ make -C camlibs canon.la ptp2.la
+dnl * Selective install:
+dnl   $ make CAMLIBS="canon.la ptp2.la" install-camlibs
 GP_CAMLIB([adc65])dnl
 GP_CAMLIB([agfa_cl20])dnl
 GP_CAMLIB([aox])dnl
@@ -509,6 +528,7 @@ GP_CAMLIB([panasonic_dc1000])dnl
 GP_CAMLIB([panasonic_dc1580])dnl
 GP_CAMLIB([pccam300])dnl
 GP_CAMLIB([pccam600])dnl
+GP_CAMLIB([pentax])dnl
 GP_CAMLIB([polaroid_pdc320])dnl
 GP_CAMLIB([polaroid_pdc640])dnl
 GP_CAMLIB([polaroid_pdc700])dnl
@@ -517,7 +537,7 @@ GP_CAMLIB([ricoh])dnl
 GP_CAMLIB([ricoh_g3])dnl
 GP_CAMLIB([samsung])dnl
 GP_CAMLIB([sierra])dnl
-GP_CAMLIB([sipix_blink], [obsolete])dnl
+GP_CAMLIB([sipix_blink], [unlisted])dnl did not find out the correct decompressor, unfinished
 GP_CAMLIB([sipix_blink2])dnl
 GP_CAMLIB([sipix_web2])dnl
 GP_CAMLIB([smal])dnl
@@ -531,18 +551,21 @@ GP_CAMLIB([st2205])dnl
 GP_CAMLIB([stv0674])dnl
 GP_CAMLIB([stv0680])dnl
 GP_CAMLIB([sx330z])dnl
-GP_CAMLIB([template], [obsolete])dnl
+GP_CAMLIB([template], [unlisted])dnl
 GP_CAMLIB([topfield])dnl
 GP_CAMLIB([toshiba_pdrm11])dnl
 GP_CAMLIB([tp6801])dnl
 dnl
 GP_CAMLIBS_DEFINE()dnl
+GP_CONFIG_MSG([Camlibs],[${camlibs}])
+
 
 dnl --------------------------------------------------------------------
 dnl documentation
 dnl --------------------------------------------------------------------
 GP_CHECK_DOC_DIR()dnl
 GP_CHECK_DOXYGEN()dnl
+GP_INTERNAL_DOCS()dnl
 GP_BUILD_GTK_DOCS()dnl
 AC_SUBST([camlibdocdir], ['${docdir}/camlibs'])
 
@@ -597,19 +620,9 @@ CPPFLAGS="$CPPFLAGS_save"
 ],[],[default-on],[http://www.sourceforge.net/projects/libexif])dnl
 
 
-dnl ---------------------------------------------------------------------------
-dnl Check libusb
-dnl FIXME: What for? Shouldn't this belong into libgphoto2_port?
-dnl ---------------------------------------------------------------------------
-AC_PATH_PROG(LIBUSB_CONFIG,libusb-config)
-AM_CONDITIONAL(HAVE_LIBUSB,test -n "${LIBUSB_CONFIG}")
-
-
 dnl FIXME: Is this accurate?
 AM_CONDITIONAL([HAVE_CXX], [test -n "$CXX" && test "X$CXX" != "Xno"])
 
-dnl ... temporary off again
-dnl GP_CHECK_LIBRARY([LIBXML2],[libxml-2.0],[>= 2.0],,,,,[default-on])
 
 dnl ---------------------------------------------------------------------------
 dnl Configure subprojects
@@ -639,7 +652,6 @@ libgphoto2.pc
 libgphoto2-uninstalled.pc
 examples/Makefile
 tests/Makefile
-tests/check-camera-list.sh
 tests/ddb/Makefile
 tests/ddb/check-ddb.sh
 packaging/Makefile
@@ -650,6 +662,7 @@ packaging/rpm/package.spec
 po/Makefile.in
 doc/Makefile
 doc/Doxyfile
+doc/Doxyfile-internals
 doc/api/Makefile
 ],[
 dnl This relies on this code being called for each of the above files
@@ -673,18 +686,16 @@ fi
 
 GP_CONFIG_OUTPUT
 
-dnl Catch the Gentoo folks that think just enabling "canon" makes their
-dnl Canon camera work.
-if test "$BUILD_THESE_CAMLIBS" = " canon.la" ; then
-	echo 
-	echo "*** Note: Newer Canon Cameras are supported by the ptp2 camera driver."
-	echo "***       'canon' is used for older models."
-	echo "***       If you are unsure, please enable both the canon and ptp2 driver."
-	echo 
+dnl Catch the Gentoo folks about to shoot themselves in the foot.
+dnl Just enabling "foo" often does not make a camera made by
+dnl manufacturer "Foo" work.
+if test "x$camlibs" = "xall"; then
+   :
+else
+   GP_CAMLIBS_WARNING
 fi
 
-echo "
-Please check whether the configuration I detected matches what you
+echo "Please check whether the configuration I detected matches what you
 would like to have. E.g. make sure that USB support is there if you
 intend to use USB cameras with $PACKAGE_NAME.
 

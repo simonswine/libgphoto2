@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 199309L
 #include "config.h"
 
 #include <stdio.h>
@@ -960,8 +961,6 @@ int dc210_download_picture_by_name
 	if (type == DC210_RGB_THUMB) cmd[4] = 1;
 
 	dc210_cmd_packet_init(cmd_packet, filename);
-
-	gp_file_set_name(file, filename);
 
 	if (dc210_execute_command(camera, cmd) == GP_ERROR) return GP_ERROR;
 	if (dc210_write_command_packet(camera, cmd_packet) == GP_ERROR) return GP_ERROR;

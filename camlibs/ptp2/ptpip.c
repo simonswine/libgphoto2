@@ -25,6 +25,8 @@
  * - Not everything implementation correctly cross checked.
  * - Coolpix P3 does not give transfer status (image 000x/000y), and reports an
  *   error when transfers finish correctly.
+ *
+ * Nikon WU-1* adapters might use 0011223344556677 as GUID always...
  */
 #define _BSD_SOURCE
 #include "config.h"
@@ -220,7 +222,7 @@ ptp_ptpip_check_event (PTPParams* params) {
 #define WRITE_BLOCKSIZE 65536
 uint16_t
 ptp_ptpip_senddata (PTPParams* params, PTPContainer* ptp,
-		unsigned long size, PTPDataHandler *handler
+		uint64_t size, PTPDataHandler *handler
 ) {
 	unsigned char	request[0x14];
 	int		ret, curwrite, towrite;
@@ -423,8 +425,8 @@ ptp_ptpip_init_command_request (PTPParams* params)
 		cmdrequest[ptpip_initcmd_name+i*2] = hostname[i];
 		cmdrequest[ptpip_initcmd_name+i*2+1] = 0;
 	}
-	htod16a(&cmdrequest[ptpip_initcmd_name+(strlen(hostname)+1)*2],PTPIP_VERSION_MAJOR);
-	htod16a(&cmdrequest[ptpip_initcmd_name+(strlen(hostname)+1)*2+2],PTPIP_VERSION_MINOR);
+	htod16a(&cmdrequest[ptpip_initcmd_name+(strlen(hostname)+1)*2],PTPIP_VERSION_MINOR);
+	htod16a(&cmdrequest[ptpip_initcmd_name+(strlen(hostname)+1)*2+2],PTPIP_VERSION_MAJOR);
 
 	gp_log_data ( "ptpip/init_cmd", (char*)cmdrequest, len);
 	ret = write (params->cmdfd, cmdrequest, len);

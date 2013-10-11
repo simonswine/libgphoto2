@@ -90,7 +90,7 @@ int dlink_dsc350f_postprocessing_and_flip_both (int width, int height, unsigned 
 		whichcolor++;
 	}
 	
-	/* // could do more color processing here 
+	/* could do more color processing here
 	GP_DEBUG("adjusting color");
 	
 	// adjust image colours

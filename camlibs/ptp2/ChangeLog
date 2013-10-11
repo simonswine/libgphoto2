@@ -1,7 +1,12 @@
+2012-04-07  Axel Waggershauser  <awagger@web.de>
+
+	* EOS 5D Mark III support
+	* CustomFunctionEx support for EOS
+
 2010-11-17  Marcus Meissner <marcus@jet.franken.de>
 
 	* config.c, library.c, ptp.c, ptp.h: switch the canon powershot event
-	  handling to be non-interrupt (just using the 0x9013 opcode).
+          handling to be non-interrupt (just using the 0x9013 opcode).
 
 2010-11-17  Marcus Meissner <marcus@jet.franken.de>
 
@@ -20,21 +25,33 @@
 2010-10-15  Chris Wulff
 
 	* library.c: Fixed session setup to really use incremental,
-	  from Chris Wulff.
+          from Chris Wulff.
 
 2010-09-15  Marcus Meissner <marcus@jet.franken.de>
 
 	* library.c: When querying the thumb, use the direct thumbsize.
 
-2010-08-08  Marcus Meissner <marcus@jet.franken.de>
+2010-06-30  Marcus Meissner  <marcus@jet.franken.de>
 
-	* library.c: backported event queue PTP handling from trunk
+	* library.c: restructured eos event handling loops
+	  to be less USB intensive after report by Axel.
+	* config.c,library.c: various ptp errors passed up.
 
-2010-01-13  Marcus Meissner <marcus@jet.franken.de>
+2010-06-30  Axel Waggershauser  <awagger@web.de>
 
-	* library.c: Rewrote the timeout code.
-	* library.c: New ids.
-	* library.c: Backported loop-on-error EOS preview taking.
+	* ptp-pack.c: Fixed EOS imageformat unpacking regression.
+	* config.c: fixed shadowed variable usage making set_config 
+	  leave too early.
+
+2010-01-09  Daniel P. Berrange <dan@berrange.com>
+
+	* config.c: Added several new Nikon flash configurations.
+
+2009-12-13  Marcus Meissner  <marcus@jet.franken.de>
+
+	* config.c: Mark readonly widgets as readonly
+	* library.c: make timeout code the same for all functions,
+	  fixed canon capture timeouts.
 
 2009-12-06  Laurent Calmes <lcalmes@users.sourceforge.net>
 
@@ -75,7 +92,7 @@
 
 2009-07-24  Marcus Meissner  <marcus@jet.franken.de>
 
-	* config.c: Add a generic PTP property setter.
+	* config.c: Finalized generic PTP property setter.
 	* library.c,config.c: Enable Viewfinder on demand only, not for
 	  regular capture. Should fix camera-switching-off issues.
 
@@ -83,7 +100,6 @@
 
 	* config.c: New subsection "status" for all read-only values.
 	* config.c: New subsection "action" for simple camera actions.
-	* library.c: Enable event mode on EOS Cameras on connect.
 
 	* config.c: Added new "bulb" action for newer Canon EOS cameras,.
 
@@ -99,9 +115,9 @@
 
 2009-07-10  Marcus Meissner  <marcus@jet.franken.de>
 
-        * ptp.c,ptp.h: Generic PTP wrapper function (no data, no output)
-          to avoid coding all generic functions as seperate functions.
-          Started converting functions to macros.
+	* ptp.c,ptp.h: Generic PTP wrapper function (no data, no output)
+	  to avoid coding all generic functions as seperate functions.
+	  Converted all convertable functions to macros.
 
 2009-07-09  Axel Waggershauser  <awagger@web.de>
 
@@ -117,23 +133,25 @@
 	* ptp-pack.c: dpd.GetSet adjustments.
 	* ptp-pack.c,config.c,ptp.c: Implemented EOS ImageSize and ImageFormat handling.
 
-2009-05-17  Marcus Meissner  <marcus@jet.franken.de>
+2009-05-26  Marcus Meissner  <marcus@jet.franken.de>
 
-	* ptp-pack.c,ptp.c,ptp.h: Enhanced EOS event decoding.
-	* ptp.c: Handle wrong sequence number on startup.
-	* config.c: EOS camera capturetarget support (card capture not
-	  yet working)
+	* ptp.c,ptp.h,library.c.usb.c:: Unify and abstract ptp object handling.
+	  Add "on demand" loading throughout library.c.
 
-	* library.c: Added new ids for:
-		- Kodak V803, M1063
-		- Canon PowerShot A650IS, SD990 (aka IXUS 980IS), SD880IS, A480
-		- Canon EOS 50D
-		- Fuji FinePix S1000fd
-	* library.c: Enable EOS capture mode automatically on --capture-image.
-	* library.c: Implemented basic EOS LiveView support.
-	* library.c: Handle new raw Canon images.
-	* library.c: MIME Type of previews might be different than of main image.
-	* music-players.h: Merged from libmtp.
+	  (Larger rewrite ... might still be a bit buggy.)
+
+2009-04-10  Marcus Meissner  <marcus@jet.franken.de>
+
+	* ptp.c,ptp.h,ptp-pack.c: make nikon check event return a
+	  generic PTPContainer, make canon check event also return
+	  a generic PTPContainer.
+
+	* ptp.c,ptp.h: Added 2 PTP event queue, generic events and Canon EOS.
+
+	* library.c: Rewrote wait_for_event to use event queues etc.
+
+	* library.c: Hooked up the first try at the trigger capture method,
+	  currently just PTP generic, others to follow.
 
 2009-03-27  Marcus Meissner  <marcus@jet.franken.de>
 

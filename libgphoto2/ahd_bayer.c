@@ -324,6 +324,7 @@ int do_green_ctr_row(unsigned char *image, unsigned char *image_h,
  * \param buffer_v three-row window, scores assigned for pixels in row 2
  * \param w pixel width of image and buffers
  */
+
 static
 int get_diffs_row2(unsigned char * hom_buffer_h, unsigned char *hom_buffer_v, 
 		    unsigned char * buffer_h, unsigned char *buffer_v, int w)

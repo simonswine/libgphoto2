@@ -47,16 +47,16 @@ WHAT FEATURES DO THESE CAMERAS HAVE, AND WHAT DOES THIS DRIVER SUPPORT?
 
 	FEATURE LIST					SUPPORTED (Y/N/Part)
 -- USB connection to computer					Y
--- High resolution 640x480, uncompressed 				Y
--- Low resolution 320x240, uncompressed					Y
--- High resolution 640x480, compressed 					Y
--- Low resolution 320x240, compressed					Y
--- Ability to "switch" resolution between pictures 			Y
--- Ability to download all pictures on camera				Y
+-- High resolution 640x480, uncompressed 			Y
+-- Low resolution 320x240, uncompressed				Y
+-- High resolution 640x480, compressed 				Y
+-- Low resolution 320x240, compressed				Y
+-- Ability to "switch" resolution between pictures 		Y
+-- Ability to download all pictures on camera			Y
 -- Ability to download the first k pictures, where 
-	k is less than the number on the camera 			Y
--- Ability to download individual photos				Y (faked, but works)
--- Shoot a frame and save image to computer				Y
+	k is less than the number on the camera 		Y
+-- Ability to download individual photos			Y (faked, but works)
+-- Shoot a frame and save image to computer			Y
 -- Internal battery, which recharges through the USB port	(some models)
 
 -------------------------------------------------------------------------
@@ -82,7 +82,7 @@ The following things can be done with button-pushes on the camera:
 	for still photos. AVI mode will use compression if it otherwise 
 	happens to be turned on. 
 
-Notes:  
+Notes:
 
 The 0x2770:0x9050 and 0x2770:913D cameras differ from the above description in 
 some particulars. Please see the respective README files for details. 

@@ -536,11 +536,11 @@ sierra_read_packet (Camera *camera, unsigned char *packet, GPContext *context)
 	}
 
 	/* Try several times before leaving on error... */
-	/* Clear the USB bus
-	   (what about the SERIAL bus : do we need to flush it?) */
-	sierra_clear_usb_halt(camera);
 	while (1) {
 
+		/* Clear the USB bus
+		   (what about the SERIAL bus : do we need to flush it?) */
+		sierra_clear_usb_halt(camera);
 
 		/*
 		 * Read data through the bus. If an error occurred,
@@ -591,7 +591,7 @@ sierra_read_packet (Camera *camera, unsigned char *packet, GPContext *context)
 
 			/* Those are all single byte packets. */
 			sierra_clear_usb_halt(camera);
-			GP_DEBUG ("Packet read. Returning GP_OK.");
+			GP_DEBUG ("Packet type 0x%02x read. Returning GP_OK.", packet[0]);
 			return GP_OK;
 
 		case SIERRA_PACKET_DATA:
@@ -759,6 +759,7 @@ sierra_transmit_ack (Camera *camera, char *packet, GPContext *context)
 
 		/* Write packet and read the answer */
 		CHECK (sierra_write_packet (camera, packet, context));
+		buf[0] = 0;
 		result = sierra_read_packet_wait (camera, buf, context);
 		switch (result) {
 		case GP_ERROR_CORRUPTED_DATA:
@@ -1071,6 +1072,7 @@ int sierra_get_int_register (Camera *camera, int reg, int *value, GPContext *con
 	while (1) {
 
 		/* Read the response */
+		buf[0] = 0;
 		CHECK (sierra_read_packet_wait (camera, buf, context));
 		GP_DEBUG ("Successfully read packet. Interpreting result "
 			  "(0x%02x)", buf[0]);
@@ -1207,7 +1209,6 @@ int sierra_get_string_register (Camera *camera, int reg, int fnumber,
 	int retries, r;
 	unsigned int min_progress_bytes;
 	static int in_function = 0;
-	const char *file_name;
 	unsigned int id = 0;
 
 	GP_DEBUG ("sierra_get_string_register:  reg %i, file number %i, "
@@ -1244,7 +1245,6 @@ int sierra_get_string_register (Camera *camera, int reg, int fnumber,
 	CHECK (sierra_write_packet (camera, p, context));
 
 	if (file && total > min_progress_bytes) {
-		CHECK (gp_file_get_name(file, &file_name));
 		id = gp_context_progress_start (context, total, _("Downloading data..."));
 	}
 
@@ -1392,7 +1392,10 @@ sierra_capture (Camera *camera, CameraCaptureType type,
 		 * current picture.
 		 */ 
 		GP_DEBUG ("Getting picture number.");
-		CHECK (sierra_get_int_register (camera, 4, &n, context));
+		r = sierra_get_int_register (camera, 4, &n, context);
+		if (r == GP_OK) {
+			GP_DEBUG ("Getting filename of file %i.", n);
+		}
 		/*
 		 * We need to tell the frontend where the new image can be
 		 * found.  Unfortunatelly, we can only figure out the
@@ -1404,8 +1407,10 @@ sierra_capture (Camera *camera, CameraCaptureType type,
 		 *
 		 * Not that some cameras that don't support filenames will
 		 * return 8 blanks instead of reporting an error.
+		 * 
+		 * Some newer cameras (Nikon*) do not return register 4, so
+		 * ignore errors from that.
 		 */
-		GP_DEBUG ("Getting filename of file %i.", n);
 		CHECK (sierra_get_string_register (camera, 79, 0, NULL,
 						   filename, &len, context));
 		if ((len <= 0) || !strcmp (filename, "        "))

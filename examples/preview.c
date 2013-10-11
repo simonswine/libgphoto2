@@ -22,10 +22,9 @@
 
 #include "samples.h"
 
-static void errordumper(GPLogLevel level, const char *domain, const char *format,
-                 va_list args, void *data) {
-  vfprintf(stdout, format, args);
-  fprintf(stdout, "\n");
+static void errordumper(GPLogLevel level, const char *domain, const char *str,
+                 void *data) {
+  printf("%s\n", str);
 }
 
 /* This seems to have no effect on where images go
@@ -139,7 +138,7 @@ main(int argc, char **argv) {
 	canon_enable_capture(canon, TRUE, canoncontext);
 	/*set_capturetarget(canon, canoncontext);*/
 	printf("Taking 100 previews and saving them to snapshot-XXX.jpg ...\n");
-	for (i=0;i<99;i++) {
+	for (i=0;i<100;i++) {
 		CameraFile *file;
 		char output_file[32];
 
@@ -149,6 +148,22 @@ main(int argc, char **argv) {
 			fprintf(stderr,"gp_file_new: %d\n", retval);
 			exit(1);
 		}
+
+		/* autofocus every 10 shots */
+		if (i%10 == 9) {
+			camera_auto_focus (canon, canoncontext);
+		} else {
+			camera_manual_focus (canon, (i/10-5)/2, canoncontext);
+		}
+#if 0 /* testcase for EOS zooming */
+		{
+			char buf[20];
+			if (i<10) set_config_value_string (canon, "eoszoom", "5", canoncontext);
+			sprintf(buf,"%d,%d",(i&0x1f)*64,(i>>5)*64);
+			fprintf(stderr, "%d - %s\n", i, buf);
+			set_config_value_string (canon, "eoszoomposition", buf, canoncontext);
+		}
+#endif
 		retval = gp_camera_capture_preview(canon, file, canoncontext);
 		if (retval != GP_OK) {
 			fprintf(stderr,"gp_camera_capture_preview(%d): %d\n", i, retval);
@@ -161,10 +176,10 @@ main(int argc, char **argv) {
 			exit(1);
 		}
 		gp_file_unref(file);
-/* if you want to capture right afterwards 
+	/*
 		sprintf(output_file, "image-%03d.jpg", i);
 	        capture_to_file(canon, canoncontext, output_file);
-*/
+	*/
 	}
 	gp_camera_exit(canon, canoncontext);
 	return 0;

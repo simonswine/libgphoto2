@@ -27,11 +27,13 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#define _BSD_SOURCE
+/* Solaris needs this */
+#define __EXTENSIONS__
+
 #include "config.h"
 #include <gphoto2/gphoto2-port-library.h>
 
-/* Solaris needs this */
-#define __EXTENSIONS__
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -65,10 +67,6 @@
 #  endif
 #else
 #  include <sgtty.h>
-#endif
-
-#ifdef HAVE_RESMGR
-#  include <resmgr.h>
 #endif
 
 #ifdef HAVE_TTYLOCK
@@ -225,14 +223,6 @@ gp_port_serial_lock (GPPort *dev, const char *path)
 	gp_log (GP_LOG_DEBUG, "gphoto2-port-serial",
 		"Trying to lock '%s'...", path);
 
-#ifdef HAVE_RESMGR
-	if (!rsm_lock_device(path)) {
-		return GP_OK;
-	}
-	/* fallthrough */
-#define __HAVE_LOCKING	
-#endif
-
 #if defined(HAVE_TTYLOCK)
 	if (ttylock ((char*) path)) {
 		if (dev)
@@ -274,11 +264,6 @@ gp_port_serial_lock (GPPort *dev, const char *path)
 static int
 gp_port_serial_unlock (GPPort *dev, const char *path)
 {
-#ifdef HAVE_RESMGR
-	if (!rsm_unlock_device(path))
-		return GP_OK;
-	/* fallback through other unlock styles */
-#endif
 
 #if defined(HAVE_TTYLOCK)
 	if (ttyunlock ((char*) path)) {
@@ -315,22 +300,24 @@ gp_port_library_list (GPPortInfoList *list)
 {
 	GPPortInfo info;
 	char path[1024], prefix[1024];
-        int x, fd;
-        struct stat s;
+	int x, fd;
+	struct stat s;
 #ifdef OS2
-        int r, fh, option;
+	int r, fh, option;
 #endif
 
-        /* Copy in the serial port prefix */
-        strcpy (prefix, GP_PORT_SERIAL_PREFIX);
+	/* Copy in the serial port prefix */
+	strcpy (prefix, GP_PORT_SERIAL_PREFIX);
 
 	/* On Linux systems, check for devfs */
 #ifdef __linux
-        if (!stat ("/dev/tts", &s))
+	if (!stat ("/dev/tts", &s))
 		strcpy (prefix, "/dev/tts/%i");
 #endif
 
-        for (x=GP_PORT_SERIAL_RANGE_LOW; x<=GP_PORT_SERIAL_RANGE_HIGH; x++) {
+	for (x=GP_PORT_SERIAL_RANGE_LOW; x<=GP_PORT_SERIAL_RANGE_HIGH; x++) {
+		char *xname;
+
 		sprintf (path, prefix, x);
 
 		/* OS/2 seems to need an additional check */
@@ -346,24 +333,14 @@ gp_port_library_list (GPPortInfoList *list)
 		 * there is no need to try locking. */
 		if ((stat (path, &s) == -1) && ((errno == ENOENT) || (errno == ENODEV)))
 			continue;
-		/* Just let it fail later on open, lock&open for just enumerating is taking too long. */
-		/* This is a significant part of the "empty" startup time. */
+
 #if 0
 		/* First of all, try to lock the device */
 		if (gp_port_serial_lock (NULL, path) < 0)
 			continue;
 			
 		/* Device locked. Try to open the device. */
-		fd = -1;
-#ifdef HAVE_RESMGR
-		/* resmgr has its own API, which calls to a server and
-		 * communicates over UNIX domain sockets.
-		 */
-		fd = rsm_open_device(path, O_RDONLY | O_NDELAY);
-		/* fall through to standard open if this failed */
-#endif
-		if (fd == -1)
-			fd = open (path, O_RDONLY | O_NONBLOCK);
+		fd = open (path, O_RDONLY | O_NONBLOCK);
 		if (fd < 0) {
 			gp_port_serial_unlock (NULL, path);
 			continue;
@@ -376,24 +353,30 @@ gp_port_library_list (GPPortInfoList *list)
 		close (fd);
 		gp_port_serial_unlock (NULL, path);
 #endif
-		info.type = GP_PORT_SERIAL;
-		strncpy (info.path, "serial:", sizeof (info.path));
-		strncat (info.path, path, sizeof (info.path) - strlen (info.path) - 1);
-		snprintf (info.name, sizeof (info.name),
-			  _("Serial Port %i"), x);
+		gp_port_info_new (&info);
+		gp_port_info_set_type (info, GP_PORT_SERIAL);
+		xname = malloc (strlen("serial:")+strlen(path)+1);
+		strcpy (xname, "serial:");
+		strcat (xname, path);
+		gp_port_info_set_path (info, xname);
+		free (xname);
+		xname = malloc (100);
+		snprintf (xname, 100, _("Serial Port %i"), x);
+		gp_port_info_set_name (info, xname);
+		free (xname);
 		CHECK (gp_port_info_list_append (list, info));
-        }
+	}
 
 	/*
 	 * Generic support. Append it to the list without checking for
 	 * return values, because this entry will not be counted.
 	 */
-	info.type = GP_PORT_SERIAL;
-	strncpy (info.path, "^serial", sizeof (info.path));
-	memset (info.name, 0, sizeof (info.name));
+	gp_port_info_new (&info);
+	gp_port_info_set_type (info, GP_PORT_SERIAL);
+	gp_port_info_set_path (info, "^serial:");
+	gp_port_info_set_name (info, "");
 	gp_port_info_list_append (list, info);
-
-        return (GP_OK);
+	return GP_OK;
 }
 
 static int
@@ -410,7 +393,7 @@ gp_port_serial_init (GPPort *dev)
 	/* There is no default speed. */
 	dev->pl->baudrate = -1;
 
-        return GP_OK;
+	return GP_OK;
 }
 
 static int
@@ -424,7 +407,7 @@ gp_port_serial_exit (GPPort *dev)
 		dev->pl = NULL;
 	}
 
-        return GP_OK;
+	return GP_OK;
 }
 
 static int
@@ -435,9 +418,16 @@ gp_port_serial_open (GPPort *dev)
 	int fd;
 #endif
 	char *port;
+	GPPortInfo	info;
+
+	result = gp_port_get_info (dev, &info);
+	if (result < GP_OK) return result;
+	result = gp_port_info_get_path (info, &port);
+	if (result < GP_OK) return result;
+	gp_log (GP_LOG_DEBUG, "gp_port_serial_open", "opening %s", port);
 
 	/* Ports are named "serial:/dev/whatever/port" */
-	port = strchr (dev->settings.serial.port, ':');
+	port = strchr (port, ':');
 	if (!port)
 		return GP_ERROR_UNKNOWN_PORT;
 	port++;
@@ -457,26 +447,24 @@ gp_port_serial_open (GPPort *dev)
 	dev->pl->fd = -1;
 
 #if defined(__FreeBSD__) || defined(__APPLE__) || defined(__DragonFly__)
-        dev->pl->fd = open (port, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	dev->pl->fd = open (port, O_RDWR | O_NOCTTY | O_NONBLOCK);
 #elif OS2
-        fd = open (port, O_RDWR | O_BINARY);
+	fd = open (port, O_RDWR | O_BINARY);
 	dev->pl->fd = open (port, O_RDWR | O_BINARY);
-        close(fd);
+	close(fd);
 #else
-# ifdef HAVE_RESMGR
-        dev->pl->fd = rsm_open_device (port, O_RDWR | O_NOCTTY | O_SYNC | O_NONBLOCK);
-	/* fall back trying old style open if not possible */
-# endif
 	if (dev->pl->fd == -1)
 		dev->pl->fd = open (port, O_RDWR | O_NOCTTY | O_SYNC | O_NONBLOCK);
 #endif
-        if (dev->pl->fd == -1) {
-		gp_port_set_error (dev, _("Failed to open '%s' (%m)."), port);
+	if (dev->pl->fd == -1) {
+		int saved_errno = errno;
+		gp_port_set_error (dev, _("Failed to open '%s' (%s)."),
+				   port, strerror(saved_errno));
 		dev->pl->fd = 0;
 		return GP_ERROR_IO;
-        }
+	}
 
-        return GP_OK;
+	return GP_OK;
 }
 
 static int
@@ -489,8 +477,11 @@ gp_port_serial_close (GPPort *dev)
 
 	if (dev->pl->fd) {
 		if (close (dev->pl->fd) == -1) {
+			int saved_errno = errno;
 			gp_port_set_error (dev, _("Could not close "
-				"'%s' (%m)."), dev->settings.serial.port);
+						  "'%s' (%s)."),
+					   dev->settings.serial.port,
+					   strerror(saved_errno));
 	                return GP_ERROR_IO;
 	        }
 		dev->pl->fd = 0;
@@ -510,13 +501,13 @@ gp_port_serial_close (GPPort *dev)
 	dev->pl->baudrate = 0;
 #endif
 
-        return GP_OK;
+	return GP_OK;
 }
 
 static int
 gp_port_serial_write (GPPort *dev, const char *bytes, int size)
 {
-        int len, ret;
+	int len, ret;
 
 	if (!dev)
 		return (GP_ERROR_BAD_PARAMETERS);
@@ -528,7 +519,7 @@ gp_port_serial_write (GPPort *dev, const char *bytes, int size)
 	/* Make sure we are operating at the specified speed */
 	CHECK (gp_port_serial_check_speed (dev));
 
-        len = 0;
+	len = 0;
         while (len < size) {
 		
 		/*
@@ -536,15 +527,17 @@ gp_port_serial_write (GPPort *dev, const char *bytes, int size)
 		 * the harmless errors
 		 */
 		ret = write (dev->pl->fd, bytes, size - len);
-                if (ret == -1) {
-                        switch (errno) {
-                        case EAGAIN:
-                        case EINTR:
+		if (ret == -1) {
+			int saved_errno = errno;
+			switch (saved_errno) {
+			case EAGAIN:
+			case EINTR:
                                 ret = 0;
                                 break;
                         default:
 				gp_port_set_error (dev, _("Could not write "
-					"to port (%m)"));
+							  "to port (%s)"),
+						   strerror(saved_errno));
                                 return GP_ERROR_IO_WRITE;
                         }
 		}
@@ -689,8 +682,10 @@ gp_port_serial_get_pin (GPPort *dev, GPPin pin, GPLevel *level)
 #ifdef HAVE_TERMIOS_H
 	CHECK (get_termios_bit (dev, pin, &bit));
         if (ioctl (dev->pl->fd, TIOCMGET, &j) < 0) {
+		int saved_errno = errno;
 		gp_port_set_error (dev, _("Could not get level of pin %i "
-				   "(%m)."), pin);
+					  "(%s)."),
+				   pin, strerror(saved_errno));
                 return GP_ERROR_IO;
         }
         *level = j & bit;
@@ -724,8 +719,10 @@ gp_port_serial_set_pin (GPPort *dev, GPPin pin, GPLevel level)
 		break;
         }
         if (ioctl (dev->pl->fd, request, &bit) < 0) {
+		int saved_errno = errno;
 		gp_port_set_error (dev, _("Could not set level of pin %i to "
-				   "%i (%m)."), pin, level);
+					  "%i (%s)."),
+				   pin, level, strerror(saved_errno));
 		return GP_ERROR_IO;
 	}
 #else
@@ -749,8 +746,10 @@ gp_port_serial_flush (GPPort *dev, int direction)
 
 #ifdef HAVE_TERMIOS_H
 	if (tcflush (dev->pl->fd, direction ? TCOFLUSH : TCIFLUSH) < 0) {
-		gp_port_set_error (dev, _("Could not flush '%s' (%m)."),
-			dev->settings.serial.port);
+		int saved_errno = errno;
+		gp_port_set_error (dev, _("Could not flush '%s' (%s)."),
+				   dev->settings.serial.port,
+				   strerror(saved_errno));
 		return (GP_ERROR_IO);
 	}
 #else

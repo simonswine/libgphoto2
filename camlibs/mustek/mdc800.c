@@ -113,23 +113,8 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	if (result < 0)
 		return result;
 
-	gp_file_set_name(file,filename);
-	gp_file_set_mime_type (file, "image/jpeg");
+	gp_file_set_mime_type (file, GP_MIME_JPEG);
 	gp_file_set_data_and_size(file, data, size);
-	return (GP_OK);
-}
-
-static int
-put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
-	       void *data, GPContext *context)
-{
-/* Camera *camera;*/
-
-	/*
-	 * Upload the file to the camera. Use gp_file_get_data_and_size,
-	 * gp_file_get_name, etc.
-	 */
-
 	return (GP_OK);
 }
 
@@ -279,7 +264,7 @@ camera_about (Camera *camera, CameraText *about, GPContext *ctx)
 	strcpy (about->text, _("Mustek MDC-800 gPhoto2 Library\n"
 			       "Henning Zabel <henning@uni-paderborn.de>\n"
 			       "Ported to gphoto2 by Marcus Meissner <marcus@jet.franken.de>\n"
-			       "Supports Serial and USB Protocol."));
+			       "Supports Serial and USB Protocols."));
 	return (GP_OK);
 }
 
@@ -323,7 +308,6 @@ static CameraFilesystemFuncs fsfuncs = {
 	.file_list_func = file_list_func,
 	.folder_list_func = folder_list_func,
 	.get_file_func = get_file_func,
-	.put_file_func = put_file_func,
 	.get_info_func = get_info_func,
 	.del_file_func = delete_file_func,
 	.delete_all_func = delete_all_func

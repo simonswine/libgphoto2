@@ -101,12 +101,12 @@ file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 
 	bytes = ((8*(1+numpics))+0x3f) & ~0x3f;
 	xbuf = malloc(bytes);
-	ret = gp_port_usb_msg_read( camera->port,BLINK2_GET_DIR,0x03,0,buf,1 );
+	ret = gp_port_usb_msg_read( camera->port,BLINK2_GET_DIR,0x03,0,(char*)buf,1 );
 	if (ret < GP_OK)  {
 		free(xbuf);
 		return ret;
 	}
-	ret = gp_port_read( camera->port, xbuf, bytes);
+	ret = gp_port_read( camera->port, (char*)xbuf, bytes);
 	if (ret < GP_OK) {
 		free(xbuf);
 		return ret;
@@ -149,13 +149,13 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		free(xbuf);
 		return GP_ERROR_NO_MEMORY;
 	}
-	ret = gp_port_usb_msg_read( camera->port,BLINK2_GET_DIR,0x03,0,buf,1 );
+	ret = gp_port_usb_msg_read( camera->port,BLINK2_GET_DIR,0x03,0,(char*)buf,1 );
 	if (ret < GP_OK) {
 		free(addrs);
 		free(xbuf);
 		return ret;
 	}
-	ret = gp_port_read (camera->port, xbuf, bytes);
+	ret = gp_port_read (camera->port, (char*)xbuf, bytes);
 	if (ret < GP_OK) {
 		free(addrs);
 		free(xbuf);
@@ -182,15 +182,14 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		free(addrs);
                 return image_no;
 	}
-        gp_file_set_name (file, filename);
         switch (type) {
         case GP_FILE_TYPE_NORMAL:
 #ifdef HAVE_LIBJPEG
 {
 		char *convline,*convline2,*rawline;
 		unsigned char	*jpegdata;
-		unsigned int start, len, i, pitch;
-		int curread, ret;
+		unsigned int start, len, pitch;
+		int curread;
 		struct jpeg_decompress_struct	dinfo;
 		struct jpeg_source_mgr		xjsm;
 		struct jpeg_error_mgr		jerr;
@@ -215,7 +214,7 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		buf[5] = (len >> 16) & 0xff;
 		buf[6] = (len >>  8) & 0xff;
 		buf[7] =  len        & 0xff;
-		result = gp_port_usb_msg_write (camera->port,BLINK2_GET_MEMORY,0x03,0,buf,8);
+		result = gp_port_usb_msg_write (camera->port,BLINK2_GET_MEMORY,0x03,0,(char*)buf,8);
 		if (result < GP_OK) {
 			free (jpegdata);
 			break;
@@ -224,7 +223,7 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		curread  = 0;
 		do {
 			int res;
-			res = gp_port_read (camera->port, jpegdata+curread, len );
+			res = gp_port_read (camera->port, (char*)(jpegdata+curread), len );
 			if (res < GP_OK) {
 				result = GP_OK;
 				break;
@@ -254,11 +253,12 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 
 		pitch = (dinfo.output_width*dinfo.output_components+3)&~3;
 
+		if (ret != JPEG_HEADER_OK)
+			return GP_ERROR;
+
 		rawline = malloc(pitch);
 		convline = malloc(dinfo.output_width*2*3);
 		convline2 = malloc(dinfo.output_width*2*2*3);
-		if (ret != JPEG_HEADER_OK)
-			return GP_ERROR;
 		{
 			char foo[30];
 			sprintf(foo,"P6\n%d %d 255\n",dinfo.output_width, dinfo.output_height*2);
@@ -318,7 +318,7 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 		buf[5] = (len >> 16) & 0xff;
 		buf[6] = (len >>  8) & 0xff;
 		buf[7] =  len        & 0xff;
-		result = gp_port_usb_msg_write(camera->port,BLINK2_GET_MEMORY,0x03,0,buf,8);
+		result = gp_port_usb_msg_write(camera->port,BLINK2_GET_MEMORY,0x03,0,(char*)buf,8);
 		if (result < GP_OK)
 			break;
 		len = len*8;

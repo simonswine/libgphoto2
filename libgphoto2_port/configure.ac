@@ -1,6 +1,6 @@
 dnl Process this file with autoreconf to produce a configure script.
 AC_PREREQ(2.59)
-AC_INIT([libgphoto2 port access library], [0.8.0], [gphoto-devel@lists.sourceforge.net], [libgphoto2_port])
+AC_INIT([libgphoto2 port access library], [0.10.0], [gphoto-devel@lists.sourceforge.net], [libgphoto2_port])
 AC_CONFIG_SRCDIR([libgphoto2_port/gphoto2-port-version.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([auto-m4])
@@ -14,6 +14,11 @@ dnl before determining the string length. However, the only relevant
 dnl string to determine the length of would be PACKAGE-VERSION/foo/bar
 AM_INIT_AUTOMAKE([-Wall gnu 1.9 dist-bzip2 check-news])
 
+AC_LANG(C)
+
+# Use the silent-rules feature when possible.
+m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
+AM_SILENT_RULES([no])
 
 dnl ---------------------------------------------------------------------------
 dnl Advanced information about versioning:
@@ -23,14 +28,14 @@ dnl   * libtool.info chapter "Versioning"
 dnl   * libtool.info chapter "Updating library version information"
 dnl ---------------------------------------------------------------------------
 dnl Versioning:
-dnl  - CURRENT (Major):  Increment if the interface has changes. AGE is always
-dnl                      *changed* at the same time.
 dnl  - AGE (Micro):      Increment if any interfaces have been added; set to 0
 dnl		         if any interfaces have been removed. Removal has 
 dnl                      precedence over adding, so set to 0 if both happened.
 dnl                      It denotes upward compatibility.
 dnl  - REVISION (Minor): Increment any time the source changes; set to 
 dnl			 0 if you incremented CURRENT.
+dnl  - CURRENT (Major):  Increment if the interface has changes. AGE is always
+dnl                      *changed* at the same time.
 dnl
 dnl  To summarize. Any interface *change* increment CURRENT. If that interface
 dnl  change does not break upward compatibility (ie it is an addition), 
@@ -41,9 +46,10 @@ dnl A:R:C=6:1:6 libgphoto2_port-0.6.1 libgphoto2-2.2.1
 dnl A:R:C=7:0:7 libgphoto2_port-0.7.0 libgphoto2-2.3
 dnl A:R:C=7:1:7 libgphoto2_port-0.7.1 libgphoto2-2.3.x
 dnl A:R:C=8:0:8 libgphoto2_port-0.8.0 libgphoto2-2.4.x
-AC_SUBST([LIBGPHOTO2_PORT_AGE],      [8])
-AC_SUBST([LIBGPHOTO2_PORT_REVISION], [0])
-AC_SUBST([LIBGPHOTO2_PORT_CURRENT],  [8])
+dnl A:R:C=9:1:9 libgphoto2_port-0.10.0 libgphoto2-2.5.x
+AC_SUBST([LIBGPHOTO2_PORT_AGE],      [1])
+AC_SUBST([LIBGPHOTO2_PORT_REVISION], [1])
+AC_SUBST([LIBGPHOTO2_PORT_CURRENT],  [11])
 AC_SUBST([LIBGPHOTO2_PORT_CURRENT_MIN],
          [`expr $LIBGPHOTO2_PORT_CURRENT - $LIBGPHOTO2_PORT_AGE`])
 AC_SUBST([LIBGPHOTO2_PORT_VERSION_INFO],
@@ -57,6 +63,8 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 AM_PROG_CC_C_O
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+
 
 dnl Something with the sequences is not quite alright yet.
 dnl SED is supposed to be set in AC_LIBTOOL_SETUP, but the
@@ -69,6 +77,7 @@ dnl AC_DISABLE_SHARED
 dnl AC_LIBLTDL_CONVENIENCE([libltdl])
 dnl AC_WITH_LTDL
 dnl AC_LIB_LTDL
+dnl Disable building static library, as no one uses it anyway.
 AC_DISABLE_STATIC
 AC_LIBTOOL_WIN32_DLL
 AC_LIBTOOL_DLOPEN
@@ -90,8 +99,7 @@ GP_CONFIG_MSG([libltdl library],[$LIBLTDL])
 
 AC_DEFINE_UNQUOTED(HAVE_CC,"$CC",[The C compiler we're using])
 
-AM_CPPFLAGS="$CPPFLAGS"
-AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_srcdir)"
+AM_CPPFLAGS=""
 
 # ----------------------------------------------------------------------
 # References to external resources (web sites, mailing listes, etc.)
@@ -113,7 +121,7 @@ dnl USE_INCLUDED_LIBINTL=no
 dnl AC_SUBST(USE_INCLUDED_LIBINTL)
 
 GP_GETTEXT_HACK([${PACKAGE}-${LIBGPHOTO2_PORT_CURRENT_MIN}],[Lutz Mueller and others],[${MAIL_GPHOTO_TRANSLATION}])
-ALL_LINGUAS="cs da de fr es eu it ja nl pl pt_BR ru sk sv uk vi zh_CN zh_TW"
+ALL_LINGUAS="cs da de es eu fi fr it ja nl pl pt_BR ru sk sr sv uk vi zh_CN zh_TW"
 AM_GNU_GETTEXT_VERSION([0.14.1])
 AM_GNU_GETTEXT([external])
 AM_PO_SUBDIRS()
@@ -147,7 +155,7 @@ AC_CHECK_HEADERS(stdlib.h unistd.h stdio.h fcntl.h errno.h sys/time.h	\
 	sys/param.h sys/select.h termios.h sgetty.h ttold.h ioctl-types.h	\
 	fcntl.h sgtty.h sys/ioctl.h sys/time.h termio.h unistd.h	\
 	endian.h byteswap.h asm/io.h mntent.h sys/mntent.h sys/mnttab.h \
-	scsi/sg.h limits.h)
+	scsi/sg.h limits.h sys/file.h)
 	
 dnl FIXME: Provide regex.h with the corresponding object code for 
 dnl        platforms which do not have it, e.g. Windows.
@@ -165,9 +173,7 @@ dnl ---------------------------------------------------------------------------
 with_bonjour=no
 AC_ARG_WITH([bonjour],
 	AS_HELP_STRING([--without-bonjour], [whether to exclude Bonjour PTP/IP autodetection]),
-	,
-	with_bonjour=yes
-)
+	,with_bonjour=yes)
 
 MDNS_LIBS=
 if test "x$with_bonjour" = "xyes"; then
@@ -179,6 +185,25 @@ if test "x$with_bonjour" = "xyes"; then
 	])
 fi
 AC_SUBST(MDNS_LIBS)
+
+AC_MSG_CHECKING([for asm .symver support])
+AC_COMPILE_IFELSE([dnl
+	AC_LANG_PROGRAM([[]],[[
+		int f1() { }
+		int f2() { }
+		asm(".symver f1, f@VER1");
+		asm(".symver f2, f@@VER2");
+		int main(int argc, char **argv) { }
+	]])dnl
+],[
+	AC_DEFINE([HAVE_ASM_SYMVERS],1,[Define if there is asm .symver support.])
+	VERSIONMAPLDFLAGS="-Wl,--version-script=\$(srcdir)/libgphoto2_port.ver"
+	AC_MSG_RESULT(yes)
+],[
+	VERSIONMAPLDFLAGS=""
+	AC_MSG_RESULT(no)
+])
+AC_SUBST(VERSIONMAPLDFLAGS)
 
 dnl Check for mnt_mountp in struct mnttab
 AC_MSG_CHECKING([for mnt_mountp in struct mnttab])
@@ -200,10 +225,9 @@ AC_MSG_RESULT(no)
 ])
 
 
-AC_SUBST(MDNS_LIBS)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(setmntent endmntent strerror snprintf vsnprintf)
+AC_CHECK_FUNCS(setmntent endmntent strerror snprintf vsnprintf flock)
 
 dnl Check if TIOCM_RTS is included in one of several possible files
 AC_TRY_COMPILE([#include <termios.h>], [int foo = TIOCM_RTS;],
@@ -240,7 +264,7 @@ AC_ARG_ENABLE([serial],
 	fi
 ])
 if $have_serial; then
-	IOLIB_SUBDIRS="$IOLIB_SUBDIRS serial"
+	IOLIB_LIST="$IOLIB_LIST serial"
 	AC_DEFINE([HAVE_SERIAL],1,[Whether you have serial support enabled])
 fi
 GP_CONFIG_MSG([Serial ports])
@@ -251,9 +275,8 @@ if $have_serial; then
 
 dnl -----------------------------------------
 dnl Serial port locking: We try to use either
-dnl  (1) resmgr support
-dnl  (2) ttylock.h
-dnl  (3) lockdev.h
+dnl  (1) ttylock.h
+dnl  (2) lockdev.h
 dnl -----------------------------------------
 AC_DEFUN([GP_SERLOCK],[dnl
 # $0([$1])
@@ -268,19 +291,6 @@ AC_ARG_ENABLE([$1],
 ])dnl
 GP_SERLOCK([ttylock])dnl
 GP_SERLOCK([lockdev])dnl
-GP_SERLOCK([resmgr])dnl
-
-resmgr_msg=no
-if $try_resmgr; then
-	AC_CHECK_HEADER(resmgr.h,[
-		AC_CHECK_LIB(resmgr, rsm_lock_device,[
-			resmgr_msg=yes
-			SERIAL_LIBS="-lresmgr"
-			AC_DEFINE(HAVE_RESMGR,1,[Define if we have the resmgr library.])
-		])
-	])
-fi
-GP_CONFIG_MSG([resmgr locking],[${resmgr_msg}])
 
 ttylock_msg=no
 if $try_ttylock; then
@@ -292,7 +302,8 @@ if $try_ttylock; then
 			AC_DEFINE(HAVE_TTYLOCK,1,[Define if you have ttylock based tty locking.])
 			ttylock_msg=yes
 			try_lockdev=false,
-			LDFLAGS="$LDFLAGS -llockdev"
+			save_LIBS="$LIBS"
+			LIBS="$LIBS -llockdev"
 			AC_TRY_LINK([#include <ttylock.h>],[ttylocked ("/dev/foo");],[
 				lockdev_result="yes"
 				AC_DEFINE(HAVE_TTYLOCK,1,[Define if you have ttylock based tty locking.])
@@ -300,6 +311,7 @@ if $try_ttylock; then
 				try_lockdev=false
 				SERIAL_LIBS=-llockdev
 			])
+			LIBS="$save_LIBS"
 		])
 		AC_MSG_CHECKING([if ttylock needs lockdev])
 		AC_MSG_RESULT([${lockdev_result}])
@@ -331,15 +343,16 @@ dnl ---------------------------------------------------------------------------
 dnl libusb
 dnl ---------------------------------------------------------------------------
 
-dnl libusb 1 links against libpthread, but is loaded too late.
-dnl we need to load libpthread directly.
+dnl libpthread is dynamically linked by libusb, which is dynamically loaded
+dnl but newer Linux systems need it on startup, not later. So link libgphoto2_port
+dnl against libpthread
 AC_CHECK_LIB(pthread, pthread_create)
 
 GP_CONFIG_MSG([USB ports])
 GP_CHECK_LIBRARY([LIBUSB],[libusb],[>= 0.1.5],
 		[usb.h],[usb_open],[
-			IOLIB_SUBDIRS="$IOLIB_SUBDIRS usb"
-		],[],
+	IOLIB_LIST="$IOLIB_LIST usb usbdiskdirect usbscsi"
+],[],
 		[default-on],
 		[http://libusb.sourceforge.net/]
 )
@@ -350,66 +363,41 @@ dnl ---------------------------------------------------------------------------
 GP_CONFIG_MSG([USB ports])
 GP_CHECK_LIBRARY([LIBUSB1],[libusb-1.0],[>= 1.0.0],
 		[libusb.h],[libusb_init],[
-			IOLIB_SUBDIRS="$IOLIB_SUBDIRS libusb1"
-		],[],
-                [default-on],
-                [http://libusb.sourceforge.net/]
+	IOLIB_LIST="$IOLIB_LIST usb1 usbdiskdirect usbscsi"
+],[],
+		[default-on],
+		[http://libusb.sourceforge.net/]
 )
-
-if test "x$have_LIBUSB" = "xyes" -o "x$have_LIBUSB1" = "xyes" ; then
-	IOLIB_SUBDIRS="$IOLIB_SUBDIRS usbdiskdirect usbscsi"
-fi
-
 dnl depends on libusb's availability
 GP_UDEV([test "x$have_LIBUSB" = xyes -o "x$have_LIBUSB1" = xyes])
 
-dnl ---------------------------------------------------------------------------
-dnl disk - hal and various stuff
-dnl ---------------------------------------------------------------------------
-AC_ARG_WITH([hal],
-	AS_HELP_STRING([--with-hal], [whether to enable HAL disk autodetection [default=yes]]),
-	,with_hal=yes)
-
-if test "x$with_hal" = "xyes"; then
-	have_hal=true
-	PKG_CHECK_MODULES(HAL, [dbus-1 >= 0.31 hal >= 0.5.0], 
-			       [have_hal=true], 
-			       [have_hal=false])
-	if test "x$have_hal" = "xtrue"; then
-	   AC_SUBST(HAL_CFLAGS)
-	   AC_SUBST(HAL_LIBS)
-	   AC_DEFINE(HAVE_HAL,1,[defined if HAL is available])
-	fi
-fi
 
 AC_ARG_ENABLE([disk],
-	AS_HELP_STRING([--disable-disk], [enable the 'disk' port driver]),
+	AS_HELP_STRING([--disable-disk], [disable the 'disk' port driver]),
 	,enable_disk=yes)
 
-dnl ---------------------------------------------------------------------------
-dnl disk port also work everywhere, but its not really necessary
-dnl ---------------------------------------------------------------------------
+dnl disk port also works everywhere, but it's not really necessary
 if test "x$enable_disk" = "xyes"; then
-	IOLIB_SUBDIRS="$IOLIB_SUBDIRS disk"
+	IOLIB_LIST="$IOLIB_LIST disk"
 fi
 
-dnl ---------------------------------------------------------------------------
-dnl ptpip - works 'everywhere' with TCP/IP stack.
-dnl number of supported cameras is however very small.
-dnl ---------------------------------------------------------------------------
 AC_ARG_ENABLE([ptpip],
-	AS_HELP_STRING([--disable-ptpip], [enable the 'ptpip' port driver for TCP/IP connected PTP cameras]),
+	AS_HELP_STRING([--disable-ptpip], [disable the 'ptpip' port driver for TCP/IP connected PTP cameras]),
 	,enable_ptpip=yes)
+dnl ptpip - works 'everywhere' with TCP/IP stack.
 if test "x$enable_ptpip" = "xyes"; then
-	IOLIB_SUBDIRS="$IOLIB_SUBDIRS ptpip"
+	IOLIB_LIST="$IOLIB_LIST ptpip"
 fi
-
 
 # ----------------------------------------------------------------------
 # Define IOLIB stuff
 # ----------------------------------------------------------------------
 
-AC_SUBST(IOLIB_SUBDIRS)
+AC_SUBST(IOLIB_LIST)
+for x in ${IOLIB_LIST}; do
+    IOLIB_LTLIST="${IOLIB_LTLIST} ${x}.la"
+done
+AC_SUBST(IOLIB_LTLIST)
 AC_SUBST([iolibdir],["\$(libdir)/\$(PACKAGE_TARNAME)/\$(VERSION)"])
 AM_CPPFLAGS="$AM_CPPFLAGS -DIOLIBS=\\\"${iolibdir}\\\""
 
@@ -449,23 +437,15 @@ GP_CHECK_DOC_DIR()dnl
 GP_BUILD_GTK_DOCS()dnl
 
 
-# Make sure that the *FLAGS given at ./configure time will be active by
-# default in AM_*FLAGS
-AM_CPPFLAGS="$AM_CPPFLAGS $CPPFLAGS"
-AM_CFLAGS="$AM_CFLAGS $CFLAGS"
-AM_CXXFLAGS="$AM_CXXFLAGS $CXXFLAGS"
-AM_LDFLAGS="$AM_LDFLAGS $LDFLAGS"
-
 dnl ---------------------------------------------------------------------------
 dnl Turn on all warnings when using gcc
 dnl ---------------------------------------------------------------------------
 if test "$GCC" = "yes"; then
-	AM_CPPFLAGS="$AM_CPPFLAGS -Wall"
-	AM_CPPFLAGS="$AM_CPPFLAGS -Wmissing-declarations -Wmissing-prototypes"
-	AM_LDFLAGS="$AM_LDFLAGS -Wall"
+	CFLAGS="$CFLAGS -Wall"
+	CFLAGS="$CFLAGS -Wmissing-declarations -Wmissing-prototypes"
 	# FIXME: Check for --enable-debug here
-	AM_CPPFLAGS="$AM_CPPFLAGS -g"
-	AM_LDFLAGS="$AM_LDFLAGS -g"
+	CFLAGS="$CFLAGS -g"
+	LDFLAGS="$LDFLAGS -g"
 fi
 
 # Activate internal code
@@ -490,13 +470,6 @@ po/Makefile.in
 libgphoto2_port/Makefile
 libgphoto2_port.pc
 libgphoto2_port-uninstalled.pc
-serial/Makefile
-libusb1/Makefile
-usb/Makefile
-usbdiskdirect/Makefile
-usbscsi/Makefile
-disk/Makefile
-ptpip/Makefile
 gphoto2-port-config
 test/Makefile
 doc/Makefile

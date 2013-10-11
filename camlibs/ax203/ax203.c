@@ -1,6 +1,6 @@
 /* Appotech ax203 picframe access library
  *
- *   Copyright (c) 2010 Hans de Goede <hdegoede@redhat.com>
+ *   Copyright (c) 2010-2012 Hans de Goede <hdegoede@redhat.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,6 +43,7 @@ static const struct eeprom_info {
 	uint32_t id;
 	int mem_size;
 	int has_4k_sectors;
+	int pp_64k;
 } ax203_eeprom_info[] = {
 	{ "AMIC A25L040", 0x37133037,  524288, 1 },
 	{ "AMIC A25L080", 0x37143037, 1048576, 1 },
@@ -85,9 +86,8 @@ static const struct eeprom_info {
 	{ "Spansion S25FL008A", 0x00130201, 1048576, 0 },
 	{ "Spansion S25FL016A", 0x00140201, 2097152, 0 },
 
-	/* The SST25VF080 and SST25VF016 (id:0xbf8e25bf & 0xbf4125bf) PP
-	   instruction can only program a single byte at a time. Thus they
-	   are not supported */
+	{ "SST25VF080", 0xbf8e25bf, 1048576, 0, 1 },
+	{ "SST25VF016", 0xbf4125bf, 2097152, 0, 1 },
 
 	{ "ST M25P08", 0x7f142020, 1048576, 0 },
 	{ "ST M25P16", 0x7f152020, 2097152, 0 },
@@ -123,7 +123,7 @@ ax203_send_cmd(Camera *camera, int to_dev, char *cmd, int cmd_size,
 static int
 ax203_send_eeprom_cmd(Camera *camera, int to_dev,
 	char *eeprom_cmd, int eeprom_cmd_size,
-	char *data, int data_size)
+	char *data, int data_size, char extra_arg)
 {
 	char cmd_buffer[16];
 	int i;
@@ -142,6 +142,8 @@ ax203_send_eeprom_cmd(Camera *camera, int to_dev,
 
 	for (i = 0; i < eeprom_cmd_size; i++)
 		cmd_buffer[10 + i] = eeprom_cmd[i];
+
+	cmd_buffer[15] = extra_arg;
 
 	return ax203_send_cmd (camera, to_dev, cmd_buffer, sizeof(cmd_buffer),
 			       data, data_size);
@@ -192,6 +194,31 @@ ax203_get_lcd_size(Camera *camera)
 	return GP_OK;
 }
 #endif
+
+static int
+ax203_get_checksum(Camera *camera, int address, int size)
+{
+	int ret;
+	char cmd_buffer[16];
+	uint8_t buf[2];
+
+	memset (cmd_buffer, 0, sizeof (cmd_buffer));
+
+	cmd_buffer[0] = AX203_FROM_DEV;
+	cmd_buffer[5] = AX203_GET_CHECKSUM;
+	cmd_buffer[6] = AX203_GET_CHECKSUM;
+	cmd_buffer[7] = (size >> 8) & 0xff;
+	cmd_buffer[8] = size & 0xff;
+	cmd_buffer[11] = (address >> 16) & 0xff;
+	cmd_buffer[12] = (address >> 8) & 0xff;
+	cmd_buffer[13] = address & 0xff;
+
+	ret = ax203_send_cmd (camera, 0, cmd_buffer, sizeof(cmd_buffer),
+			      (char *)buf, 2);
+	if (ret < 0) return ret;
+
+	return be16atoh(buf);
+}
 
 static int
 ax3003_get_frame_id(Camera *camera)
@@ -273,7 +300,7 @@ ax203_eeprom_device_identification(Camera *camera, char *buf)
 {
 	char cmd = SPI_EEPROM_RDID;
 
-	return ax203_send_eeprom_cmd (camera, 0, &cmd, 1, buf, 4);
+	return ax203_send_eeprom_cmd (camera, 0, &cmd, 1, buf, 4, 0);
 }
 
 static int
@@ -281,7 +308,7 @@ ax203_eeprom_release_from_deep_powerdown(Camera *camera)
 {
 	char cmd = SPI_EEPROM_RDP;
 
-	return ax203_send_eeprom_cmd (camera, 1, &cmd, 1, NULL, 0);
+	return ax203_send_eeprom_cmd (camera, 1, &cmd, 1, NULL, 0, 0);
 }
 
 static int
@@ -295,11 +322,12 @@ ax203_eeprom_read(Camera *camera, int address, char *buf, int buf_size)
 	cmd[3] = (address) & 0xff;
 		    
 	return ax203_send_eeprom_cmd (camera, 0, cmd, sizeof(cmd), buf,
-				      buf_size);
+				      buf_size, 0);
 }
 
 static int
-ax203_eeprom_program_page(Camera *camera, int address, char *buf, int buf_size)
+ax203_eeprom_program_page(Camera *camera, int address, char *buf, int buf_size,
+	char extra_arg)
 {
 	char cmd[4];
 
@@ -309,7 +337,7 @@ ax203_eeprom_program_page(Camera *camera, int address, char *buf, int buf_size)
 	cmd[3] = (address) & 0xff;
 		    
 	return ax203_send_eeprom_cmd (camera, 1, cmd, sizeof(cmd), buf,
-				      buf_size);
+				      buf_size, extra_arg);
 }
 
 static int
@@ -317,7 +345,7 @@ ax203_eeprom_write_enable(Camera *camera)
 {
 	char cmd = SPI_EEPROM_WREN;
 
-	return ax203_send_eeprom_cmd (camera, 1, &cmd, 1, NULL, 0);
+	return ax203_send_eeprom_cmd (camera, 1, &cmd, 1, NULL, 0, 0);
 }
 
 static int
@@ -328,7 +356,7 @@ ax203_eeprom_clear_block_protection(Camera *camera)
 	cmd[0] = SPI_EEPROM_WRSR;
 	cmd[1] = 0;
 
-	return ax203_send_eeprom_cmd (camera, 1, cmd, sizeof(cmd), NULL, 0);
+	return ax203_send_eeprom_cmd (camera, 1, cmd, sizeof(cmd), NULL, 0, 0);
 }
 
 static int
@@ -341,7 +369,7 @@ ax203_eeprom_erase_4k_sector(Camera *camera, int address)
 	cmd[2] = (address >> 8) & 0xff;
 	cmd[3] = (address) & 0xff;
 		    
-	return ax203_send_eeprom_cmd (camera, 1, cmd, sizeof(cmd), NULL, 0);
+	return ax203_send_eeprom_cmd (camera, 1, cmd, sizeof(cmd), NULL, 0, 0);
 }
 
 static int
@@ -354,7 +382,7 @@ ax203_eeprom_erase_64k_sector(Camera *camera, int address)
 	cmd[2] = (address >> 8) & 0xff;
 	cmd[3] = (address) & 0xff;
 		    
-	return ax203_send_eeprom_cmd (camera, 1, cmd, sizeof(cmd), NULL, 0);
+	return ax203_send_eeprom_cmd (camera, 1, cmd, sizeof(cmd), NULL, 0, 0);
 }
 
 static int
@@ -380,7 +408,8 @@ ax203_eeprom_wait_ready(Camera *camera)
 	}
 
 	while (1) {
-		CHECK (ax203_send_eeprom_cmd (camera, 0, &cmd, 1, buf, count))
+		CHECK (ax203_send_eeprom_cmd (camera, 0, &cmd, 1,
+					      buf, count, 0))
 		/* We only need to check the last read */
 		if (!(buf[count - 1] & 0x01)) /* Check write in progress bit */
 			break; /* No write in progress, done waiting */
@@ -445,7 +474,7 @@ ax203_write_sector(Camera *camera, int sector, char *buf)
 		for (i = 0; i < SPI_EEPROM_SECTOR_SIZE; i += 256) {
 			CHECK (ax203_eeprom_write_enable (camera))
 			CHECK (ax203_eeprom_program_page (camera, base + i,
-							  buf + i, 256))
+							  buf + i, 256, 0))
 			CHECK (ax203_eeprom_wait_ready (camera))
 		}
 	}
@@ -1574,11 +1603,23 @@ ax203_commit_block_64k(Camera *camera, int bss)
 	return GP_OK;
 }
 
+/* The ax3003 and the ax206 with AAI capable eeproms can program 64k at once,
+   this is probably done by special handling inside the firmware. */
 static int
-ax203_commit_block_ax3003(Camera *camera, int bss)
+ax203_commit_block_64k_at_once(Camera *camera, int bss)
 {
 	int block_sector_size = SPI_EEPROM_BLOCK_SIZE / SPI_EEPROM_SECTOR_SIZE;
 	int i, address = bss * SPI_EEPROM_SECTOR_SIZE;
+	int checksum = 0;
+	char extra_arg = 0;
+
+	/* The ax206 (and we assume the same applies for ax203, untested!):
+	   1) Needs the last byte of the scsi cmd to be 2 to enable 64k pp
+	   2) Has an extra checksum function, which we might as well use. */
+	if (camera->pl->frame_version != AX3003_FIRMWARE_3_5_x) {
+		extra_arg = 2;
+		checksum = 1;
+	}
 
 	/* Make sure we have read the entire block before erasing it !! */
 	for (i = 0; i < block_sector_size; i++)
@@ -1594,13 +1635,30 @@ ax203_commit_block_ax3003(Camera *camera, int bss)
 	/* Erase the block */
 	CHECK (ax203_erase64k_sector (camera, bss))
 
-	/* And program the block in one large 64k page write, the ax3003
-	   probably emulates this in firmware, to avoid usb bus overhead. */
+	/* program the block in one large 64k page write */
 	CHECK (ax203_eeprom_write_enable (camera))
 	CHECK (ax203_eeprom_program_page (camera, address,
 					  camera->pl->mem + address,
-					  SPI_EEPROM_BLOCK_SIZE))
+					  SPI_EEPROM_BLOCK_SIZE, extra_arg))
 	CHECK (ax203_eeprom_wait_ready (camera))
+
+	/* and ask the device to verify the write with a checksum */
+	if (checksum) {
+		checksum = 0;
+		for (i = address; i < (address + SPI_EEPROM_BLOCK_SIZE); i++)
+			checksum += ((uint8_t *)camera->pl->mem)[i];
+		checksum &= 0xffff;
+
+		i = ax203_get_checksum(camera, address, SPI_EEPROM_BLOCK_SIZE);
+		if (i < 0)
+			return i;
+		if (i != checksum) {
+			gp_log (GP_LOG_ERROR, "ax203",
+				"checksum mismatch after programming "
+				"expected %04x, got %04x\n", checksum, i);
+			return GP_ERROR_IO;
+		}
+	}
 
 	for (i = 0; i < block_sector_size; i++)
 		camera->pl->sector_dirty[bss + i] = 0;
@@ -1630,8 +1688,8 @@ ax203_commit(Camera *camera)
 		if (!dirty_sectors)
 			continue;
 
-		if (camera->pl->frame_version == AX3003_FIRMWARE_3_5_x)
-			CHECK (ax203_commit_block_ax3003 (camera, i))
+		if (camera->pl->pp_64k)
+			CHECK (ax203_commit_block_64k_at_once (camera, i))
 		/* There are 16 4k sectors per 64k block, when we need to
 		   program 12 or more sectors, programming the entire block
 		   becomes faster */
@@ -1700,9 +1758,13 @@ ax203_open_device(Camera *camera)
 
 	camera->pl->mem_size       = ax203_eeprom_info[i].mem_size;
 	camera->pl->has_4k_sectors = ax203_eeprom_info[i].has_4k_sectors;
-	GP_DEBUG ("%s EEPROM found, capacity: %d, has 4k sectors: %d",
-		  ax203_eeprom_info[i].name, camera->pl->mem_size,
-		  camera->pl->has_4k_sectors);
+	camera->pl->pp_64k         = ax203_eeprom_info[i].pp_64k;
+	if (camera->pl->frame_version == AX3003_FIRMWARE_3_5_x)
+		camera->pl->pp_64k = 1;
+	GP_DEBUG (
+		"%s EEPROM found, capacity: %d, has 4k sectors: %d, pp_64k %d",
+		ax203_eeprom_info[i].name, camera->pl->mem_size,
+		camera->pl->has_4k_sectors, camera->pl->pp_64k);
 
 	return ax203_init (camera);
 }

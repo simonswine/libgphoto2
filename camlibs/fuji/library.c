@@ -18,6 +18,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#define _BSD_SOURCE
+
 #include "config.h"
 
 #include <string.h>
@@ -52,7 +54,7 @@
 
 #define GP_MODULE "fuji"
 
-#define CR(result) {int r = (result); if (r < 0) return (r);}
+#define CR(result) {int __r = (result); if (__r < 0) return (__r);}
 
 static const struct {
 	const char *model;
@@ -224,19 +226,18 @@ get_file_func (CameraFilesystem *fs, const char *folder,
 }
 
 static int
-put_file_func (CameraFilesystem *fs, const char *folder,
-	       CameraFile *file, void *data, GPContext *context)
+put_file_func (CameraFilesystem *fs, const char *folder, const char *name,
+	       CameraFileType type, CameraFile *file, void *data, GPContext *context)
 {
 	Camera *camera = data;
-	const char *d, *name;
+	const char *d;
 	unsigned long int d_len;
 
+	if (type != GP_FILE_TYPE_NORMAL)
+		return GP_ERROR_BAD_PARAMETERS;
 	CR (gp_file_get_data_and_size (file, &d, &d_len));
-	CR (gp_file_get_name (file, &name));
 	CR (fuji_upload_init (camera, name, context));
-	CR (fuji_upload (camera, d, d_len, context));
-
-	return (GP_OK);
+	return fuji_upload (camera, d, d_len, context);
 }
 
 static int
@@ -467,10 +468,6 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	info->file.fields = GP_FILE_INFO_NONE;
 	info->preview.fields = GP_FILE_INFO_NONE;
 	info->audio.fields = GP_FILE_INFO_NONE;
-
-	/* Name */
-	info->file.fields |= GP_FILE_INFO_NAME;
-	strncpy (info->file.name, filename, sizeof (info->file.name));
 
 	/* We need file numbers starting with 1 */
 	CR (n = gp_filesystem_number (camera->fs, folder, filename, context));

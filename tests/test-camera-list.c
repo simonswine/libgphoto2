@@ -30,7 +30,14 @@
 #include <gphoto2/gphoto2-camera.h>
 #include <gphoto2/gphoto2-port-portability.h>
 
-#define CHECK(f) {int res = f; if (res < 0) {printf ("ERROR: %s\n", gp_result_as_string (res)); return (1);}}
+#define CHECK(f) \
+	do { \
+		int res = f; \
+		if (res < 0) { \
+			printf ("ERROR: %s\n", gp_result_as_string (res)); \
+			return (1); \
+		} \
+	} while (0)
 
 
 #ifdef __GNUC__
@@ -49,11 +56,8 @@ struct timeval glob_tv_zero = { 0, 0 };
 
 
 static void
-#ifdef __GNUC__
-		__attribute__((__format__(printf,3,0)))
-#endif
-debug_func (GPLogLevel level, const char *domain, const char *format,
-	    va_list args, void __unused__ *data)
+debug_func (GPLogLevel level, const char *domain, const char *str,
+	    void __unused__ *data)
 {
 	struct timeval tv;
 	long sec, usec;
@@ -62,9 +66,7 @@ debug_func (GPLogLevel level, const char *domain, const char *format,
 	sec = tv.tv_sec  - glob_tv_zero.tv_sec;
 	usec = tv.tv_usec - glob_tv_zero.tv_usec;
 	if (usec < 0) {sec--; usec += 1000000L;}
-	fprintf (stderr, "%li.%06li %s(%i): ", sec, usec, domain, level);
-	vfprintf (stderr, format, args);
-	fputc ('\n', stderr);
+	fprintf (stderr, "%li.%06li %s(%i): %s\n", sec, usec, domain, level, str);
 }
 
 
@@ -128,7 +130,7 @@ typedef enum {
 static OutputFormat format = FMT_HEADED_TEXT;
 
 
-// #define DEBUG_OUTPUT
+/* #define DEBUG_OUTPUT */
 
 
 /** Parse command line and set global variables. */
@@ -204,7 +206,7 @@ main (int argc, char *argv[])
 		const char *camlib_env = getenv(CAMLIBDIR_ENV);
 		const char *camlibs = (camlib_env != NULL)?camlib_env:CAMLIBS;
 
-		printf("no camera drivers (camlibs) found in camlib dir:\n"
+		printf("No camera drivers (camlibs) found in camlib dir:\n"
 		       "    CAMLIBS='%s', default='%s', used=%s\n",
 		       camlib_env?camlib_env:"(null)", CAMLIBS,
 		       (camlib_env!=NULL)?"CAMLIBS":"default");

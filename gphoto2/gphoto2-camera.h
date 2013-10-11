@@ -174,6 +174,7 @@ typedef int (*CameraSetConfigFunc) (Camera *camera, CameraWidget  *widget,
 				    GPContext *context);
 typedef int (*CameraCaptureFunc)   (Camera *camera, CameraCaptureType type,
 				    CameraFilePath *path, GPContext *context);
+typedef int (*CameraTriggerCaptureFunc)   (Camera *camera, GPContext *context);
 typedef int (*CameraCapturePreviewFunc) (Camera *camera, CameraFile *file,
 					 GPContext *context);
 typedef int (*CameraSummaryFunc)   (Camera *camera, CameraText *text,
@@ -228,6 +229,7 @@ typedef struct _CameraFunctions {
 
 	/* Capturing */
 	CameraCaptureFunc        capture;	/**< \brief Remote control the camera to capture */
+	CameraTriggerCaptureFunc trigger_capture;/**< \brief Remote control the camera to trigger capture */
 	CameraCapturePreviewFunc capture_preview;/**< \brief Preview viewfinder content. */
 
 	/* Textual information */
@@ -237,7 +239,6 @@ typedef struct _CameraFunctions {
 
 	/* Event Interface */
 	CameraWaitForEvent wait_for_event;	/**< \brief Wait for a specific event from the camera */
-
 	/* Reserved space to use in the future without changing the struct size */
 	void *reserved1;			/**< \brief reserved for future use */
 	void *reserved2;			/**< \brief reserved for future use */
@@ -246,11 +247,8 @@ typedef struct _CameraFunctions {
 	void *reserved5;			/**< \brief reserved for future use */
 	void *reserved6;			/**< \brief reserved for future use */
 	void *reserved7;			/**< \brief reserved for future use */
+	void *reserved8;			/**< \brief reserved for future use */
 } CameraFunctions;
-
-/* Those are DEPRECATED */
-typedef GPPort     CameraPort;
-typedef GPPortInfo CameraPortInfo;
 
 typedef struct _CameraPrivateLibrary  CameraPrivateLibrary;
 typedef struct _CameraPrivateCore     CameraPrivateCore;
@@ -301,6 +299,7 @@ int gp_camera_get_port_speed    (Camera *camera);
 /** \name Initialization 
  * @{ 
  */
+int gp_camera_autodetect 	 (CameraList *list, GPContext *context);
 int gp_camera_init               (Camera *camera, GPContext *context);
 int gp_camera_exit               (Camera *camera, GPContext *context);
 
@@ -327,6 +326,7 @@ int gp_camera_get_about		 (Camera *camera, CameraText *about,
 				  GPContext *context);
 int gp_camera_capture 		 (Camera *camera, CameraCaptureType type,
 				  CameraFilePath *path, GPContext *context);
+int gp_camera_trigger_capture 	 (Camera *camera, GPContext *context);
 int gp_camera_capture_preview 	 (Camera *camera, CameraFile *file,
 				  GPContext *context);
 int gp_camera_wait_for_event     (Camera *camera, int timeout,
@@ -348,7 +348,9 @@ int gp_camera_folder_list_folders (Camera *camera, const char *folder,
 				   CameraList *list, GPContext *context);
 int gp_camera_folder_delete_all   (Camera *camera, const char *folder,
 				   GPContext *context);
-int gp_camera_folder_put_file     (Camera *camera, const char *folder,
+int gp_camera_folder_put_file     (Camera *camera,
+				   const char *folder, const char *filename,
+				   CameraFileType type,
 				   CameraFile *file, GPContext *context);
 int gp_camera_folder_make_dir     (Camera *camera, const char *folder,
 				   const char *name, GPContext *context);
@@ -369,6 +371,10 @@ int gp_camera_file_set_info 	(Camera *camera, const char *folder,
 int gp_camera_file_get		(Camera *camera, const char *folder, 
 				 const char *file, CameraFileType type,
 				 CameraFile *camera_file, GPContext *context);
+int gp_camera_file_read		(Camera *camera, const char *folder, const char *file,
+		    		 CameraFileType type, 
+		    		 uint64_t offset, char *buf, uint64_t *size,
+		    		 GPContext *context);
 int gp_camera_file_delete     	(Camera *camera, const char *folder, 
 				 const char *file, GPContext *context);
 /**@}*/
@@ -398,5 +404,6 @@ void         gp_camera_stop_timeout      (Camera *camera, unsigned int id);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
 
 #endif /* __GPHOTO2_CAMERA_H__ */

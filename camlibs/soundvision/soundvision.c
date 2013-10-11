@@ -21,7 +21,6 @@
 #ifdef OS2
 #include <db.h>
 #endif
-#include <netinet/in.h>
 
 #include <gphoto2/gphoto2.h>
 
@@ -285,7 +284,6 @@ static int get_file_func (CameraFilesystem *fs, const char *folder,
 
     gp_file_set_data_and_size (file, data, size);
        /* Maybe skip below if EXIF data present? */
-    gp_file_set_name (file, filename);
    
        /* As far as I know we only support JPG and MOV */
        /* Maybe some have MP3???                       */
@@ -386,21 +384,16 @@ static int delete_file_func (CameraFilesystem *fs, const char *folder,
 }
 
 
-static int put_file_func (CameraFilesystem *fs, const char *folder, 
-			  CameraFile *file, void *data, GPContext *context) {
+static int put_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
+			  CameraFileType type, CameraFile *file, void *data, GPContext *context) {
    
     Camera *camera=data;
-    const char *filename;
     const char *data_file;
     long data_size;
    
-           /*
-	    * Upload the file to the camera. Use gp_file_get_data_and_size,
-	    * gp_file_get_name, etc.
-	    */
-
-    gp_file_get_name(file, &filename);
-   
+    /*
+     * Upload the file to the camera. Use gp_file_get_data_and_size, etc.
+    */
     GP_DEBUG ("*** put_file_func");
     GP_DEBUG ("*** folder: %s", folder);
     GP_DEBUG ("*** filename: %s", filename);

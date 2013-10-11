@@ -422,20 +422,18 @@ out:
  * with it and sometimes refuses to send data the correct way
  */
 static int
-put_file_func (CameraFilesystem *fs, const char *folder, CameraFile *file,
+put_file_func (CameraFilesystem *fs, const char *folder, const char *fn, CameraFile *file,
 	       void *data, GPContext *context)
 {
 	Camera *camera = data;
 	char *buf = NULL, *reply = NULL, *cmd =NULL;
-	const char *fn = NULL, *imgdata = NULL;
+	const char *imgdata = NULL;
 	int ret, channel, len;
 	long size;
 
 	ret = g3_cwd_command (camera->port, folder);
 	if (ret < GP_OK) goto out;
 
-	ret = gp_file_get_name (file, &fn);
-	if (ret < GP_OK) goto out;
 	ret = gp_file_get_data_and_size (file, &imgdata, &size);
 	if (ret < GP_OK) goto out;
 
@@ -628,10 +626,9 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	struct tm xtm;
 	char *cmd = NULL, *reply = NULL;
 
-	info->file.fields = GP_FILE_INFO_TYPE | GP_FILE_INFO_NAME |
+	info->file.fields = GP_FILE_INFO_TYPE |
 			GP_FILE_INFO_SIZE | GP_FILE_INFO_TYPE;
 	strcpy(info->file.type,GP_MIME_UNKNOWN);
-	strcpy(info->file.name, filename);
 
 	if (!strcmp(filename+9,"JPG") || !strcmp(filename+9,"jpg"))
 		strcpy(info->file.type,GP_MIME_JPEG);
@@ -811,14 +808,12 @@ file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 
 				/* we also get parts of fs info for free, so just set it */
 				info.file.fields =
-						GP_FILE_INFO_NAME |
 						GP_FILE_INFO_SIZE |
 						GP_FILE_INFO_MTIME;
 				info.file.size =(ubuf[n*32+28]<<24)|
 						(ubuf[n*32+29]<<16)|
 						(ubuf[n*32+30]<< 8)|
 						(ubuf[n*32+31]    );
-				strcpy(info.file.name,xfn);
 				if (!strcmp(xfn+9,"JPG") || !strcmp(xfn+9,"jpg")) {
 					strcpy(info.file.type,GP_MIME_JPEG);
 					info.file.fields |= GP_FILE_INFO_TYPE;
@@ -852,7 +847,7 @@ file_list_func (CameraFilesystem *fs, const char *folder, CameraList *list,
 					((year & 3) == 0 && month < 2 ? 1 : 0)+
 					3653);
 
-				ret = gp_filesystem_set_info_noop(fs, folder, info, context);
+				ret = gp_filesystem_set_info_noop(fs, folder, xfn, info, context);
  
 			}
 		}

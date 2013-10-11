@@ -7,10 +7,10 @@
  * License as published by the Free Software Foundation; either
  * version 2 of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details. 
+ * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the
@@ -47,10 +47,10 @@ struct _CameraPrivateLibrary {
 int jl2005c_init (Camera *camera, GPPort *port, CameraPrivateLibrary *priv);
 int jl2005c_open_data_reg (Camera *camera, GPPort *port);
 int jl2005c_get_pic_data_size (CameraPrivateLibrary *priv, Info *table, int n);
-unsigned long jl2005c_get_start_of_photo(CameraPrivateLibrary *priv, 
+unsigned long jl2005c_get_start_of_photo (CameraPrivateLibrary *priv,
 						Info *table, unsigned int n);
 
-int set_usb_in_endpoint	     (Camera *camera, int inep);
+int set_usb_in_endpoint       (Camera *camera, int inep);
 int jl2005c_read_data  (GPPort *port, char *data, int size);
 int jl2005c_reset (Camera *camera, GPPort *port);
 int jl2005c_delete_all (Camera *camera, GPPort *port);

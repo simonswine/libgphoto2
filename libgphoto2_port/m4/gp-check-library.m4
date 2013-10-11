@@ -81,6 +81,9 @@ case "$host" in
 	*darwin*)	soext=".dylib" ;;
 	*w32*)		soext=".dll" ;;
 esac
+case "$host_os" in
+	gnu*)		soext=".so" ;;
+esac
 if test "x$soext" = "x"; then
 	soext=".so"
 	AC_MSG_RESULT([${soext}])
@@ -351,11 +354,10 @@ PKG_CONFIG_PATH=${PKG_CONFIG_PATH}
 *   - set PKG_CONFIG_PATH to adequate value
 *   - call configure with [$1][_LIBS]=.. and [$1][_CFLAGS]=..
 *   - call configure with one of the --with-$2 parameters
-]m4_ifval([$9],[dnl
-*   - get $2 and install it
-],[dnl
+][m4_ifval([$9],[dnl
 *   - get $2 and install it:
-      $9]))
+*     $9],[dnl
+*   - get $2 and install it])])
 fi
 ])dnl
 dnl
@@ -376,11 +378,14 @@ PKG_CONFIG_PATH=${PKG_CONFIG_PATH}
 *   - set PKG_CONFIG_PATH to adequate value
 *   - call configure with [$1][_LIBS]=.. and [$1][_CFLAGS]=..
 *   - call configure with one of the --with-$2 parameters
-]m4_ifval([$9],[dnl
-*   - get $2 and install it
-],[dnl
+][m4_ifval([$9],[dnl
 *   - get $2 and install it:
-      $9]))
+*     $9],[dnl
+*   - get $2 and install it
+])][m4_if([$2],[libusb],[dnl
+*   - if you have libusb >= 1.0 installed, you must also install
+*     either the libusb0 compat library or a libusb 0.x version
+])])
 fi
 ])dnl
 AM_CONDITIONAL([HAVE_][$1], [test "x$have_[$1]" = "xyes"])

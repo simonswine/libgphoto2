@@ -1,22 +1,128 @@
-2012-03-30  gettextize  <bug-gnu-gettext@gnu.org>
+2010-07-10  Dan Fandrich <dan@coneharvesters.com>
 
-	* auto-m4/gettext.m4: Upgrade to gettext-0.17.
-	* auto-m4/iconv.m4: Upgrade to gettext-0.17.
-	* auto-m4/lib-ld.m4: Upgrade to gettext-0.17.
-	* auto-m4/lib-link.m4: Upgrade to gettext-0.17.
-	* auto-m4/lib-prefix.m4: Upgrade to gettext-0.17.
-	* auto-m4/nls.m4: Upgrade to gettext-0.17.
-	* auto-m4/po.m4: Upgrade to gettext-0.17.
-	* auto-m4/progtest.m4: Upgrade to gettext-0.17.
-	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump to 0.17.
+	* Fixed some C89 portability issues.
+	* Eliminated some compiler warnings, fixing a couple of small
+	  bugs in the process.
+
+2010-03-12  Hans de Goede <hdegoede@redhat.com>
+
+	* camlibs/st2205: New camera driver for ST2205 based picture frames.
+	* libgphoto2_port/usbdiskdirect: USB Disk direct acccess driver
+	  (for ST2205 based picture frames.)
+	* New dependency for "libgd" for image conversion for above driver.
+	* configure.ac, camlibs/Makefile.am: hooked up new camlib, new gd check.
+
+2010-03-06  Marcus Meissner  <marcus@jet.franken.de>
+
+	* gphoto2/gphoto2-context.h, libgphoto2/gphoto2-context.c:
+	  Make context functions not use varargs anymore to pass
+	  strings out to frontends. The backends still pass in varargs
+	  strings.
+	  This will ease binding implementations.
+
+2009-12-13  Marcus Meissner  <marcus@jet.franken.de>
+
+	* gphoto2/gphoto2-widget.h, libgphoto2/gphoto2-widget.c:
+	  added set_ and get_ readonly for Widgets.
 
 2009-07-30  Dan Fandrich <dan@coneharvesters.com>
 
 	* Fixed a bunch of C89 and SUS portability issues.
 
-	* camlibs/aox/library.c: Fixed a buffer overflow in the AOX
-	  driver that would occur when fewer than 15 pictures were
-	  on the camera.
+2009-04-13  Marcus Meissner   <marcus@jet.franken.de>
+
+	* gphoto2-filesys.c: Disabled LRU caching.
+
+	* gp_file_new_from_handler(): Allow passing data in and out via
+          handler functions (to allow streaming).
+
+	* CameraFileInfoFile: removed "name" structmember and
+	  GP_FILE_INFO_NAME flags.  Use direct passing in of the filename
+	  to the API functions.
+
+	* New: gp_camera_autodetect(CameraList *list, GPContext*);
+
+	  Simple autodetection function returning all current detected cameras.
+
+	* (TODO: not yet New: gp_camera_open (Camera *camera, const char *name, const char *port, GPContext *context);
+
+	   Simple open function without needing to involve libgphoto2_port.
+	  )
+	* gp_file_set_name() and _get_name() passing in is no longer
+	  needed and the API will go away.
+
+	* New gp_file_get_name_by_type() will convert a regular filename
+	  ("normal") into one depending on type (e.g. "raw_" prefix) and
+	  adjusted suffix (like ".ppm" turning into ".pgm" for grayscale
+	  previews).
+
+	* gp_file_set_type() and gp_file_get_type() are gone, these
+	  functions are now implicit passed via arguments to the the
+	  put_file and set_file_noop() functions.
+
+	* gp_filesystem_set_info_noop(), gp_filesystem_set_file_noop(),
+	  gp_filesystem_put_file(), gp_camera_folder_put_file():
+
+	  Added "filename" argument to pass in the filename. The one
+	  from CameraFileInfoFile and CameraFile are no longer used.
+
+	  Added "type" argument to pass in the filetype (GP_FILE_TYPE_*).
+
+	* Adjusted to new GPPortInfo handling.
+
+	* Rewrote gphoto2-filesys.c to be directory based (in a tree
+	  structure). Change should not be visibile outside of gphoto2-filesys.c.
+
+2008-05-18  Marcus Meissner   <marcus@jet.franken.de>
+
+	* libgphoto2/gphoto2-filesys.c: Do not try to extract EXIF data
+	  if the file is too large. This avoids memory allocating for
+	  file descriptor based downloads.
+
+2008-05-06  Hubert Figuiere  <hub@figuiere.net>
+
+	* camlibs/ptp2/library.c: Added Nikon P5100
+
+2008-04-20  Theodore Kilgore <kilgota@auburn.edu> 
+
+	* libgphoto2/bayer.h: gp_ahd_interpolate() and gp_ahd_decode() added.
+	* libgphoto2/ahd_bayer.c: added.
+	* libgphoto2/Makefile.am: ahd_bayer.c hooked up. 
+	* libgphoto2/libgphoto2.sym: gp_ahd_decode and gp_ahd_interpolate listed.
+	
+	
+2008-03-31  Marcus Meissner  <meissner@suse.de>
+	
+	* libgphoto2/gphoto2-abilities-list.c: Use qsort() instead
+	  of bubble sort. Saves 0.4 seconds on a 2Ghz machine.
+
+	  Found by Szigeti Janos.
+
+2008-02-26  Marcus Meissner  <meissner@suse.de>
+
+	* packaging/generic/print-camera-list.c:
+
+	  HAL's "info.bus" is been called "info.subsystem" now.
+
+2007-10-21  Marcus Meissner  <marcus@jet.franken.de>
+
+	* gphoto2/gphoto2-filesys.h: Change long
+	  to uint64_t, int to uint32_t to fix the struct
+	  sizes to a better known value (mostly for C#).
+	  Include <stdint.h>, a ISO C99 feature.
+
+	  This changes the "CameraFileInfo" and "CameraStorageInformation"
+	  struct sizes on all platforms.
+
+2007-10-16  Marcus Meissner  <marcus@jet.franken.de>
+
+	* libgphoto2/gphoto2-list.c: Removed artificial limit 
+	  on entries in CameraList (now dynamic) and also
+	  the artificial limit on name/value (now dynamic).
+
+	  This is source code compatible, but not ABI compatible.
+
+	  Bumped SO version to 6 (with libtool increment rules).
 
 2007-07-25  Hubert Figuiere  <hub@figuiere.net>
 
@@ -1877,7 +1983,7 @@
 
 	* HACKING: we prefer patches against CVS and camlibs should use
 	  their own ChangeLog files
-	* doc/figures/*.fig: My, we are k3wl. We have CVS $Id: ChangeLog 13954 2012-03-30 13:55:01Z marcusmeissner $s in PIX!
+	* doc/figures/*.fig: My, we are k3wl. We have CVS $Id: ChangeLog 13144 2010-07-11 08:03:32Z dfandrich $s in PIX!
 	* doc/figures/gphotofs.fig: added sketch of gphotofs idea flash
 	* libgphoto2/gphoto2-file.h: added note about CRW (Canon RaW)
 

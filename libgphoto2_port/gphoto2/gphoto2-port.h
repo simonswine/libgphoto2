@@ -92,13 +92,6 @@ typedef struct _GPPortSettingsUSB {
 } GPPortSettingsUSB;
 
 /**
- * \brief Port settings for the local disk (directories) port.
- */
-typedef struct _GPPortSettingsDisk {
-	char mountpoint[128];	/**< \brief Path in the UNIX fs which corresponds to gphoto2 / */
-} GPPortSettingsDisk;
-
-/**
  * \brief Port settings for USB mass storage direct IO ports.
  */
 typedef struct _GPPortSettingsUsbDiskDirect {
@@ -121,7 +114,6 @@ typedef struct _GPPortSettingsUsbScsi {
 typedef union _GPPortSettings {
 	GPPortSettingsSerial serial;	/**< \brief Serial specific settings */
 	GPPortSettingsUSB usb;		/**< \brief USB specific settings */
-	GPPortSettingsDisk disk;	/**< \brief Disk port specific settings */
 	GPPortSettingsUsbDiskDirect usbdiskdirect; /**< \brief usb disk direct port specific settings */
 	GPPortSettingsUsbScsi usbscsi;	/**< \brief usb scsi port specific settings */
 } GPPortSettings;
@@ -164,11 +156,13 @@ typedef struct _GPPort {
 int gp_port_new         (GPPort **port);
 int gp_port_free        (GPPort *port);
 
-int gp_port_set_info    (GPPort *port, GPPortInfo  info);
+int gp_port_set_info    (GPPort *port, GPPortInfo info);
 int gp_port_get_info    (GPPort *port, GPPortInfo *info);
 
 int gp_port_open        (GPPort *port);
 int gp_port_close       (GPPort *port);
+
+int gp_port_reset       (GPPort *port);
 
 int gp_port_write       (GPPort *port, const char *data, int size);
 int gp_port_read        (GPPort *port,       char *data, int size);
@@ -256,5 +250,3 @@ typedef GPPortSettings gp_port_settings;
 #endif /* __cplusplus */
 
 #endif /* __GPHOTO2_PORT_H__ */
-
-

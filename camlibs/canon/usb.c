@@ -472,6 +472,8 @@ canon_usb_init (Camera *camera, GPContext *context)
 
         GP_DEBUG ("Initializing the (USB) camera.");
 
+	/* FIXME: check these ... they seem necessary actually, but might
+	 * cause issues on USB 3 or RaspBerry Pi */
 	gp_port_usb_clear_halt (camera->port, GP_PORT_USB_ENDPOINT_IN);
 	gp_port_usb_clear_halt (camera->port, GP_PORT_USB_ENDPOINT_OUT);
 	gp_port_usb_clear_halt (camera->port, GP_PORT_USB_ENDPOINT_INT);
@@ -871,51 +873,57 @@ canon_usb_get_body_id (Camera *camera, GPContext *context)
  * canon_usb_poll_interrupt_pipe:
  * @camera: the Camera to work with
  * @buf: buffer to receive data read from the pipe.
- * @n_tries: number of times to try
+ * @timeout: time in 1/1000 of a second
  *
  * Reads the interrupt pipe repeatedly until either
  * 1. a non-zero length is returned,
  * 2. an error code is returned, or
- * 3. the number of read attempts reaches @n_tries.
+ * 3. the timeout is reached
  *
  * Returns:
  *  length of read, or
- *  zero if n_tries has been exceeded, or
+ *  zero if the timeout is reached
  *  gphoto2 error code from read that results in an I/O error.
  *
  */
-static int canon_usb_poll_interrupt_pipe ( Camera *camera, unsigned char *buf, int n_tries )
+static int canon_usb_poll_interrupt_pipe ( Camera *camera, unsigned char *buf, unsigned int timeout )
 {
-        int i, status = 0, timeout;
-        struct timeval start, end;
+        int i = 0, status = 0, oldtimeout;
+        struct timeval start, end, cur;
         double duration;
 
         memset ( buf, 0x81, 0x40 ); /* Put weird stuff in buffer */
 
-	gp_port_get_timeout ( camera->port, &timeout );
+	gp_port_get_timeout ( camera->port, &oldtimeout );
 	gp_port_set_timeout ( camera->port, CANON_FAST_TIMEOUT );
 
         /* Read repeatedly until we get either an
-           error or a non-zero size. */
+           error, a non-zero size or hit the timeout. */
         gettimeofday ( &start, NULL );
-        for ( i=0; i<n_tries; i++ ) {
-                status = gp_port_check_int ( camera->port,
-                                                  (char *)buf, 0x40 );
-                if ( status != 0 ) /* Either some real data, or failure */
+	while (1) {
+		unsigned long curduration;
+
+		i++;
+                status = gp_port_check_int ( camera->port, (char *)buf, 0x40 );
+                /* Either some real data, or failure */
+                if ( status != 0 && status != GP_ERROR_TIMEOUT)
                         break;
+        	gettimeofday ( &cur, NULL );
+		curduration =	(cur.tv_sec-start.tv_sec)*1000 +
+				(cur.tv_usec-start.tv_usec)/1000;
+		if (curduration >= timeout)
+			break;
         }
         gettimeofday ( &end, NULL );
 
-	gp_port_set_timeout ( camera->port, timeout );
+	gp_port_set_timeout ( camera->port, oldtimeout );
 
         duration  =   (double)end.tv_sec +   end.tv_usec/1e6;
         duration -= (double)start.tv_sec + start.tv_usec/1e6;
-        if ( status <= 0 ) {
-                gp_log ( GP_LOG_ERROR, "canon/usb.c",
-			 _("canon_usb_poll_interrupt_pipe:"
-			   " interrupt read failed after %i tries, %6.3f sec \"%s\""),
-                         i, duration, gp_result_as_string(status) );
-	}
+        if ( status <= 0 )
+                GP_DEBUG ( "canon_usb_poll_interrupt_pipe:"
+			   " interrupt read failed after %i tries, %6.3f sec \"%s\"",
+                           i, duration, gp_result_as_string(status) );
         else
                 GP_DEBUG ( "canon_usb_poll_interrupt_pipe:"
                            " interrupt packet took %d tries, %6.3f sec",
@@ -984,10 +992,9 @@ canon_usb_poll_interrupt_multiple ( Camera *camera[], int n_cameras,
 
 
         if ( status <= 0 )
-                gp_log ( GP_LOG_ERROR, "canon/usb.c",
-			 _("canon_usb_poll_interrupt_multiple:"
-			   " interrupt read failed after %i tries, \"%s\""),
-                         i, gp_result_as_string(status) );
+                GP_DEBUG ( "canon_usb_poll_interrupt_multiple:"
+			   " interrupt read failed after %i tries, \"%s\"",
+                           i, gp_result_as_string(status) );
         else
                 GP_DEBUG ( "canon_usb_poll_interrupt_multiple:"
                            " interrupt packet took %d tries", i+1 );
@@ -1010,18 +1017,18 @@ canon_usb_wait_for_event (Camera *camera, int timeout,
 	if (!camera->pl->directory_state)
 		status = canon_usb_list_all_dirs ( camera, &camera->pl->directory_state, &directory_state_len, context );
 	if (status < GP_OK) {
-		gp_log (GP_LOG_DEBUG, "canon/usb.c", "canon_usb_wait_for_event: status %d", status);
+		GP_DEBUG ("canon_usb_wait_for_event: status %d", status);
 		return status;
 	}
 
 	*eventtype = GP_EVENT_TIMEOUT;
 	*eventdata = NULL;
-        status = canon_usb_poll_interrupt_pipe ( camera, buf2, timeout/CANON_FAST_TIMEOUT+1 );
-	gp_log (GP_LOG_DEBUG, "canon/usb.c", "canon_usb_wait_for_event: status %d", status);
-	if (!status)
-		return GP_OK;
+	status = canon_usb_poll_interrupt_pipe ( camera, buf2, timeout );
+	GP_DEBUG ("canon_usb_wait_for_event: status %d", status);
+	if (status <= GP_OK)
+		return status;
 	*eventtype = GP_EVENT_UNKNOWN;
-	gp_log (GP_LOG_DEBUG, "canon/usb.c", "canon_usb_wait_for_event: bytes %x %x %x %x %x", buf2[0],buf2[1],buf2[2],buf2[3],buf2[4]);
+	GP_DEBUG ("canon_usb_wait_for_event: bytes %x %x %x %x %x", buf2[0],buf2[1],buf2[2],buf2[3],buf2[4]);
 	switch (buf2[4]) {
 	case 0x0e: {
 		CameraFilePath *path;
@@ -1096,7 +1103,7 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
 
 
         /* First, let's try to make sure the interrupt pipe is clean. */
-        while ( (status = canon_usb_poll_interrupt_pipe ( camera, buf2, 10 )) > 0 );
+        while ( (status = canon_usb_poll_interrupt_pipe ( camera, buf2, CANON_FAST_TIMEOUT )) > 0 );
 
         /* Shutter release can take a long time sometimes on EOS
          * cameras; perhaps buffer is full and needs to be flushed? */
@@ -1158,7 +1165,8 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
         camera->pl->image_key = 0x81818181;
 
         while ( buf2[4] != 0x0f ) {
-                status = canon_usb_poll_interrupt_pipe ( camera, buf2, MAX_INTERRUPT_TRIES );
+		/* Give the camera a long time ... (even covering bulb exposures) */
+                status = canon_usb_poll_interrupt_pipe ( camera, buf2, MAX_INTERRUPT_TRIES*CANON_FAST_TIMEOUT );
                 if ( status > 0x17 )
                         GP_DEBUG ( "canon_usb_capture_dialogue:"
                                    " interrupt read too long (length=%i)", status );
@@ -1170,9 +1178,9 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
                         /* Thumbnail size */
                         if ( status != 0x17 )
                                 gp_log (GP_LOG_ERROR, "canon/usb.c",
-					_("canon_usb_capture_dialogue:"
+					"canon_usb_capture_dialogue:"
 					  " bogus length 0x%04x"
-					  " for thumbnail size packet"), status );
+					  " for thumbnail size packet", status );
                         camera->pl->thumb_length = le32atoh ( buf2+0x11 );
                         camera->pl->image_key = le32atoh ( buf2+0x0c );
                         GP_DEBUG ( "canon_usb_capture_dialogue: thumbnail size %ld, tag=0x%08lx",
@@ -1187,9 +1195,9 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
                         /* Full image size */
                         if ( status != 0x17 )
                                 gp_log (GP_LOG_ERROR, "canon/usb.c",
-					_("canon_usb_capture_dialogue:"
+					"canon_usb_capture_dialogue:"
 					  " bogus length 0x%04x"
-					  " for full image size packet"), status );
+					  " for full image size packet", status );
                         camera->pl->image_length = le32atoh ( buf2+0x11 );
                         camera->pl->image_key = le32atoh ( buf2+0x0c );
                         GP_DEBUG ( "canon_usb_capture_dialogue: full image size: 0x%08lx, tag=0x%08lx",
@@ -1205,9 +1213,8 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
 		case 0x10:
                         /* Secondary image size, key */
 			/* (only for RAW + JPEG modes) */
-			gp_log ( GP_LOG_DEBUG, "canon/usb.c",
-				 _("canon_usb_capture_dialogue: "
-				   "secondary image descriptor received"));
+			GP_DEBUG ( "canon_usb_capture_dialogue: "
+				   "secondary image descriptor received");
 			
 			camera->pl->image_b_length = le32atoh ( buf2+0x11 );
 			camera->pl->image_b_key = le32atoh ( buf2+0x0c );
@@ -1233,8 +1240,8 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
                                 }
                                 else {
                                         gp_log (GP_LOG_ERROR, "canon/usb.c",
-						_("canon_usb_capture_dialogue:"
-						  " first interrupt read out of sequence") );
+						"canon_usb_capture_dialogue:"
+						  " first interrupt read out of sequence");
                                         goto FAIL;
                                 }
                         }
@@ -1242,8 +1249,8 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
                                 GP_DEBUG ( "canon_usb_capture_dialogue: second interrupt read (after image sizes)" );
                                 if ( camera->pl->capture_step != 1 ) {
                                         gp_log (GP_LOG_ERROR, "canon/usb.c",
-						_("canon_usb_capture_dialogue:"
-						  " second interrupt read out of sequence") );
+						"canon_usb_capture_dialogue:"
+						  " second interrupt read out of sequence");
                                         goto FAIL;
                                 }
                                 camera->pl->capture_step++;
@@ -1253,8 +1260,8 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
                         }
                         else if ( buf2[12] == 0x0a ) {
                                 gp_log (GP_LOG_ERROR, "canon/usb.c",
-					_("canon_usb_capture_dialogue:"
-					  " photographic failure signaled, code = 0x%08x"),
+					"canon_usb_capture_dialogue:"
+					  " photographic failure signaled, code = 0x%08x",
                                          le32atoh ( buf2+16 ) );
 				*photo_status = le32atoh ( buf2+16 );
                                 goto FAIL2;
@@ -1273,8 +1280,8 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
                                    " EOS flash write complete from interrupt read" );
                         if ( camera->pl->capture_step != 2 && camera->pl->md->model != CANON_CLASS_6 ) {
                                 gp_log (GP_LOG_ERROR, "canon/usb.c",
-					_("canon_usb_capture_dialogue:"
-					  " third EOS interrupt read out of sequence"));
+					"canon_usb_capture_dialogue:"
+					  " third EOS interrupt read out of sequence");
                                 goto FAIL;
                         }
                         camera->pl->capture_step++;
@@ -1312,8 +1319,8 @@ canon_usb_capture_dialogue (Camera *camera, unsigned int *return_length, int *ph
                         }
                         else {
                                 gp_log (GP_LOG_ERROR, "canon/usb.c",
-					_("canon_usb_capture_dialogue:"
-					  " fourth EOS interrupt read out of sequence") );
+					"canon_usb_capture_dialogue:"
+					  " fourth EOS interrupt read out of sequence");
                                 goto FAIL;
                         }
                         break;
@@ -1330,7 +1337,7 @@ EXIT:
         *return_length = 0x1c;
         return buffer;
 FAIL:  /* Try to purge interrupt pipe, which was left in an unknown state. */
-	status = canon_usb_poll_interrupt_pipe ( camera, buf2, 1000 );
+        status = canon_usb_poll_interrupt_pipe ( camera, buf2, 1000 );
 FAIL2:	/* After "photographic error" is signaled, we know pipe is clean. */
         canon_usb_unlock_keys ( camera, context );    /* Ignore status code, as we can't fix it anyway. */
         return NULL;
@@ -1500,8 +1507,8 @@ canon_usb_dialogue_full (Camera *camera, canonCommandIndex canon_funct, unsigned
 
         if ((payload_length + 0x50) > sizeof (packet)) {
                 gp_log (GP_LOG_VERBOSE, "canon/usb.c",
-                        _("canon_usb_dialogue:"
-			  " payload too big, won't fit into buffer (%i > %i)"),
+                        "canon_usb_dialogue:"
+			  " payload too big, won't fit into buffer (%i > %i)",
                         (payload_length + 0x50), (int)sizeof (packet));
                 return NULL;
         }
@@ -1607,8 +1614,8 @@ canon_usb_dialogue_full (Camera *camera, canonCommandIndex canon_funct, unsigned
 
                         if ( reported_length > 0 && reported_length+0x40 != read_bytes ) {
                                 gp_log (GP_LOG_VERBOSE, "canon/usb.c",
-					_("canon_usb_dialogue:"
-					  " expected 0x%x bytes, but camera reports 0x%x"),
+					"canon_usb_dialogue:"
+					  " expected 0x%x bytes, but camera reports 0x%x",
                                          read_bytes, reported_length+0x40 );
                                 read_bytes = reported_length+0x40;
                         }
@@ -2265,7 +2272,7 @@ canon_usb_set_file_attributes (Camera *camera, unsigned int attr_bits,
 #ifndef CANON_EXPERIMENTAL_UPLOAD
 int
 canon_usb_put_file (Camera __unused__ *camera, CameraFile __unused__ *file,
-		    char __unused__ *destname, char __unused__ *destpath,
+		    const char __unused__ *filename, const char __unused__ *destname, const char __unused__ *destpath,
                     GPContext __unused__ *context)
 {
         return GP_ERROR_NOT_SUPPORTED;
@@ -2275,7 +2282,7 @@ canon_usb_put_file (Camera __unused__ *camera, CameraFile __unused__ *file,
 
 int
 canon_usb_put_file (Camera *camera, CameraFile *file, 
-		    char *destname, char *destpath,
+		    const char *xfilename, const char *destname, const char *destpath,
                     GPContext *context)
 {
         long int packet_size = USB_BULK_WRITE_SIZE;
@@ -2308,7 +2315,11 @@ canon_usb_put_file (Camera *camera, CameraFile *file,
         }
 
         GP_DEBUG ( "canon_put_file_usb: converting file name" );
-        CHECK_RESULT (gp_file_get_name (file, &srcname));
+        status = gp_file_get_name (file, &srcname)
+	if (status < GP_OK) {
+		free (packet);
+		return status;
+	}
 
         /* Open input file and read all its data into a buffer. */
         if(!gp_file_get_data_and_size (file, (const char **)&data, &size)) {

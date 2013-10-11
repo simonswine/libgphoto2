@@ -499,12 +499,11 @@ static int get_info_func (CameraFilesystem *fs, const char *folder,
         CHECK (index = gp_filesystem_number(camera->fs, folder, filename, context));
         index++;
 
-	info->file.fields = GP_FILE_INFO_TYPE | GP_FILE_INFO_NAME | GP_FILE_INFO_SIZE;
+	info->file.fields = GP_FILE_INFO_TYPE | GP_FILE_INFO_SIZE;
 	strcpy(info->file.type, GP_MIME_JPEG);
-        sprintf(info->file.name, DSC_FILENAMEFMT, index);
         info->file.size = dsc2_selectimage(camera, index, DSC_FULLIMAGE);
 
-	info->preview.fields = GP_FILE_INFO_TYPE | GP_FILE_INFO_NAME | GP_FILE_INFO_SIZE;
+	info->preview.fields = GP_FILE_INFO_TYPE | GP_FILE_INFO_SIZE;
 	strcpy(info->preview.type, GP_MIME_JPEG);
         info->preview.size = dsc2_selectimage(camera, index, DSC_THUMBNAIL);
 
@@ -538,7 +537,6 @@ static int get_file_func (CameraFilesystem *fs, const char *folder,
 	if (size < 0)
 		return (size);
 
-	CHECK (gp_file_set_name(file, filename));
 	CHECK (gp_file_set_mime_type(file, GP_MIME_JPEG));
 
         blocks = (size - 1)/DSC_BLOCKSIZE + 1;
@@ -556,21 +554,19 @@ static int get_file_func (CameraFilesystem *fs, const char *folder,
         return GP_OK;
 }
 
-static int put_file_func (CameraFilesystem *fs, const char *folder,
-			  CameraFile *file, void *user_data,
+static int put_file_func (CameraFilesystem *fs, const char *folder, const char *name,
+			  CameraFileType type, CameraFile *file, void *user_data,
 			  GPContext *context) {
         
 	Camera *camera = user_data;
         int             blocks, blocksize, i, result;
-	const char      *name;
 	const char      *data;
 	long int        size;
 	unsigned int id;
 
-	gp_file_get_name(file, &name);
         gp_context_status(context, _("Uploading image: %s."), name);
 
-/*      We can not figure out file type, at least by now.
+/*      We can not figure out file type, at least by now. (? curious, mime type -Marcus)
 
         if (strcmp(file->type, "image/jpg") != 0) {
                 dsc_print_message(camera, "JPEG image format allowed only.");

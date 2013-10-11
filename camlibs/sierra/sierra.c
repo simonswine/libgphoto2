@@ -17,6 +17,8 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
+#define _BSD_SOURCE
+
 #include "config.h"
 #include "sierra.h"
 
@@ -195,8 +197,6 @@ static struct {
 					SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
 	{"Olympus", "C-5050Z", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x105,
 					SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
-
-	/* probably speaking PTP over UMS too */
 	{"Olympus", "SP-500UZ", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x109,
 				SIERRA_WRAP_USB_OLYMPUS, &olysp500uz_cam_desc},
 	{"Olympus", "C-370Z", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x109,
@@ -207,12 +207,10 @@ static struct {
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
 	{"Olympus", "fe-200", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x109,
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
-
-#if 0
-	/* Speaks PTP over UMS */
+/*
 	{"Olympus", "E-520", 	SIERRA_MODEL_CAM_DESC,	0x07b4, 0x110,
 				SIERRA_WRAP_USB_OLYMPUS, &oly3040_cam_desc},
-#endif
+*/
 	{"Panasonic", "Coolshot NV-DCF5E", SIERRA_MODEL_DEFAULT, 0, 0, 0, NULL },
 
 	{"Pentax", "Optio 450", SIERRA_MODEL_DEFAULT, 0x0a17,0x0007, SIERRA_WRAP_USB_PENTAX, NULL },
@@ -363,11 +361,6 @@ get_info_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	info->preview.fields = GP_FILE_INFO_NONE;
 	info->audio.fields   = GP_FILE_INFO_NONE;
 	info->file.permissions = GP_FILE_PERM_READ;
-
-	/* Name of image */
-	strncpy (info->file.name, filename, sizeof (info->file.name) - 1);
-	info->file.name[sizeof (info->file.name) - 1] = '\0';
-	info->file.fields |= GP_FILE_INFO_NAME;
 
 	/*
 	 * Get information about this image. Don't make this fatal as
@@ -748,22 +741,22 @@ camera_capture_preview (Camera *camera, CameraFile *file, GPContext *context)
 }
 
 static int
-put_file_func (CameraFilesystem * fs, const char *folder, CameraFile * file, void *data, GPContext *context)
+put_file_func (CameraFilesystem * fs, const char *folder, const char *filename,
+	CameraFileType type, CameraFile * file, void *data, GPContext *context)
 {
 	Camera *camera = data;
 	char *picture_folder;
 	int ret;
 	const char *data_file;
 	long data_size;
-	const char *filename;
 	int available_memory;
-
-	gp_file_get_name(file, &filename);
-	
 
 	GP_DEBUG ("*** put_file_func");
 	GP_DEBUG ("*** folder: %s", folder);
 	GP_DEBUG ("*** filename: %s", filename);
+
+	if (type != GP_FILE_TYPE_NORMAL)
+		return GP_ERROR_BAD_PARAMETERS;
 	
 	/* Check the size */
 	CHECK (gp_file_get_data_and_size (file, &data_file, &data_size));
@@ -2288,6 +2281,10 @@ camera_init (Camera *camera, GPContext *context)
         /* FIXME??? What's that for? "Resetting folder system"? */
 	sierra_set_int_register (camera, 83, -1, NULL);
 #endif
+	/* How to switch the coolpix 2500 between RAW / NORMAL
+   return dsc->SetStr(0x16, raw_enabled ? "DIAG RAW" : "NIKON DIGITAL CAMERA" );
+        ret = sierra_set_string_register (camera, 0x16, "NIKON DIGITAL CAMERA", strlen("NIKON DIGITAL CAMERA"), NULL);
+	 */
 
         /* Folder support? */
 	CHECK_STOP_FREE (camera, gp_port_set_timeout (camera->port, 50));

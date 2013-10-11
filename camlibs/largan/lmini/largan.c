@@ -24,6 +24,8 @@
  * Currently only largan lmini is supported
  */
 
+#define _BSD_SOURCE
+
 #include "config.h"
 
 #include <string.h>
@@ -156,11 +158,9 @@ get_file_func (CameraFilesystem *fs, const char *folder, const char *filename,
 	ret = largan_get_pict (camera, pict_type, (uint8_t)index, pict);
 	if (ret == GP_OK) {
 		gp_file_append (file, pict->data , pict->data_size);
-		gp_file_set_name (file, filename);
 		if (pict->type == LARGAN_THUMBNAIL) {
 			gp_file_set_mime_type (file, GP_MIME_BMP);
-		}
-		else {
+		} else {
 			gp_file_set_mime_type (file, GP_MIME_JPEG);
 		}
 	}
@@ -226,9 +226,7 @@ static int
 camera_about (Camera *camera, CameraText *about, GPContext *context)
 {
 	strcpy (about->text, _("Largan driver\n"
-			       "Hubert Figuiere <hfiguiere@teaser.fr>\n\n"
-			       "Handles Largan Lmini camera.\n"
-			       ""));
+			       "Hubert Figuiere <hfiguiere@teaser.fr>\n"));
 
 	return (GP_OK);
 }

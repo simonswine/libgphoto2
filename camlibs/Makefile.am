@@ -50,8 +50,9 @@ camlib_dependencies = $(top_srcdir)/camlibs/camlib.sym
 camlib_ldflags = -module -no-undefined -avoid-version -export-dynamic \
 	-export-symbols '$(top_srcdir)/camlibs/camlib.sym' \
 	-rpath '$(camlibdir)'
-camlib_libadd = $(top_builddir)/libgphoto2/libgphoto2.la
+camlib_libadd = $(top_builddir)/libgphoto2/libgphoto2.la $(top_builddir)/libgphoto2_port/libgphoto2_port/libgphoto2_port.la 
 
+AM_CPPFLAGS += -I$(top_srcdir) -I$(top_builddir)  -I$(top_srcdir)/libgphoto2_port -I$(top_srcdir)/libgphoto2 -I$(top_builddir)/libgphoto2
 
 ########################################################################
 # You can generate this Makefile-files include list by running
@@ -95,6 +96,7 @@ include panasonic/l859/Makefile-files
 include panasonic/Makefile-files
 include pccam300/Makefile-files
 include pccam600/Makefile-files
+include pentax/Makefile-files
 include polaroid/Makefile-files
 include ptp2/Makefile-files
 include ricoh/Makefile-files
@@ -149,11 +151,11 @@ all-local: Makefile
 
 
 ########################################################################
-# Shortcut for installation of a subset of camlibs/drivers
-# Usage: make DRIVER="canon.la ptp2.la" install-drivers
+# Shortcut for installation of a subset of camlibs
+# Usage: make CAMLIBS="canon.la ptp2.la" install-camlibs
 
-install-drivers:
-	$(MAKE) BUILD_THESE_CAMLIBS="$(DRIVERS)" install-camlibLTLIBRARIES
+install-camlibs:
+	$(MAKE) BUILD_THESE_CAMLIBS="$(CAMLIBS)" install-camlibLTLIBRARIES
 
 
 ########################################################################
